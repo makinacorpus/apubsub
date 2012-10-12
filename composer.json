@@ -1,0 +1,7 @@
+{
+    "name": "pounard/apubsub",
+    "description": "Provides an asynchronous PubSub like API with Drupal implementations",
+    "autoload": {
+        "psr-0": {"APubSub": "src/"}
+    }
+}

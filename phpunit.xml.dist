@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit bootstrap="./src/APubSub/Tests/bootstrap.php" colors="true">
+
+    <testsuites>
+        <testsuite name="APubSub test suite">
+            <directory suffix="Test.php">./src/APubSub/Tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory>./</directory>
+            <exclude>
+                <directory>./external</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+</phpunit>
