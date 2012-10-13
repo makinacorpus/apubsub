@@ -1,0 +1,190 @@
+<?php
+
+/**
+ * @file
+ * APubSub module install file.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function apb7_schema() {
+  $schema = array();
+
+  $schema['apb_chan'] = array(
+    'description' => "APubSub channels",
+    'fields' => array(
+      'id' => array(
+        'description' => "Internal int32 identifier",
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => "Exposed identifier",
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => "Creation UNIX timestamp",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      // Name is the public identifier for API.
+      'apb_chan_name_key' => array('name'),
+    ),
+    'indexes' => array(
+      // Needed for load operations.
+      'apb_chan_name_idx' => array('name'),
+    ),
+  );
+
+  $schema['apb_msg'] = array(
+    'description' => "APubSub messages",
+    'fields' => array(
+      'id' => array(
+        'description' => "Internal int32 identifier",
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'chan_id' => array(
+        'description' => "Channel internal int32 identifier",
+        'type' => 'int',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => "Creation/sending UNIX timestamp",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'contents' => array(
+        'description' => "Contents",
+        'type' => 'text',
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      // Needed for deletion.
+      'apb_msg_id_idx' => array('chan_id'),
+    ),
+    'foreign keys' => array(
+      'apb_msg_chan_id_fk' => array(
+        'table' => 'apb_chan',
+        'columns' => array('chan_id' => 'id'),
+      ),
+    ),
+  );
+
+  $schema['apb_sub'] = array(
+    'description' => "APubSub subscriptions",
+    'fields' => array(
+      'id' => array(
+        'description' => "Internal int32 identifier",
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'chan_id' => array(
+        'description' => "Channel internal int32 identifier",
+        'type' => 'int',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'status' => array(
+        'description' => "Is active (1 = active, 0 = inactive)",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'created' => array(
+        'description' => "Creation UNIX timestamp",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'activated' => array(
+        'description' => "Latest activation UNIX timestamp",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'deactivated' => array(
+        'description' => "Latest deactivation UNIX timestamp",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      // Needed for admin tasks fetching, including deletion.
+      'apb_sub_id_idx' => array('chan_id'),
+      // Same as upper.
+      'apb_sub_idx' => array('status'),
+    ),
+    'foreign keys' => array(
+      'apb_sub_chan_id_fk' => array(
+        'table' => 'apb_chan',
+        'columns' => array('chan_id' => 'id'),
+      ),
+    ),
+  );
+
+  // This implements the simple schema, where all messages are queued in the
+  // same table. Another implementation with one table per channel will be done
+  // but will be entirely dynamic.
+  $schema['apb_queue'] = array(
+    'description' => "APubSub subscriptions messages queues",
+    'fields' => array(
+      'msg_id' => array(
+        'description' => "Message internal int32 identifier",
+        'type' => 'int',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'chan_id' => array(
+        'description' => "Channel internal int32 identifier",
+        'type' => 'int',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'consumed' => array(
+        'description' => "Has been consumed",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('msg_id', 'chan_id'),
+    'indexes' => array(
+      // Needed for load operations.
+      'apb_queue_consumed_idx' => array('consumed'),
+    ),
+    'foreign keys' => array(
+      'apb_queue_msg_id_fk' => array(
+        'table' => 'apb_msg',
+        'columns' => array('msg_id' => 'id'),
+      ),
+    ),
+    'foreign keys' => array(
+      'apb_queue_chan_id_fk' => array(
+        'table' => 'apb_chan',
+        'columns' => array('chan_id' => 'id'),
+      ),
+    ),
+  );
+
+  return $schema;
+}
