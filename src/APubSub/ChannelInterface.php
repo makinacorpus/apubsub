@@ -35,6 +35,13 @@ interface ChannelInterface
     public function getMessage($id);
 
     /**
+     * Get creation time as a UNIX timestamp
+     *
+     * @return int UNIX timestamp where the channel was created
+     */
+    public function getCreationTime();
+
+    /**
      * Create a new message instance
      *
      * @param mixed $contents            Any kind of contents (will be

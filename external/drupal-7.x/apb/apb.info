@@ -1,5 +1,0 @@
-name = "Async PubSub"
-description = "Provides an asynchronous PubSub like API with Drupal implementations"
-core = 7.x
-package = Utility
-php = 5.3

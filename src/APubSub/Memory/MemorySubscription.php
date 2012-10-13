@@ -25,6 +25,13 @@ class MemorySubscription implements SubscriptionInterface
     protected $channel;
 
     /**
+     * Creation UNIX timestamp
+     *
+     * @var int
+     */
+    protected $created;
+
+    /**
      * Is this subscription active
      *
      * @var bool
@@ -71,7 +78,7 @@ class MemorySubscription implements SubscriptionInterface
     {
         $this->id = $id;
         $this->channel = $channel;
-        $this->deactivatedTime = time();
+        $this->created = $this->deactivatedTime = time();
     }
 
     /**
@@ -90,6 +97,15 @@ class MemorySubscription implements SubscriptionInterface
     public function getChannel()
     {
         return $this->channel;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see APubSub.ChannelInterface::getCreationTime()
+     */
+    public function getCreationTime()
+    {
+        return $this->created;
     }
 
     /**
@@ -120,11 +136,11 @@ class MemorySubscription implements SubscriptionInterface
      */
     public function getStopTime()
     {
-      if ($this->active) {
-          throw new \LogicException("This subscription is active");
-      }
+        if ($this->active) {
+            throw new \LogicException("This subscription is active");
+        }
 
-      return $this->deactivatedTime;
+        return $this->deactivatedTime;
     }
 
     /**
@@ -133,7 +149,7 @@ class MemorySubscription implements SubscriptionInterface
      */
     public function delete()
     {
-        // Nothing to do.
+        $this->getChannel()->getBackend()->deleteSubscription($this->getId());
     }
 
     /**

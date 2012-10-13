@@ -25,6 +25,13 @@ interface SubscriptionInterface
     public function getChannel();
 
     /**
+     * Get creation time as a UNIX timestamp
+     *
+     * @return int UNIX timestamp where the channel was created
+     */
+    public function getCreationTime();
+
+    /**
      * Does this subscription is still active
      *
      * @return bool Active state

@@ -27,6 +27,13 @@ class MemoryChannel implements ChannelInterface
     protected $backend;
 
     /**
+     * Creation UNIX timestamp
+     *
+     * @var int
+     */
+    protected $created;
+
+    /**
      * All messages reference
      *
      * @var array
@@ -50,6 +57,7 @@ class MemoryChannel implements ChannelInterface
     {
         $this->id = $id;
         $this->backend = $backend;
+        $this->created = time();
     }
 
     /**
@@ -68,6 +76,15 @@ class MemoryChannel implements ChannelInterface
     public function getBackend()
     {
         return $this->backend;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see APubSub.ChannelInterface::getCreationTime()
+     */
+    public function getCreationTime()
+    {
+      return $this->created;
     }
 
     /**
