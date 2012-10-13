@@ -153,7 +153,7 @@ function apb7_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'chan_id' => array(
+      'sub_id' => array(
         'description' => "Channel internal int32 identifier",
         'type' => 'int',
         'size' => 'normal',
@@ -179,9 +179,9 @@ function apb7_schema() {
       ),
     ),
     'foreign keys' => array(
-      'apb_queue_chan_id_fk' => array(
-        'table' => 'apb_chan',
-        'columns' => array('chan_id' => 'id'),
+      'apb_queue_sub_id_fk' => array(
+        'table' => 'apb_sub',
+        'columns' => array('sub_id' => 'id'),
       ),
     ),
   );
