@@ -57,12 +57,6 @@ class D7SimpleSubscription implements SubscriptionInterface
     /**
      * Default constructor
      *
-     * @param ChannelInterface $channel 
-     * @param scalar $id                Message identifier
-     */
-    /**
-     * Default constructor
-     *
      * @param D7SimpleChannel $channel Channel this message belongs to
      * @param int $id                  Subscription identifier
      * @param int $created             Creation UNIX timestamp

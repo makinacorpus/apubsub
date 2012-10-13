@@ -89,10 +89,9 @@ class D7PubSub implements PubSubInterface
             // a channel that have been deleted by another thread
             $exists = $this
                 ->dbConnexion
-                ->query("SELECT 1 FROM {apb_chan} WHERE name = :name", array(
+                ->query("SELECT 1 FROM {apb_chan} c WHERE c.name = :name", array(
                     ':name' => $id,
                 ))
-                ->execute()
                 ->fecthField();
 
             if ($exists) {
@@ -119,7 +118,7 @@ class D7PubSub implements PubSubInterface
 
             $channel = new D7SimpleChannel($this, $id, $dbId, $created);
 
-        } catch (\Exception $e) {
+        } catch (\TotoException $e) {
             $tx->rollback();
 
             // This might another error, but WTF should not happen
@@ -146,7 +145,6 @@ class D7PubSub implements PubSubInterface
                 ->query("SELECT id FROM {apb_chan} WHERE name = :name", array(
                     ':name' => $id,
                 ))
-                ->execute()
                 ->fecthField();
 
             if (!$dbId) {
@@ -161,14 +159,14 @@ class D7PubSub implements PubSubInterface
             // Queue is not the most optimized query, but it is necessary: this
             // means that consumers will lost unseen messages
             // FIXME: Joining with apb_sub instead might be more efficient
-            $this->dbConnexion->query("DELETE FROM {apb_queue} q WHERE q.msg IN (SELECT m.id FROM {apb_msg} m WHERE m.chan_id = :dbId)", $args)->execute();
+            $this->dbConnexion->query("DELETE FROM {apb_queue} q WHERE q.msg IN (SELECT m.id FROM {apb_msg} m WHERE m.chan_id = :dbId)", $args);
 
             // Delete subscriptions and messages
-            $this->dbConnexion->query("DELETE FROM {apb_msg} WHERE chan_id = :dbId", $args)->execute();
-            $this->dbConnexion->query("DELETE FROM {apb_sub} WHERE chan_id = :dbId", $args)->execute();
+            $this->dbConnexion->query("DELETE FROM {apb_msg} WHERE chan_id = :dbId", $args);
+            $this->dbConnexion->query("DELETE FROM {apb_sub} WHERE chan_id = :dbId", $args);
 
             // Finally the last strike
-            $this->dbConnexion->query("DELETE FROM {apb_chan} WHERE id = :dbId", $args)->execute();
+            $this->dbConnexion->query("DELETE FROM {apb_chan} WHERE id = :dbId", $args);
 
             unset($tx); // Explicit commit
 
@@ -189,7 +187,7 @@ class D7PubSub implements PubSubInterface
         // FIXME: We could use a static cache here, but the channel might have
         // been deleted in another thread, however, this is very unlikely to
         // happen
-        $record = $this->dbConnexion->query("SELECT * FROM {apb_sub} WHERE id = :id", array(':id' => $id))->execute()->fetchNext();
+        $record = $this->dbConnexion->query("SELECT * FROM {apb_sub} WHERE id = :id", array(':id' => $id))->fetchNext();
 
         if (!$record || !($channel = $this->getChannelByDatabaseId($record->chan_id))) {
             throw new SubscriptionDoesNotExistException();
@@ -216,7 +214,6 @@ class D7PubSub implements PubSubInterface
             $exists = (bool)$this
                 ->dbConnexion
                 ->query("SELECT 1 FROM {apb_sub} WHERE id = :id", $args)
-                ->execute()
                 ->fecthField();
 
             if (!$exists) {
@@ -227,8 +224,8 @@ class D7PubSub implements PubSubInterface
             }
 
             // Clean queue then delete subscription
-            $this->dbConnexion->query("DELETE FROM {apb_queue} WHERE sub_id = :id", $args)->execute();
-            $this->dbConnexion->query("DELETE FROM {apb_sub} WHERE id = :id", $args)->execute();
+            $this->dbConnexion->query("DELETE FROM {apb_queue} WHERE sub_id = :id", $args);
+            $this->dbConnexion->query("DELETE FROM {apb_sub} WHERE id = :id", $args);
 
             unset($tx); // Explicit commit
 

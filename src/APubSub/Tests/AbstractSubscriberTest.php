@@ -80,7 +80,7 @@ abstract class AbstractSubscriberTest extends \PHPUnit_Framework_TestCase
 
         $subscriber->activate();
         $channel->send($channel->createMessage(24));
-        $message = $subscriber->fetch();
+        $messages = $subscriber->fetch();
         $this->assertFalse(empty($messages));
         $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
 
@@ -93,8 +93,8 @@ abstract class AbstractSubscriberTest extends \PHPUnit_Framework_TestCase
             ++$i;
         }
 
-        $message = $subscriber->fetch();
-        $this->assertFalse(empty($messages));
+        $messages = $subscriber->fetch();
+        $this->assertTrue(empty($messages));
         $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
         foreach ($messages as $fetched) {
             throw new \Exception("Queue was supposed to be emptied by the fetch() call");
@@ -102,8 +102,8 @@ abstract class AbstractSubscriberTest extends \PHPUnit_Framework_TestCase
 
         $subscriber->deactivate();
         $channel->send($channel->createMessage(12));
-        $message = $subscriber->fetch();
-        $this->assertFalse(empty($messages));
+        $messages = $subscriber->fetch();
+        $this->assertTrue(empty($messages));
         $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
         foreach ($messages as $fetched) {
             throw new \Exception("Subscriber is supposedly inactive");

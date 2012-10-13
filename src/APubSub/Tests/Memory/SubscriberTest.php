@@ -3,9 +3,9 @@
 namespace APubSub\Tests\Memory;
 
 use APubSub\Memory\MemoryPubSub;
-use APubSub\Tests\AbstractChannelTest;
+use APubSub\Tests\AbstractSubscriberTest;
 
-class SubscriberTest extends AbstractChannelTest
+class SubscriberTest extends AbstractSubscriberTest
 {
     protected function setUpBackend()
     {
