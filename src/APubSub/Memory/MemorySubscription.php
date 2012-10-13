@@ -20,7 +20,7 @@ class MemorySubscription implements SubscriptionInterface
     /**
      * Channel this message belongs to
      *
-     * @var \APubSub\MemoryChannel
+     * @var \APubSub\Memory\MemoryChannel
      */
     protected $channel;
 
