@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Drupal7;
+namespace APubSub\Predis;
 
 use APubSub\Impl\DefaultMessage;
 use APubSub\SubscriptionInterface;
@@ -8,7 +8,7 @@ use APubSub\SubscriptionInterface;
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class D7SimpleSubscription implements SubscriptionInterface
+class PredisSubscription implements SubscriptionInterface
 {
     /**
      * Message identifier
@@ -20,7 +20,7 @@ class D7SimpleSubscription implements SubscriptionInterface
     /**
      * Channel this message belongs to
      *
-     * @var \APubSub\Drupal7\D7SimpleChannel
+     * @var \APubSub\Predis\PredisChannel
      */
     protected $channel;
 
@@ -55,21 +55,16 @@ class D7SimpleSubscription implements SubscriptionInterface
     protected $deactivatedTime;
 
     /**
-     * @var \DatabaseConnection
-     */
-    protected $dbConnection;
-
-    /**
      * Default constructor
      *
-     * @param D7SimpleChannel $channel Channel this message belongs to
-     * @param int $id                  Subscription identifier
-     * @param int $created             Creation UNIX timestamp
-     * @param int $activatedTime       Latest activation UNIX timestamp
-     * @param int $deactivatedTime     Latest deactivation UNIX timestamp
-     * @param bool $isActive           Is this subscription active
+     * @param PredisChannel $channel Channel this message belongs to
+     * @param int $id                Subscription identifier
+     * @param int $created           Creation UNIX timestamp
+     * @param int $activatedTime     Latest activation UNIX timestamp
+     * @param int $deactivatedTime   Latest deactivation UNIX timestamp
+     * @param bool $isActive         Is this subscription active
      */
-    public function __construct(D7SimpleChannel $channel, $id,
+    public function __construct(PredisChannel $channel, $id,
         $created, $activatedTime, $deactivatedTime, $isActive)
     {
         $this->id = $id;
@@ -78,7 +73,6 @@ class D7SimpleSubscription implements SubscriptionInterface
         $this->activatedTime = $activatedTime;
         $this->deactivatedTime = $deactivatedTime;
         $this->active = $isActive;
-        $this->dbConnection = $this->channel->getBackend()->getConnection();
     }
 
     /**
@@ -148,7 +142,8 @@ class D7SimpleSubscription implements SubscriptionInterface
      * @see \APubSub\SubscriptionInterface::delete()
      */
     public function delete()
-    {throw new \Exception("Not implemented yet");
+    {
+        throw new \Exception("Not implemented yet");
         $this->getChannel()->getBackend()->deleteSubscription($this->getId());
     }
 
@@ -157,7 +152,8 @@ class D7SimpleSubscription implements SubscriptionInterface
      * @see \APubSub\SubscriptionInterface::fetch()
      */
     public function fetch()
-    {throw new \Exception("Not implemented yet");
+    {
+        throw new \Exception("Not implemented yet");
         // Keep older message, no feature is yet stubbed for this but this will
         // be later
         $this->readMessages += $this->messageQueue;
@@ -174,17 +170,17 @@ class D7SimpleSubscription implements SubscriptionInterface
      */
     public function deactivate()
     {
-        $deactivated = time();
+        $backend = $this->channel->getBackend();
+        $client  = $backend->getPredisClient();
+        $subKey  = $backend->getKeyName(PredisPubSub::KEY_PREFIX_SUB . $this->id);
+        $now     = time();
 
-        $this
-            ->dbConnection
-            ->query("UPDATE {apb_sub} SET status = 0, deactivated = :deactivated WHERE id = :id", array(
-                ':deactivated' => $deactivated,
-                ':id' => $this->id,
-            ));
+        $client->hmset($subKey, array(
+            "active" => 0,
+            "deactivated" => $now,
+        ));
 
-        $this->active = false;
-        $this->deactivatedTime = $deactivated;
+        // FIXME: Also clear this subscription queue
     }
 
     /**
@@ -193,25 +189,14 @@ class D7SimpleSubscription implements SubscriptionInterface
      */
     public function activate()
     {
-        $activated = time();
+        $backend = $this->channel->getBackend();
+        $client  = $backend->getPredisClient();
+        $subKey  = $backend->getKeyName(PredisPubSub::KEY_PREFIX_SUB . $this->id);
+        $now     = time();
 
-        $this
-            ->dbConnection
-            /*
-            ->query("UPDATE {apb_sub} SET status = 1, activated = :activated WHERE id = :id", array(
-                ':activated' => $activated,
-                ':id' => $this->id,
-            ));
-             */
-            ->update('apb_sub')
-            ->fields(array(
-                'activated' => $activated,
-                'status' => 1,
-            ))
-            ->condition('id', $this->id)
-            ->execute();
-
-        $this->active = true;
-        $this->activatedTime = $activated;
+        $client->hmset($subKey, array(
+            "active" => 1,
+            "activated" => $now,
+        ));
     }
 }

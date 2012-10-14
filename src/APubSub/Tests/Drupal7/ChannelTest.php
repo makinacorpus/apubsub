@@ -19,6 +19,9 @@ class ChannelTest extends AbstractChannelTest
 
     protected function setUp()
     {
+        $this->markTestSkipped("Drupal 7 connection handler and database information are not available.");
+        return;
+
         if (!self::$drupalBootstrapped) { // Ugly!
             define('DRUPAL_ROOT', '/var/www/d7-core/www');
             require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
@@ -27,7 +30,6 @@ class ChannelTest extends AbstractChannelTest
         }
 
         // FIXME: Restore later
-        //$this->markTestSkipped("Drupal 7 connection handler and database information are not available.");
 
         $this->dbConnection = \Database::getConnection();
 

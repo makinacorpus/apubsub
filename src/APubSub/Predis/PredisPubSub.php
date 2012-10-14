@@ -1,42 +1,118 @@
 <?php
 
-namespace APubSub\Drupal7;
+namespace APubSub\Predis;
 
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\PubSubInterface;
 
-use \DatabaseConnection;
+use Predis\Client;
 
 /**
- * Array based implementation for unit testing: do not use in production
+ * Predis based implementation.
+ *
+ *  - Each channel is basic key, whose name is prefixed.
+ *
+ *  - Each subscription is two things: a HSET that will contain all its
+ *    properties and a sorted list of messages ids (queue)
+ *
+ *  - Each message is an HSET which will contain both the created and contents
+ *    keys. This allows both sharding and primitive typed values to be stored
+ *    efficiently.
+ *
+ * @todo
+ *   - Moved helper functions into an helper object
+ *   - Inject all of client, backend and helper into channel and subscription 
  */
-class D7PubSub implements PubSubInterface
+class PredisPubSub implements PubSubInterface
 {
     /**
-     * @var \DatabaseConnection
+     * Channel based key prefix
      */
-    protected $dbConnection;
+    const KEY_PREFIX_CHAN = 'c:';
+
+    /**
+     * Subscription based key prefix
+     */
+    const KEY_PREFIX_MSG = 'm:';
+
+    /**
+     * Subscription based key prefix
+     */
+    const KEY_PREFIX_SUB = 's:';
+
+    /**
+     * Sequences key prefix
+     */
+    const KEY_PREFIX_SEQ = 'seq:';
+
+    /**
+     * @var \Predis\Client
+     */
+    protected $predisClient;
+
+    /**
+     * @var string
+     */
+    protected $keyPrefix = 'apb:';
 
     /**
      * Default constructor
      *
      * @param DatabaseConnection $dbConnection Drupal database connexion
+     * @param string $keyPrefix                Key name prefix
      */
-    public function __construct(DatabaseConnection $dbConnection)
+    public function __construct(Client $predisClient, $keyPrefix = null)
     {
-        $this->dbConnection = $dbConnection;
+        $this->predisClient = $predisClient;
+
+        if (null !== $keyPrefix) {
+            $this->keyPrefix = $keyPrefix;
+        }
     }
 
     /**
-     * Get database connection
+     * Get key name
      *
-     * @return \DatabaseConnection The database connection
+     * @param string $name Original key name
+     *
+     * @return string      Prefixed key name
      */
-    public function getConnection()
+    public function getKeyName($name)
     {
-        return $this->dbConnection;
+        return $this->keyPrefix . $name;
+    }
+
+    /**
+     * Get next sequence id
+     *
+     * @param string $name
+     */
+    public function getNextId($name)
+    {
+        $seqKey  = $this->getKeyName(self::KEY_PREFIX_SEQ . $name);
+        $retries = 5;
+
+        do {
+            $this->predisClient->watch($seqKey);
+            $this->predisClient->multi();
+            $value = $this->predisClient->incr($seqKey);
+            $replies = $this->predisClient->exec();
+
+        } while (!$replies[0] && 0 < $retries--);
+
+        return $seqKey;
+    }
+
+    /**
+     * Get Predis client
+     *
+     * @return \Predis\Client The predis client
+     */
+    public function getPredisClient()
+    {
+        return $this->predisClient;
     }
 
     /**
@@ -45,19 +121,13 @@ class D7PubSub implements PubSubInterface
      */
     public function getChannel($id)
     {
-        // FIXME: We could use a static cache here, but the channel might have
-        // been deleted in another thread, however, this is very unlikely to
-        // happen
-        $record = $this
-            ->dbConnection
-            ->query("SELECT * FROM {apb_chan} WHERE name = :name", array(':name' => $id))
-            ->fetchObject();
+        $chanKey = $this->getKeyName(self::KEY_PREFIX_CHAN . 'id');
 
-        if (!$record) {
+        if (!$created = $this->predisClient->get($chanKey)) {
             throw new ChannelDoesNotExistException();
         }
 
-        return new D7SimpleChannel($this, $record->name, (int)$record->id, (int)$record->created);
+        return new PredisChannel($this, $id, (int)$created);
     }
 
     /**
@@ -66,6 +136,7 @@ class D7PubSub implements PubSubInterface
      */
     public function getChannelByDatabaseId($id)
     {
+        throw new \Exception("Not implemented yet");
         // FIXME: We could use a static cache here, but the channel might have
         // been deleted in another thread, however, this is very unlikely to
         // happen
@@ -88,46 +159,26 @@ class D7PubSub implements PubSubInterface
      */
     public function createChannel($id)
     {
-        $channel = null;
+        $chanKey = $this->getKeyName(self::KEY_PREFIX_CHAN . 'id');
         $created = time();
-        $dbId    = null;
-        $tx      = $this->dbConnection->startTransaction();
 
-        try {
-            // No not ever use cache here, we cannot afford to try to create
-            // a channel that have been deleted by another thread
-            $exists = $this
-                ->dbConnection
-                ->query("SELECT 1 FROM {apb_chan} c WHERE c.name = :name", array(
-                    ':name' => $id,
-                ))
-                ->fetchField();
+        $this->predisClient->watch($chanKey);
 
-            if ($exists) {
-                throw new ChannelAlreadyExistsException();
-            }
-
-            $this
-                ->dbConnection
-                ->insert('apb_chan')
-                ->fields(array(
-                    'name' => $id,
-                    'created' => $created,
-                ))
-                ->execute();
-
-            $dbId = (int)$this->dbConnection->lastInsertId();
-            unset($tx); // Explicit commit
-
-            $channel = new D7SimpleChannel($this, $id, $dbId, $created);
-
-        } catch (\Exception $e) {
-            $tx->rollback();
-
-            throw $e;
+        if ($this->predisClient->get($chanKey)) {
+            throw new \ChannelAlreadyExistsException();
         }
 
-        return $channel;
+        // FIXME: Later use pipelining.
+        $this->predisClient->multi();
+        $this->predisClient->set($chanKey, $created);
+        $replies = $this->predisClient->exec();
+
+        if (!$replies[0]) {
+            // Transaction failed, another thread created the same channel
+            throw new \ChannelAlreadyExistsException();
+        }
+
+        return new PredisChannel($this, $id, $created);
     }
 
     /**
@@ -136,6 +187,7 @@ class D7PubSub implements PubSubInterface
      */
     public function deleteChannel($id)
     {
+        throw new \Exception("Not implemented yet");
         $dbId = null;
         $tx   = $this->dbConnection->startTransaction();
 
@@ -182,6 +234,7 @@ class D7PubSub implements PubSubInterface
      */
     public function getSubscription($id)
     {
+        throw new \Exception("Not implemented yet");
         // FIXME: We could use a static cache here, but the channel might have
         // been deleted in another thread, however, this is very unlikely to
         // happen
@@ -202,6 +255,7 @@ class D7PubSub implements PubSubInterface
      */
     public function deleteSubscription($id)
     {
+        throw new \Exception("Not implemented yet");
         $tx = $this->dbConnection->startTransaction();
 
         try {
@@ -240,6 +294,7 @@ class D7PubSub implements PubSubInterface
      */
     public function deleteSubscriptions($idList)
     {
+        throw new \Exception("Not implemented yet");
         // FIXME: Optimize this if necessary
         foreach ($idList as $id) {
             $this->deleteSubscription($id);

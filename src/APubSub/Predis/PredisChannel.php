@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Drupal7;
+namespace APubSub\Predis;
 
 use APubSub\ChannelInterface;
 use APubSub\Error\MessageDoesNotExistException;
@@ -10,7 +10,7 @@ use APubSub\MessageInterface;
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class D7SimpleChannel implements ChannelInterface
+class PredisChannel implements ChannelInterface
 {
     /**
      * Channel identifier
@@ -20,16 +20,9 @@ class D7SimpleChannel implements ChannelInterface
     protected $id;
 
     /**
-     * Channel database identifier
-     *
-     * @var int
-     */
-    protected $dbId;
-
-    /**
      * Current backend
      *
-     * @var \APubSub\Drupal7\D7PubSub
+     * @var \APubSub\Predis\PredisPubSub
      */
     protected $backend;
 
@@ -41,25 +34,17 @@ class D7SimpleChannel implements ChannelInterface
     protected $created;
 
     /**
-     * @var \DatabaseConnection
-     */
-    protected $dbConnection;
-
-    /**
      * Internal constructor
      *
-     * @param string $id        Channel identifier
-     * @param int $dbId         Channel database identifier
-     * @param D7PubSub $backend Backend
-     * @param int $created      Creation UNIX timestamp
+     * @param PredisPubSub $backend Backend
+     * @param string $id            Channel identifier
+     * @param int $created          Creation UNIX timestamp
      */
-    public function __construct(D7PubSub $backend, $id, $dbId, $created)
+    public function __construct(PredisPubSub $backend, $id, $created)
     {
         $this->id = $id;
-        $this->dbId = $dbId;
         $this->backend = $backend;
         $this->created = $created;
-        $this->dbConnection = $this->backend->getConnection();
     }
 
     /**
@@ -69,16 +54,6 @@ class D7SimpleChannel implements ChannelInterface
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * For internal use only: get database identifier
-     *
-     * @return int Channel database identifier
-     */
-    public function getDatabaseId()
-    {
-        return $this->dbId;
     }
 
     /**
@@ -104,7 +79,8 @@ class D7SimpleChannel implements ChannelInterface
      * @see \APubSub\ChannelInterface::getMessage()
      */
     public function getMessage($id)
-    {throw new \Exception("Not implemented yet");
+    {
+        throw new \Exception("Not implemented yet");
         if (!isset($this->messages[$id])) {
             throw new MessageDoesNotExistException();
         }
@@ -127,6 +103,7 @@ class D7SimpleChannel implements ChannelInterface
      */
     public function send(MessageInterface $message)
     {
+        throw new \Exception("Not implemented yet");
         if (!$message instanceof DefaultMessage || $message->getChannel() !== $this) {
             throw new \LogicException(
                 "You are trying to inject a message which does not originate from this channel");
@@ -175,31 +152,19 @@ class D7SimpleChannel implements ChannelInterface
      */
     public function subscribe()
     {
-        $deactivated = time();
-        $created     = $deactivated;
-        $tx          = $this->dbConnection->startTransaction();
+        $client  = $this->backend->getPredisClient();
+        $id      = $this->backend->getNextId('sub');
+        $subKey  = $this->backend->getKeyName(PredisPubSub::KEY_PREFIX_SUB . $id);
+        $active  = 0;
+        $now     = time();
 
-        try {
-            $this
-                ->dbConnection
-                ->insert('apb_sub')
-                ->fields(array(
-                    'chan_id' => $this->dbId,
-                    'status' => 0,
-                    'created' => $created,
-                    'deactivated' => $deactivated,
-                ))
-                ->execute();
+        $client->hmset($subKey, array(
+            "created"     => $now,
+            "active"      => 0,
+            "activated"   => 0,
+            "deactivated" => $now
+        ));
 
-            $id = $this->dbConnection;
-
-            return new D7SimpleSubscription($this,
-                $id, $created, 0, $deactivated, false);
-
-        } catch (\Exception $e) {
-            $tx->rollback();
-
-            throw $e;
-        }
+        return new PredisSubscription($this, $id, $now, 0, $now, false);
     }
 }
