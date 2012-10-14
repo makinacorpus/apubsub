@@ -101,6 +101,16 @@ class DefaultMessage implements MessageInterface
     }
 
     /**
+     * Set sent timestamp
+     *
+     * @param int $sendTime UNIX timestamp when the message is being sent
+     */
+    public function setSendTimestamp($sendTime)
+    {
+        $this->sendTime = $sendTime;
+    }
+
+    /**
      * (non-PHPdoc)
      * @see \APubSub\MessageInterface::getContents()
      */

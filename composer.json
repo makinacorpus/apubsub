@@ -1,7 +1,18 @@
 {
     "name": "pounard/apubsub",
     "description": "Provides an asynchronous PubSub like API with Drupal implementations",
+    "authors": [
+        {
+            "name": "Pierre Rineau",
+            "email": "pierre.rineau-php@processus.org",
+            "homepage": "http://blog.processus.org",
+            "role": "Developer"
+        }
+    ],
     "autoload": {
         "psr-0": {"APubSub": "src/"}
+    },
+    "suggest": {
+        "predis/predis": "Allows to use the Predis backend"
     }
 }

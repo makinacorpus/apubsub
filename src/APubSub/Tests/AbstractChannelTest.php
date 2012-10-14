@@ -32,7 +32,7 @@ abstract class AbstractChannelTest extends \PHPUnit_Framework_TestCase
 
     public function testMessageCreation()
     {
-        $channel  = $this->backend->createChannel('foo');
+        $channel  = $this->backend->createChannel('bar');
         $contents = array('test' => 12);
 
         $message = $channel->createMessage($contents);
@@ -48,7 +48,7 @@ abstract class AbstractChannelTest extends \PHPUnit_Framework_TestCase
 
     public function testMessageSendToSubscriber()
     {
-        $channel  = $this->backend->createChannel('foo');
+        $channel  = $this->backend->createChannel('baz');
         $contents = array('test' => 12);
 
         $subscriber = $channel->subscribe();
