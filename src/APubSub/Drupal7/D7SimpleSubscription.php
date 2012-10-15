@@ -8,7 +8,8 @@ use APubSub\SubscriptionInterface;
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class D7SimpleSubscription implements SubscriptionInterface
+class D7SimpleSubscription extends AbstractD7Object implements
+    SubscriptionInterface
 {
     /**
      * Message identifier
@@ -55,11 +56,6 @@ class D7SimpleSubscription implements SubscriptionInterface
     protected $deactivatedTime;
 
     /**
-     * @var \DatabaseConnection
-     */
-    protected $dbConnection;
-
-    /**
      * Default constructor
      *
      * @param D7SimpleChannel $channel Channel this message belongs to
@@ -78,7 +74,9 @@ class D7SimpleSubscription implements SubscriptionInterface
         $this->activatedTime = $activatedTime;
         $this->deactivatedTime = $deactivatedTime;
         $this->active = $isActive;
-        $this->dbConnection = $this->channel->getBackend()->getConnection();
+
+        $this->setDatabaseConnection(
+            $this->channel->getDatabaseConnection());
     }
 
     /**
@@ -157,13 +155,48 @@ class D7SimpleSubscription implements SubscriptionInterface
      * @see \APubSub\SubscriptionInterface::fetch()
      */
     public function fetch()
-    {throw new \Exception("Not implemented yet");
-        // Keep older message, no feature is yet stubbed for this but this will
-        // be later
-        $this->readMessages += $this->messageQueue;
+    {
+        $ret = array();
+        $cx  = $this->getDatabaseConnection();
 
-        $ret = $this->messageQueue;
-        $this->messageQueue = array();
+        $idList = $cx
+            // Don't care about sort hopefully the items will be naturally
+            // ordered by insertion time even thought this is not guaranteed
+            // by any SQL standard
+            ->query("SELECT msg_id FROM {apb_queue} WHERE sub_id = :id AND consumed = 0", array(
+                ':id' => $this->id,
+            ))
+            ->fetchCol();
+
+        if (empty($idList)) {
+            return $ret;
+        }
+
+        // We could JOIN instead, but let's avoid that and do two queries
+        // instead, this will avoid too many index operations and potential
+        // temporary tables (MySQL)
+        $result = $cx
+           ->select('apb_msg', 'm')
+           ->fields('m')
+           ->condition('id', $idList, 'IN')
+           ->execute();
+
+        foreach ($result as $record) {
+            $ret[] = new DefaultMessage(
+                $this->channel, unserialize($record->contents),
+                (int)$record->id, (int)$record->created);
+        }
+
+        // Clear the queue
+        // FIXME: Ideally, this behavior would be configurable (keep or not the
+        // messages)
+        // FIXME: Delete using sub_id instead would allow newly queued message
+        // during our own processing to be deleted: can't do this
+        $cx
+            ->delete('apb_queue')
+            ->condition('sub_id', $this->id)
+            ->condition('msg_id', $idList, 'IN')
+            ->execute();
 
         return $ret;
     }
@@ -177,7 +210,7 @@ class D7SimpleSubscription implements SubscriptionInterface
         $deactivated = time();
 
         $this
-            ->dbConnection
+            ->getDatabaseConnection()
             ->query("UPDATE {apb_sub} SET status = 0, deactivated = :deactivated WHERE id = :id", array(
                 ':deactivated' => $deactivated,
                 ':id' => $this->id,
@@ -196,20 +229,11 @@ class D7SimpleSubscription implements SubscriptionInterface
         $activated = time();
 
         $this
-            ->dbConnection
-            /*
+            ->getDatabaseConnection()
             ->query("UPDATE {apb_sub} SET status = 1, activated = :activated WHERE id = :id", array(
                 ':activated' => $activated,
                 ':id' => $this->id,
             ));
-             */
-            ->update('apb_sub')
-            ->fields(array(
-                'activated' => $activated,
-                'status' => 1,
-            ))
-            ->condition('id', $this->id)
-            ->execute();
 
         $this->active = true;
         $this->activatedTime = $activated;

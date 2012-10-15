@@ -10,7 +10,7 @@ use APubSub\MessageInterface;
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class D7SimpleChannel implements ChannelInterface
+class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
 {
     /**
      * Channel identifier
@@ -41,11 +41,6 @@ class D7SimpleChannel implements ChannelInterface
     protected $created;
 
     /**
-     * @var \DatabaseConnection
-     */
-    protected $dbConnection;
-
-    /**
      * Internal constructor
      *
      * @param string $id        Channel identifier
@@ -59,7 +54,8 @@ class D7SimpleChannel implements ChannelInterface
         $this->dbId = $dbId;
         $this->backend = $backend;
         $this->created = $created;
-        $this->dbConnection = $this->backend->getConnection();
+
+        $this->setDatabaseConnection($this->backend->getDatabaseConnection());
     }
 
     /**
@@ -104,12 +100,21 @@ class D7SimpleChannel implements ChannelInterface
      * @see \APubSub\ChannelInterface::getMessage()
      */
     public function getMessage($id)
-    {throw new \Exception("Not implemented yet");
-        if (!isset($this->messages[$id])) {
+    {
+        // FIXME: Could/should use a static cache here? I guess so.
+        $record = $this
+            ->getDatabaseConnection()
+            ->query("SELECT * FROM {apb_msg} WHERE id = :id AND chan_id = :chanId", array(
+                ':id' => $id,
+                ':chanId' => $this->dbId,
+            ))
+            ->fetchObject();
+
+        if (!$record) {
             throw new MessageDoesNotExistException();
         }
 
-        return $this->messages[$id];
+        return new DefaultMessage($this, unserialize($record->contents), $id, (int)$record->created);
     }
 
     /**
@@ -118,7 +123,8 @@ class D7SimpleChannel implements ChannelInterface
      */
     public function send($contents, $sendTime = null)
     {
-        $tx = $this->dbConnection->startTransaction();
+        $cx = $this->getDatabaseConnection();
+        $tx = $cx->startTransaction();
         $id = null;
 
         if (null === $sendTime) {
@@ -126,8 +132,7 @@ class D7SimpleChannel implements ChannelInterface
         }
 
         try {
-            $this
-                ->dbConnection
+            $cx
                 ->insert('apb_msg')
                 ->fields(array(
                     'chan_id' => $this->dbId,
@@ -136,11 +141,10 @@ class D7SimpleChannel implements ChannelInterface
                 ))
                 ->execute();
 
-            $id = $this->dbConnection->lastInsertId();
+            $id = (int)$cx->lastInsertId();
 
             // Send message to all subscribers
-            $this
-                ->dbConnection
+            $cx
                 ->query("
                     INSERT INTO apb_queue
                         SELECT :msgId AS msg_id, s.id AS sub_id, 0 AS consumed
@@ -168,11 +172,11 @@ class D7SimpleChannel implements ChannelInterface
     {
         $deactivated = time();
         $created     = $deactivated;
-        $tx          = $this->dbConnection->startTransaction();
+        $cx          = $this->getDatabaseConnection();
+        $tx          = $cx->startTransaction();
 
         try {
-            $this
-                ->dbConnection
+            $cx
                 ->insert('apb_sub')
                 ->fields(array(
                     'chan_id' => $this->dbId,
@@ -182,7 +186,7 @@ class D7SimpleChannel implements ChannelInterface
                 ))
                 ->execute();
 
-            $id = $this->dbConnection;
+            $id = $cx->lastInsertId();
 
             return new D7SimpleSubscription($this,
                 $id, $created, 0, $deactivated, false);

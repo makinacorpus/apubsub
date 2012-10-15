@@ -35,10 +35,6 @@ class ChannelTest extends AbstractChannelTest
 
         $this->dbConnection = \Database::getConnection();
 
-        if (!$this->dbConnection) {
-            
-        }
-
         if (true /* not skipped */) {
             parent::setUp();
         }
