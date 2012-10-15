@@ -171,9 +171,8 @@ class PredisSubscription extends AbstractPredisObject implements SubscriptionInt
      */
     public function deactivate()
     {
-        $backend = $this->channel->getBackend();
-        $client  = $backend->getPredisClient();
-        $subKey  = $backend->getKeyName(PredisPubSub::KEY_PREFIX_SUB . $this->id);
+        $client  = $this->context->client;
+        $subKey  = $this->context->getKeyName(PredisContext::KEY_PREFIX_SUB . $this->id);
         $now     = time();
 
         $client->hmset($subKey, array(
@@ -190,9 +189,8 @@ class PredisSubscription extends AbstractPredisObject implements SubscriptionInt
      */
     public function activate()
     {
-        $backend = $this->channel->getBackend();
-        $client  = $backend->getPredisClient();
-        $subKey  = $backend->getKeyName(PredisPubSub::KEY_PREFIX_SUB . $this->id);
+        $client  = $this->context->client;
+        $subKey  = $this->context->getKeyName(PredisContext::KEY_PREFIX_SUB . $this->id);
         $now     = time();
 
         $client->hmset($subKey, array(

@@ -29,14 +29,14 @@ class PredisContext
     /**
      * @var string
      */
-    protected $keyPrefix = 'apb:';
+    public $keyPrefix = 'apb:';
 
     /**
      * @var \Predis\Client
      */
-    protected $client;
+    public $client;
 
-    public function __construct(Client $client = null, array $options = null)
+    public function __construct(array $options = null, Client $client = null)
     {
         if (null !== $client) {
             $this->client = $client;

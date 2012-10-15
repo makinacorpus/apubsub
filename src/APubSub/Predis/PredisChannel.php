@@ -92,18 +92,23 @@ class PredisChannel extends AbstractPredisObject implements ChannelInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::createMessage()
+     * @see \APubSub\ChannelInterface::getMessage()
      */
-    public function createMessage($contents, $sendTime = null)
+    public function getMessages($idList)
     {
-        return new DefaultMessage($this, $contents, null, $sendTime);
+        throw new \Exception("Not implemented yet");
+        if (!isset($this->messages[$id])) {
+          throw new MessageDoesNotExistException();
+        }
+
+        return $this->messages[$id];
     }
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::sendMessage()
+     * @see \APubSub\ChannelInterface::send()
      */
-    public function send(MessageInterface $message)
+    public function send($contents, $sendTime = null)
     {
         throw new \Exception("Not implemented yet");
         if (!$message instanceof DefaultMessage || $message->getChannel() !== $this) {
@@ -154,9 +159,9 @@ class PredisChannel extends AbstractPredisObject implements ChannelInterface
      */
     public function subscribe()
     {
-        $client  = $this->backend->getPredisClient();
-        $id      = $this->backend->getNextId('sub');
-        $subKey  = $this->backend->getKeyName(PredisPubSub::KEY_PREFIX_SUB . $id);
+        $client  = $this->context->client;
+        $id      = $this->context->getNextId('sub');
+        $subKey  = $this->context->getKeyName(PredisContext::KEY_PREFIX_SUB . $id);
         $active  = 0;
         $now     = time();
 

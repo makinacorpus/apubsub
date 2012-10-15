@@ -8,12 +8,7 @@ use APubSub\Tests\AbstractChannelTest;
 use Predis\Client;
 
 class ChannelTest extends AbstractChannelTest
-{  
-    /**
-     * @var \Predis\Client
-     */
-    protected $predisClient;
-
+{
     /**
      * @var string
      */
@@ -21,7 +16,9 @@ class ChannelTest extends AbstractChannelTest
 
     protected function setUpBackend()
     {
-        return new PredisPubSub($this->predisClient, $this->keyPrefix);
+        return new PredisPubSub(array(
+            'keyprefix' => $this->keyPrefix,
+        ));
     }
 
     protected function setUp()
@@ -33,7 +30,6 @@ class ChannelTest extends AbstractChannelTest
         }
 
         $this->keyPrefix = uniqid('test');
-        $this->predisClient = new Client();
 
         parent::setUp();
     }

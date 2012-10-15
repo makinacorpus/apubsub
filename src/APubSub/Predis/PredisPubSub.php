@@ -57,9 +57,9 @@ class PredisPubSub extends AbstractPredisObject implements PubSubInterface
      */
     public function getChannel($id)
     {
-        $chanKey = $this->getKeyName(self::KEY_PREFIX_CHAN . 'id');
+        $chanKey = $this->context->getKeyName(PredisContext::KEY_PREFIX_CHAN . 'id');
 
-        if (!$created = $this->predisClient->get($chanKey)) {
+        if (!$created = $this->context->client->get($chanKey)) {
             throw new ChannelDoesNotExistException();
         }
 
@@ -95,19 +95,20 @@ class PredisPubSub extends AbstractPredisObject implements PubSubInterface
      */
     public function createChannel($id)
     {
-        $chanKey = $this->getKeyName(self::KEY_PREFIX_CHAN . 'id');
+        $chanKey = $this->context->getKeyName(PredisContext::KEY_PREFIX_CHAN . 'id');
         $created = time();
+        $client  = $this->context->client;
 
-        $this->predisClient->watch($chanKey);
+        $client->watch($chanKey);
 
-        if ($this->predisClient->get($chanKey)) {
+        if ($client->get($chanKey)) {
             throw new \ChannelAlreadyExistsException();
         }
 
         // FIXME: Later use pipelining.
-        $this->predisClient->multi();
-        $this->predisClient->set($chanKey, $created);
-        $replies = $this->predisClient->exec();
+        $client->multi();
+        $client->set($chanKey, $created);
+        $replies = $client->exec();
 
         if (!$replies[0]) {
             // Transaction failed, another thread created the same channel
@@ -162,6 +163,15 @@ class PredisPubSub extends AbstractPredisObject implements PubSubInterface
 
             throw $e;
         }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::listChannels()
+     */
+    public function listChannels($limit, $offset)
+    {
+        throw new \Exception("Not implemented yet");
     }
 
     /**
@@ -235,5 +245,14 @@ class PredisPubSub extends AbstractPredisObject implements PubSubInterface
         foreach ($idList as $id) {
             $this->deleteSubscription($id);
         }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::garbageCollection()
+     */
+    public function garbageCollection()
+    {
+        // FIXME: Lot of things to do here!
     }
 }
