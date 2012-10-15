@@ -120,6 +120,36 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\ChannelInterface::getMessages()
+     */
+    public function getMessages($idList)
+    {
+        // FIXME: See getMessage() for static caching considerations.
+        $result = $this
+            ->context
+            ->dbConnection
+            ->select('apb_msg', 'm')
+            ->fields('m')
+            ->condition('m.id', $idList, 'IN')
+            ->execute();
+
+        if (count($idList) !== count($result)) {
+            throw new MessageDoesNotExistException();
+        }
+
+        $ret = array();
+
+        while ($record = $result->fetchObject()) {
+            $ret[] = new DefaultMessage($this,
+                unserialize($record->contents),
+                (int)$record->id, (int)$record->created);
+        }
+
+        return $ret;
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\ChannelInterface::createMessage()
      */
     public function send($contents, $sendTime = null)

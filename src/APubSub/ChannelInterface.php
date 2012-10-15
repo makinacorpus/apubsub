@@ -35,6 +35,16 @@ interface ChannelInterface
     public function getMessage($id);
 
     /**
+     * Get list of message by identifier
+     *
+     * @param array $idList List of message id
+     *
+     * @throws \APubSub\Error\MessageDoesNotExistException
+     *                      If one or more message(s) does not exist
+     */
+    public function getMessages($idList);
+
+    /**
      * Get creation time as a UNIX timestamp
      *
      * @return int UNIX timestamp where the channel was created

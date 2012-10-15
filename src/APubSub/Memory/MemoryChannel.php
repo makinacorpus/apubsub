@@ -102,6 +102,21 @@ class MemoryChannel implements ChannelInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\ChannelInterface::getMessages()
+     */
+    public function getMessages($idList)
+    {
+        $ret = array();
+
+        foreach ($idList as $id) {
+            $ret[] = $this->getMessage($id);
+        }
+
+        return $ret;
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\ChannelInterface::createMessage()
      */
     public function send($contents, $sendTime = null)

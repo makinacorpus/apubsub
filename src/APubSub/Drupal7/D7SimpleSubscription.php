@@ -145,8 +145,11 @@ class D7SimpleSubscription extends AbstractD7Object implements
      * @see \APubSub\SubscriptionInterface::delete()
      */
     public function delete()
-    {throw new \Exception("Not implemented yet");
-        $this->getChannel()->getBackend()->deleteSubscription($this->getId());
+    {
+        $this
+            ->getChannel()
+            ->getBackend()
+            ->deleteSubscription($this->getId());
     }
 
     /**
@@ -171,31 +174,27 @@ class D7SimpleSubscription extends AbstractD7Object implements
             return $ret;
         }
 
-        // We could JOIN instead, but let's avoid that and do two queries
-        // instead, this will avoid too many index operations and potential
-        // temporary tables (MySQL)
-        $result = $cx
-           ->select('apb_msg', 'm')
-           ->fields('m')
-           ->condition('id', $idList, 'IN')
-           ->execute();
+        $ret = $this->channel->getMessages($idList);
 
-        foreach ($result as $record) {
-            $ret[] = new DefaultMessage(
-                $this->channel, unserialize($record->contents),
-                (int)$record->id, (int)$record->created);
+        // Delete/update using sub_id instead would allow newly queued message
+        // during our own processing to be deleted: can't do this. Hence the
+        // WHERE IN condition on $idList 
+        if ($this->context->keepMessages) {
+            $cx
+                ->update('apb_queue')
+                ->fields(array(
+                    'consumed' => 1,
+                ))
+                ->condition('sub_id', $this->id)
+                ->condition('msg_id', $idList, 'IN')
+                ->execute();
+        } else {
+          $cx
+              ->delete('apb_queue')
+              ->condition('sub_id', $this->id)
+              ->condition('msg_id', $idList, 'IN')
+              ->execute();
         }
-
-        // Clear the queue
-        // FIXME: Ideally, this behavior would be configurable (keep or not the
-        // messages)
-        // FIXME: Delete using sub_id instead would allow newly queued message
-        // during our own processing to be deleted: can't do this
-        $cx
-            ->delete('apb_queue')
-            ->condition('sub_id', $this->id)
-            ->condition('msg_id', $idList, 'IN')
-            ->execute();
 
         return $ret;
     }
