@@ -4,6 +4,7 @@ namespace APubSub\Tests\Drupal7;
 
 use APubSub\Drupal7\D7PubSub;
 use APubSub\Tests\AbstractChannelTest;
+use APubSub\Tests\Drupal\DrupalHelper;
 
 class ChannelTest extends AbstractChannelTest
 {
@@ -19,25 +20,9 @@ class ChannelTest extends AbstractChannelTest
 
     protected function setUp()
     {
-        /*
-        $this->markTestSkipped("Drupal 7 connection handler and database information are not available.");
-        return;
-         */
-
-        if (!self::$drupalBootstrapped) { // Ugly!
-            if (!defined('DRUPAL_ROOT')) {
-                define('DRUPAL_ROOT', 'D:\Environnement WAMP\UwAmp\www\d7-core');
-            }
-            require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
-            drupal_bootstrap(DRUPAL_BOOTSTRAP_DATABASE);
-            self::$drupalBootstrapped = true;
-        }
-
-        // FIXME: Restore later
-
-        $this->dbConnection = \Database::getConnection();
-
-        if (true /* not skipped */) {
+        if (!$this->dbConnection = DrupalHelper::findDrupalDatabaseConnection(7)) {
+            $this->markTestSkipped("Drupal 7 connection handler and database information are not available.");
+        } else {
             parent::setUp();
         }
     }
