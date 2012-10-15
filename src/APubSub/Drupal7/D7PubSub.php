@@ -144,7 +144,13 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             // Queue is not the most optimized query, but it is necessary: this
             // means that consumers will lost unseen messages
             // FIXME: Joining with apb_sub instead might be more efficient
-            $cx->query("DELETE FROM {apb_queue} q WHERE q.msg IN (SELECT m.id FROM {apb_msg} m WHERE m.chan_id = :dbId)", $args);
+            $cx->query("
+                DELETE FROM {apb_queue} q
+                    WHERE q.msg IN (
+                        SELECT m.id FROM {apb_msg} m
+                            WHERE m.chan_id = :dbId
+                    )
+                ", $args);
 
             // Delete subscriptions and messages
             $cx->query("DELETE FROM {apb_msg} WHERE chan_id = :dbId", $args);
@@ -238,5 +244,17 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         foreach ($idList as $id) {
             $this->deleteSubscription($id);
         }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::garbageCollection()
+     */
+    public function garbageCollection()
+    {
+        // FIXME: Ensure queue max size
+        // FIXME: Ensure no consumed messages are left
+        // FIXME: Effectively remove potentially unremoved items
+        // FIXME: Ensure messages max lifetime
     }
 }

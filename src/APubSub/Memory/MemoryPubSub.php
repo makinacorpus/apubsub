@@ -148,4 +148,12 @@ class MemoryPubSub implements PubSubInterface
             $this->deleteSubscription($id);
         }
     }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::garbageCollection()
+     */
+    public function garbageCollection()
+    {
+    }
 }

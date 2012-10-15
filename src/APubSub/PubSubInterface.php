@@ -78,4 +78,15 @@ interface PubSubInterface
      *                                  imcomplete
      */
     public function deleteSubscriptions($idList);
+
+    /**
+     * Run garbage collection on backend data
+     *
+     * This API is supposed to provide high performance methods, thus some
+     * outdated data might be left on the backend in order to go faster during
+     * runtime: this garbage collection might be called arbitrarily by the
+     * software using it, and will be run in off peak time in order to let the
+     * backend do heavy operations
+     */
+    public function garbageCollection();
 }
