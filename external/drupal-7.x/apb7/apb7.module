@@ -9,5 +9,8 @@ if (!class_exists('APubSub\PubSubInterface')) {
   // In case no custom autoloader is provided, use the composer one.
   // In order to use it, you need to run "composer install" in the
   // APubSub folder root.
-  require __DIR__ . '/../../../vendor/autoload.php';
+  $autoloadFile = __DIR__ . '/../../../vendor/autoload.php';
+  if (file_exists($autoloadFile)) {
+    require $autoloadFile;
+  }
 }
