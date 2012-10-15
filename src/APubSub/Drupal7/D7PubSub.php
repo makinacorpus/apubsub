@@ -188,6 +188,8 @@ class D7PubSub implements PubSubInterface
         $record = $this->dbConnection->query("SELECT * FROM {apb_sub} WHERE id = :id", array(':id' => $id))->fetchNext();
 
         if (!$record || !($channel = $this->getChannelByDatabaseId($record->chan_id))) {
+            // Subscription may exist, but channel does not anymore case in
+            // which we consider it should be dropped
             throw new SubscriptionDoesNotExistException();
         }
 
