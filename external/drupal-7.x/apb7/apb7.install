@@ -167,7 +167,7 @@ function apb7_schema() {
         'default' => 0,
       ),
     ),
-    'primary key' => array('msg_id', 'chan_id'),
+    'primary key' => array('msg_id', 'sub_id'),
     'indexes' => array(
       // Needed for load operations.
       'apb_queue_consumed_idx' => array('consumed'),
