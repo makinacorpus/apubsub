@@ -25,94 +25,30 @@ use Predis\Client;
  *   - Moved helper functions into an helper object
  *   - Inject all of client, backend and helper into channel and subscription 
  */
-class PredisPubSub implements PubSubInterface
+class PredisPubSub extends AbstractPredisObject implements PubSubInterface
 {
-    /**
-     * Channel based key prefix
-     */
-    const KEY_PREFIX_CHAN = 'c:';
-
-    /**
-     * Subscription based key prefix
-     */
-    const KEY_PREFIX_MSG = 'm:';
-
-    /**
-     * Subscription based key prefix
-     */
-    const KEY_PREFIX_SUB = 's:';
-
-    /**
-     * Sequences key prefix
-     */
-    const KEY_PREFIX_SEQ = 'seq:';
-
-    /**
-     * @var \Predis\Client
-     */
-    protected $predisClient;
-
-    /**
-     * @var string
-     */
-    protected $keyPrefix = 'apb:';
-
     /**
      * Default constructor
      *
-     * @param DatabaseConnection $dbConnection Drupal database connexion
-     * @param string $keyPrefix                Key name prefix
+     * @param array $options Options
+     * @param Client $predis Client Predis client if any
      */
-    public function __construct(Client $predisClient, $keyPrefix = null)
+    public function __construct(array $options = null, Client $predisClient = null)
     {
-        $this->predisClient = $predisClient;
-
-        if (null !== $keyPrefix) {
-            $this->keyPrefix = $keyPrefix;
+        if (null === $predisClient) {
+            $this->setContext(new PredisContext($options));
+        } else {
+            $this->setContext(new PredisContext($options, $predisClient));
         }
     }
 
     /**
-     * Get key name
-     *
-     * @param string $name Original key name
-     *
-     * @return string      Prefixed key name
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::setOptions()
      */
-    public function getKeyName($name)
+    public function setOptions(array $options)
     {
-        return $this->keyPrefix . $name;
-    }
-
-    /**
-     * Get next sequence id
-     *
-     * @param string $name
-     */
-    public function getNextId($name)
-    {
-        $seqKey  = $this->getKeyName(self::KEY_PREFIX_SEQ . $name);
-        $retries = 5;
-
-        do {
-            $this->predisClient->watch($seqKey);
-            $this->predisClient->multi();
-            $value = $this->predisClient->incr($seqKey);
-            $replies = $this->predisClient->exec();
-
-        } while (!$replies[0] && 0 < $retries--);
-
-        return $seqKey;
-    }
-
-    /**
-     * Get Predis client
-     *
-     * @return \Predis\Client The predis client
-     */
-    public function getPredisClient()
-    {
-        return $this->predisClient;
+        $this->context->parseOptions($options);
     }
 
     /**

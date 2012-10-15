@@ -10,7 +10,7 @@ use APubSub\MessageInterface;
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class PredisChannel implements ChannelInterface
+class PredisChannel extends AbstractPredisObject implements ChannelInterface
 {
     /**
      * Channel identifier
@@ -45,6 +45,8 @@ class PredisChannel implements ChannelInterface
         $this->id = $id;
         $this->backend = $backend;
         $this->created = $created;
+
+        $this->setContext($backend->getContext());
     }
 
     /**

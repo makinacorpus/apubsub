@@ -8,7 +8,7 @@ use APubSub\SubscriptionInterface;
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class PredisSubscription implements SubscriptionInterface
+class PredisSubscription extends AbstractPredisObject implements SubscriptionInterface
 {
     /**
      * Message identifier
@@ -73,6 +73,8 @@ class PredisSubscription implements SubscriptionInterface
         $this->activatedTime = $activatedTime;
         $this->deactivatedTime = $deactivatedTime;
         $this->active = $isActive;
+
+        $this->setContext($channel->getContext());
     }
 
     /**

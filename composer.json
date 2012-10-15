@@ -12,6 +12,9 @@
     "autoload": {
         "psr-0": {"APubSub": "src/"}
     },
+	 "require": {
+	 		"predis/predis": "*"
+	 },
     "suggest": {
         "predis/predis": "Allows to use the Predis backend"
     }
