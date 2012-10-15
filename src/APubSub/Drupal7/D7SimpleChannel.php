@@ -138,15 +138,19 @@ class D7SimpleChannel implements ChannelInterface
 
             $id = $this->dbConnection->lastInsertId();
 
-            /*
-             * FIXME: Propagate messages to subscribers
-             * 
-            foreach ($this->subscriptions as $subscription) {
-                if ($subscription->isActive()) {
-                    $subscription->addMessage($message);
-                }
-            }
-             */
+            // Send message to all subscribers
+            $this
+                ->dbConnection
+                ->query("
+                    INSERT INTO apb_queue
+                        SELECT :msgId AS msg_id, s.id AS sub_id, 0 AS consumed
+                            FROM apb_sub s
+                            WHERE s.chan_id = :chanId
+                    ", array(
+                        'msgId' => $id,
+                        'chanId' => $this->dbId,
+                    ));
+
         } catch (\Exception $e) {
             $tx->rollback();
 
