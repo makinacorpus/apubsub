@@ -75,8 +75,7 @@ class D7SimpleSubscription extends AbstractD7Object implements
         $this->deactivatedTime = $deactivatedTime;
         $this->active = $isActive;
 
-        $this->setDatabaseConnection(
-            $this->channel->getDatabaseConnection());
+        $this->setContext($this->channel->getContext());
     }
 
     /**
@@ -157,7 +156,7 @@ class D7SimpleSubscription extends AbstractD7Object implements
     public function fetch()
     {
         $ret = array();
-        $cx  = $this->getDatabaseConnection();
+        $cx  = $this->context->dbConnection;
 
         $idList = $cx
             // Don't care about sort hopefully the items will be naturally
@@ -210,7 +209,8 @@ class D7SimpleSubscription extends AbstractD7Object implements
         $deactivated = time();
 
         $this
-            ->getDatabaseConnection()
+            ->context
+            ->dbConnection
             ->query("UPDATE {apb_sub} SET status = 0, deactivated = :deactivated WHERE id = :id", array(
                 ':deactivated' => $deactivated,
                 ':id' => $this->id,
@@ -229,7 +229,8 @@ class D7SimpleSubscription extends AbstractD7Object implements
         $activated = time();
 
         $this
-            ->getDatabaseConnection()
+            ->context
+            ->dbConnection
             ->query("UPDATE {apb_sub} SET status = 1, activated = :activated WHERE id = :id", array(
                 ':activated' => $activated,
                 ':id' => $this->id,

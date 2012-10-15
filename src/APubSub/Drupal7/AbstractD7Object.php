@@ -8,35 +8,35 @@ namespace APubSub\Drupal7;
 class AbstractD7Object implements D7ObjectInterface
 {
     /**
-     * @var \DatabaseConnection
+     * @var \APubSub\Drupal7\D7Context
      */
-    private $dbConnection;
+    protected $context;
 
     /**
      * Set database connection
      *
-     * @param \DatabaseConnection $dbConnection Database connection
+     * @param D7Context $context Context
      */
-    public function setDatabaseConnection(\DatabaseConnection $dbConnection)
+    public function setContext(D7Context $context)
     {
-        if (null !== $this->dbConnection) {
-            throw new \LogicException("Database connection cannot be unset");
+        if (null !== $this->context) {
+            throw new \LogicException("Context cannot be unset");
         }
 
-        $this->dbConnection = $dbConnection;
+        $this->context = $context;
     }
 
     /**
      * Get database connection
      *
-     * @return \DatabaseConnection Database connection
+     * @return D7Context Context
     */
-    public function getDatabaseConnection()
+    public function getContext()
     {
-        if (null === $this->dbConnection) {
-            throw new \LogicException("Database connection is not set");
+        if (null === $this->context) {
+            throw new \LogicException("Context is not set");
         }
 
-        return $this->dbConnection;
+        return $this->context;
     }
 }

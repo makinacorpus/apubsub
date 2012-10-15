@@ -8,16 +8,16 @@ namespace APubSub\Drupal7;
 interface D7ObjectInterface
 {
     /**
-     * Set database connection
+     * Set context
      *
-     * @param \DatabaseConnection $dbConnection Database connection
+     * @param D7Context $context Context
      */
-    public function setDatabaseConnection(\DatabaseConnection $dbConnection);
+    public function setContext(D7Context $context);
 
     /**
-     * Get database connection
+     * Get context
      *
-     * @return \DatabaseConnection Database connection
+     * @return D7Context Context
      */
-    public function getDatabaseConnection();
+    public function getContext();
 }

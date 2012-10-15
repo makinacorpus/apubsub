@@ -55,7 +55,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
         $this->backend = $backend;
         $this->created = $created;
 
-        $this->setDatabaseConnection($this->backend->getDatabaseConnection());
+        $this->setContext($this->backend->getContext());
     }
 
     /**
@@ -103,7 +103,8 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
     {
         // FIXME: Could/should use a static cache here? I guess so.
         $record = $this
-            ->getDatabaseConnection()
+            ->context
+            ->dbConnection
             ->query("SELECT * FROM {apb_msg} WHERE id = :id AND chan_id = :chanId", array(
                 ':id' => $id,
                 ':chanId' => $this->dbId,
@@ -123,7 +124,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
      */
     public function send($contents, $sendTime = null)
     {
-        $cx = $this->getDatabaseConnection();
+        $cx = $this->context->dbConnection;
         $tx = $cx->startTransaction();
         $id = null;
 
@@ -172,7 +173,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
     {
         $deactivated = time();
         $created     = $deactivated;
-        $cx          = $this->getDatabaseConnection();
+        $cx          = $this->context->dbConnection;
         $tx          = $cx->startTransaction();
 
         try {

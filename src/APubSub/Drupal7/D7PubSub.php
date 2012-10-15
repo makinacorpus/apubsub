@@ -16,12 +16,11 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      * Default constructor
      *
      * @param DatabaseConnection $dbConnection Drupal database connexion
+     * @param array $options                   Options
      */
-    public function __construct(\DatabaseConnection $dbConnection = null)
+    public function __construct(\DatabaseConnection $dbConnection, array $options = null)
     {
-        if (null !== $dbConnection) {
-            $this->setDatabaseConnection($dbConnection);
-        }
+        $this->setContext(new D7Context($dbConnection, $options));
     }
 
     /**
@@ -34,7 +33,8 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         // been deleted in another thread, however, this is very unlikely to
         // happen
         $record = $this
-            ->getDatabaseConnection()
+            ->context
+            ->dbConnection
             ->query("SELECT * FROM {apb_chan} WHERE name = :name", array(':name' => $id))
             ->fetchObject();
 
@@ -55,7 +55,8 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         // been deleted in another thread, however, this is very unlikely to
         // happen
         $record = $this
-            ->getDatabaseConnection()
+            ->context
+            ->dbConnection
             ->query("SELECT * FROM {apb_chan} WHERE id = :id", array(':id' => $id))
             ->execute()
             ->fetchObject();
@@ -76,7 +77,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         $channel = null;
         $created = time();
         $dbId    = null;
-        $cx      = $this->getDatabaseConnection();
+        $cx      = $this->context->dbConnection;
         $tx      = $cx->startTransaction();
 
         try {
@@ -101,6 +102,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
                 ->execute();
 
             $dbId = (int)$cx->lastInsertId();
+
             unset($tx); // Explicit commit
 
             $channel = new D7SimpleChannel($this, $id, $dbId, $created);
@@ -121,7 +123,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
     public function deleteChannel($id)
     {
         $dbId = null;
-        $cx   = $this->getDatabaseConnection();
+        $cx   = $this->context->dbConnection;
         $tx   = $cx->startTransaction();
 
         try {
@@ -170,7 +172,8 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         // been deleted in another thread, however, this is very unlikely to
         // happen
         $record = $this
-            ->getDatabaseConnection()
+            ->context
+            ->dbConnection
             ->query("SELECT * FROM {apb_sub} WHERE id = :id", array(
                 ':id' => $id,
             ))
@@ -193,7 +196,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function deleteSubscription($id)
     {
-        $cx = $this->getDatabaseConnection();
+        $cx = $this->context->dbConnection;
         $tx = $cx->startTransaction();
 
         try {
