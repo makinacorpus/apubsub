@@ -14,3 +14,100 @@ if (!class_exists('APubSub\PubSubInterface')) {
     require $autoloadFile;
   }
 }
+
+/**
+ * Implements hook_menu().
+ */
+function apb7_menu() {
+  $items = array();
+
+  // Administration screens.
+
+  if (!variable_get('apubsub_testing', FALSE)) {
+    // Short-circuiting!
+    return $items;
+  }
+
+  // Testing stuff.
+  $items['admin/messages'] = array(
+    'title' => 'Messages (testing)',
+    'description' => 'Play with and test APubSub API.',
+    'page callback' => 'system_admin_config_page',
+    'access arguments' => array('access administration pages'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/messages/channels'] = array(
+    'title' => 'Messages (testing)',
+    'description' => 'Play with and test APubSub API.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('apb7_testing_channels_form'),
+    'access arguments' => array('access administration pages'),
+    'file' => 'apb7.testing.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Get the APubSub backend
+ *
+ * @return \APubSub\PubSubInterface
+ */
+function apb7_backend_get($name = 'default') {
+  static $backends = array();
+
+  if (!isset($backends[$name])) {
+    $conf = variable_get('apubsub_backend', array());
+
+    // First fetch configuration
+    if (isset($conf[$name]['class'])) {
+      $class = $conf[$name]['class'];
+
+      if (!class_exists($conf[$name]['class'])) {
+        throw new InvalidArgumentException(
+          sprintf("Class '%s' does not exist", $class));
+      }
+    } else {
+      $class = '\APubSub\Drupal7\D7PubSub';
+    }
+
+    // Check for options and set them if any.
+    if (isset($conf[$name]['options'])) {
+      $options = $conf[$name]['options'];
+    } else {
+      $options = null;
+    }
+
+    // Does a specific case for known backends.
+    switch ($class) {
+
+      case '\APubSub\Drupal7\D7PubSub':
+        $backend = new \APubSub\Drupal7\D7PubSub(Database::getConnection());
+        break;
+
+      case '\APubSub\Predis\PredisPubSub':
+        // If the Redis module is enabled, connection options will be ignored
+        // and the one provided by the module will be instead.
+        if (module_exists('redis')) {
+          $backend = new \APubSub\Predis\PredisPubSub(Redis_Client::getClient());
+          break;
+        }
+        // Else fallback
+
+      default:
+        $backend = new $class();
+        break;
+    }
+
+    if (null !== $options) {
+      $backend->setOptions($options);
+    }
+
+    $backends[$name] = $backend;
+  }
+
+  return $backends[$name];
+}
