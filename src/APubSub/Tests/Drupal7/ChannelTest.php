@@ -19,11 +19,13 @@ class ChannelTest extends AbstractChannelTest
 
     protected function setUp()
     {
+        /*
         $this->markTestSkipped("Drupal 7 connection handler and database information are not available.");
         return;
+         */
 
         if (!self::$drupalBootstrapped) { // Ugly!
-            define('DRUPAL_ROOT', '/var/www/d7-core/www');
+            define('DRUPAL_ROOT', 'D:\Environnement WAMP\UwAmp\www\d7-core');
             require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
             drupal_bootstrap(DRUPAL_BOOTSTRAP_DATABASE);
             self::$drupalBootstrapped = true;
@@ -32,6 +34,10 @@ class ChannelTest extends AbstractChannelTest
         // FIXME: Restore later
 
         $this->dbConnection = \Database::getConnection();
+
+        if (!$this->dbConnection) {
+            
+        }
 
         if (true /* not skipped */) {
             parent::setUp();

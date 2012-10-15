@@ -42,7 +42,7 @@ interface ChannelInterface
     public function getCreationTime();
 
     /**
-     * Create a new message instance
+     * Send a new messag
      *
      * @param mixed $contents            Any kind of contents (will be
      *                                   serialized if not a primitive type)
@@ -51,15 +51,7 @@ interface ChannelInterface
      *
      * @return \APubSub\MessageInterface The new message
      */
-    public function createMessage($contents, $sendTime = null);
-
-    /**
-     * Send a message into the channel
-     *
-     * @param MessageInterface $message The message to send, it must absolutely
-     *                                  be created by the same channel
-     */
-    public function send(MessageInterface $message);
+    public function send($contents, $sendTime = null);
 
     /**
      * Create a new subscription to this channel.

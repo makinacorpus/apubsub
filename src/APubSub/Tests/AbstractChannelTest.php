@@ -35,7 +35,7 @@ abstract class AbstractChannelTest extends \PHPUnit_Framework_TestCase
         $channel  = $this->backend->createChannel('bar');
         $contents = array('test' => 12);
 
-        $message = $channel->createMessage($contents);
+        $message = $channel->send($contents);
 
         $this->assertSame($contents, $message->getContents());
 
@@ -56,8 +56,7 @@ abstract class AbstractChannelTest extends \PHPUnit_Framework_TestCase
 
         $subscriber->activate();
 
-        $message = $channel->createMessage($contents);
-        $channel->send($message);
+        $message = $channel->send($contents);
 
         $id = $message->getId();
 

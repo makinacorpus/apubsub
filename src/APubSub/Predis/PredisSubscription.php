@@ -143,7 +143,6 @@ class PredisSubscription implements SubscriptionInterface
      */
     public function delete()
     {
-        throw new \Exception("Not implemented yet");
         $this->getChannel()->getBackend()->deleteSubscription($this->getId());
     }
 

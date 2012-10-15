@@ -116,26 +116,14 @@ class D7SimpleChannel implements ChannelInterface
      * (non-PHPdoc)
      * @see \APubSub\ChannelInterface::createMessage()
      */
-    public function createMessage($contents, $sendTime = null)
+    public function send($contents, $sendTime = null)
     {
-        return new DefaultMessage($this, $contents, null, $sendTime);
-    }
+        $tx = $this->dbConnection->startTransaction();
+        $id = null;
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::sendMessage()
-     */
-    public function send(MessageInterface $message)
-    {
-        if (!$message instanceof DefaultMessage || $message->getChannel() !== $this) {
-            throw new \LogicException(
-                "You are trying to inject a message which does not originate from this channel");
+        if (null === $sendTime) {
+            $sendTime = time();
         }
-
-        // FIXME: Also ensure the message has not been already sent
-
-        $created = time();
-        $tx      = $this->dbConnection->startTransaction();
 
         try {
             $this
@@ -143,15 +131,12 @@ class D7SimpleChannel implements ChannelInterface
                 ->insert('apb_msg')
                 ->fields(array(
                     'chan_id' => $this->dbId,
-                    'created' => $created,
-                    'contents' => serialize($message->getContents()),
+                    'created' => $sendTime,
+                    'contents' => serialize($contents),
                 ))
                 ->execute();
 
             $id = $this->dbConnection->lastInsertId();
-
-            $message->setId($id);
-            $message->setSendTimestamp($created);
 
             /*
              * FIXME: Propagate messages to subscribers
@@ -167,6 +152,8 @@ class D7SimpleChannel implements ChannelInterface
 
             throw $e;
         }
+
+        return new DefaultMessage($this, $contents, $id, $sendTime);
     }
 
     /**

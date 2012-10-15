@@ -47,31 +47,12 @@ class DefaultMessage implements MessageInterface
      * @param int $sendTime             Send time UNIX timestamp
      */
     public function __construct(ChannelInterface $channel,
-        $contents, $id = null, $sendTime = null)
+        $contents, $id, $sendTime)
     {
-        if (null !== $id) {
-            $this->id = $id;
-        }
-        if (null !== $sendTime) {
-            $this->sendTime = $sendTime;
-        }
-
+        $this->id = $id;
         $this->contents = $contents;
         $this->channel = $channel;
-    }
-
-    /**
-     * Set identifier
-     *
-     * @param scalar $id
-     */
-    public function setId($id)
-    {
-        if (null !== $this->id) {
-            throw new \LogicException("Message already has an identifier");
-        }
-
-        $this->id = $id;
+        $this->sendTime = $sendTime;
     }
 
     /**
@@ -80,10 +61,6 @@ class DefaultMessage implements MessageInterface
      */
     public function getId()
     {
-        if (null === $this->id) {
-            throw new \LogicException("Message has not been sent yet");
-        }
-
         return $this->id;
     }
 
@@ -93,10 +70,6 @@ class DefaultMessage implements MessageInterface
      */
     public function getSendTimestamp()
     {
-        if (null === $this->id) {
-            throw new \LogicException("Message has not been sent yet");
-        }
-
         return $this->sendTime;
     }
 

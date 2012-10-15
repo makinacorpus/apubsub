@@ -73,13 +73,13 @@ abstract class AbstractSubscriberTest extends \PHPUnit_Framework_TestCase
         $subscriber = $this->channel->subscribe();
         $channel    = $subscriber->getChannel();
 
-        $channel->send($channel->createMessage(42));
+        $channel->send(42);
 
         $messages = $subscriber->fetch();
         $this->assertTrue(empty($messages));
 
         $subscriber->activate();
-        $channel->send($channel->createMessage(24));
+        $channel->send(24);
         $messages = $subscriber->fetch();
         $this->assertFalse(empty($messages));
         $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
@@ -101,7 +101,7 @@ abstract class AbstractSubscriberTest extends \PHPUnit_Framework_TestCase
         }
 
         $subscriber->deactivate();
-        $channel->send($channel->createMessage(12));
+        $channel->send(12);
         $messages = $subscriber->fetch();
         $this->assertTrue(empty($messages));
         $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);

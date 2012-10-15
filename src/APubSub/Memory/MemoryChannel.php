@@ -104,27 +104,15 @@ class MemoryChannel implements ChannelInterface
      * (non-PHPdoc)
      * @see \APubSub\ChannelInterface::createMessage()
      */
-    public function createMessage($contents, $sendTime = null)
+    public function send($contents, $sendTime = null)
     {
-        return new DefaultMessage($this, $contents, null, $sendTime);
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::sendMessage()
-     */
-    public function send(MessageInterface $message)
-    {
-        if (!$message instanceof DefaultMessage || $message->getChannel() !== $this) {
-            throw new \LogicException(
-                "You are trying to inject a message which does not originate from this channel");
+        if (null === $sendTime) {
+            $sendTime = time();
         }
 
         $id = $this->backend->getNextMessageIdentifier();
 
-        // This may throw an exception, and that's what we are looking for: we
-        // cannot let the message message being sent more than once
-        $message->setId($id);
+        $message = new DefaultMessage($this, $contents, $id, $sendTime);
 
         $this->messages[$id] = $message;
 
@@ -133,6 +121,8 @@ class MemoryChannel implements ChannelInterface
                 $subscription->addMessage($message);
             }
         }
+
+        return $message;
     }
 
     /**
