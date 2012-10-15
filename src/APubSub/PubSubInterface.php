@@ -9,6 +9,13 @@ namespace APubSub;
 interface PubSubInterface
 {
     /**
+     * Set backend specific options
+     *
+     * @param array $options Options to set
+     */
+    public function setOptions(array $options);
+
+    /**
      * Load an existing channel
      *
      * @param scalar $id                                   The channel id
@@ -42,6 +49,21 @@ interface PubSubInterface
      *                   If channel does not exist
      */
     public function deleteChannel($id);
+
+    /**
+     * List known channels
+     *
+     * Warning: some backends might not implement this and throw exceptions:
+     * this is not a mandatory feature
+     *
+     * @param int $limit
+     * @param int $offset
+     *
+     * @return array             List of \APubSub\ChannelInterface instances
+     *
+     * @throws \RuntimeException If the backend doesn't support this feature
+     */
+    public function listChannels($limit, $offset);
 
     /**
      * Load an existing subscription

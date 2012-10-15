@@ -5,7 +5,7 @@ namespace APubSub\Drupal7;
 /**
  * Base implementation for Drupal 7 objects
  */
-class AbstractD7Object implements D7ObjectInterface
+abstract class AbstractD7Object
 {
     /**
      * @var \APubSub\Drupal7\D7Context

@@ -62,6 +62,14 @@ class MemoryPubSub implements PubSubInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::setOptions()
+     */
+    public function setOptions(array $options)
+    {
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::getChannel()
      */
     public function getChannel($id)
@@ -84,6 +92,18 @@ class MemoryPubSub implements PubSubInterface
         }
 
         return $this->channels[$id] = new MemoryChannel($id, $this);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::listChannels()
+     */
+    public function listChannels($limit, $offset)
+    {
+        $iterator = new \LimitIterator(
+            new ArrayIterator($this->channels), $offset, $limit);
+
+        return iterator_to_array($iterator);
     }
 
     /**

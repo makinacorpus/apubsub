@@ -3,7 +3,7 @@
 namespace APubSub;
 
 /**
- * Interface for all channels. 
+ * Interface for all channels.
  */
 interface ChannelInterface
 {

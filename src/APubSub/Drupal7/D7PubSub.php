@@ -25,6 +25,15 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::setOptions()
+     */
+    public function setOptions(array $options)
+    {
+        $this->context->parseOptions($options);
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::getChannel()
      */
     public function getChannel($id)
@@ -170,6 +179,32 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::listChannels()
+     */
+    public function listChannels($limit, $offset)
+    {
+        $result = $this
+            ->context
+            ->dbConnection
+            ->select('apb_chan', 'c')
+            ->fields('c')
+            ->range($offset, $limit)
+            // Force an order to avoid SQL unpredictable behavior
+            ->orderBy('c.created')
+            ->execute();
+
+        $ret = array();
+
+        while ($record = $result->fetchObject()) {
+            $ret[] = new D7SimpleChannel($this, $record->name,
+                (int)$record->id, (int)$record->created);
+        }
+
+        return $ret;
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::getSubscription()
      */
     public function getSubscription($id)
@@ -252,14 +287,15 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function garbageCollection()
     {
-        // FIXME: Ensure no consumed messages are left
-        // FIXME: Effectively remove potentially unremoved items
-
         // Ensure queue max size
         $this->cleanUpMessageQueue();
 
         // Ensure messages max lifetime
         $this->cleanUpMessageLifeTime();
+
+        // Ensure no consumed messages are left: all queue cleanup operations
+        // must have happened first
+        $this->cleanUpConsumedMessages();
     }
 
     /**
@@ -268,6 +304,21 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function cleanUpMessageQueue()
     {
+        // Drop all messages for inactive subscriptions
+        if (!$this->context->keepMessages) {
+            $min = $this
+                ->context
+                ->dbConnection
+                ->query("
+                      DELETE FROM {apb_queue}
+                          WHERE sub_id IN (
+                              SELECT id FROM {apb_sub}
+                                  WHERE status = 0
+                          )
+                      ");
+        }
+
+        // Limit queue size if configured for
         if ($this->context->queueGlobalLimit) {
 
             $min = $this
@@ -297,7 +348,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
     }
 
     /**
-     * Use context configuration and removed outdate message according to
+     * Use context configuration and remove outdate message according to
      * maximum message lifetime
      */
     public function cleanUpMessageLifeTime()
@@ -319,9 +370,29 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
                 ->query("
                     DELETE FROM {apb_queue}
                         WHERE msg_id NOT IN (
-                            SELECT msg_id FROM {apb_msg}
+                            SELECT id FROM {apb_msg}
                         )
                     ");
+        }
+    }
+
+    /**
+     * Use context configuration and remove messages that have been consumed
+     */
+    public function cleanUpConsumedMessages()
+    {
+        if (!$this->context->keepMessages) {
+            // Delete in queue FIXME: This query could be very long...
+            $this
+                ->context
+                ->dbConnection
+                ->query("
+                      DELETE FROM {apb_msg}
+                          WHERE id NOT IN (
+                              SELECT q.msg_id FROM {apb_queue} q
+                                  WHERE q.consumed = 0
+                          )
+                      ");
         }
     }
 }

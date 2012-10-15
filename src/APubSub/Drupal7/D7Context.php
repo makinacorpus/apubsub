@@ -60,6 +60,18 @@ class D7Context
     {
         $this->dbConnection = $dbConnection;
 
+        if (null !== $options) {
+            $this->parseOptions($options);
+        }
+    }
+
+    /**
+     * Parse given options and set internals
+     * 
+     * @param array $options Options
+     */
+    public function parseOptions(array $options)
+    {
         // FIXME: Parse options
     }
 }
