@@ -14,8 +14,8 @@ interface ChannelStatInterface
     /**
      * Are numbers reliable
      *
-     * Backends for performance or technical reason may not return reliable
-     * numbers but approximations or even totally stupid figures instead
+     * Backends for performance or technical reasons may not return reliable
+     * numbers but approximative or even totally stupid figures instead
      *
      * @return bool True if counts are exact false otherwise
      */
