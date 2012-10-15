@@ -1,5 +1,5 @@
 {
-    "name": "pounard/apubsub",
+    "name": "apubsub/apubsub",
     "description": "Provides an asynchronous PubSub like API with Drupal implementations",
     "authors": [
         {
@@ -11,9 +11,6 @@
     ],
     "autoload": {
         "psr-0": {"APubSub": "src/"}
-    },
-    "require": {
-        "predis/predis": "*"
     },
     "suggest": {
         "predis/predis": "Allows to use the Predis backend"
