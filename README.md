@@ -57,17 +57,8 @@ Creating a message is probably the most simple operation of all.
     // Retrieve our channel
     $channel = $pubsub->getChannel("system_events");
 
-    // Create the message. The message class will always depend on the specific
-    // channel implementation, you should never ever try to instanciate a
-    // message instance by yourself! If you do so, your code won't be able to
-    // be configured to use a different backend.
-    $message = $channel->createMessage("Hello, World!");
-
-    // You can additionally modify your message instance here, since it's not
-    // part of the stored data yet
-
-    // And yet it is simple as that. Now modification of this object is closed
-    $channel->sendMessage($message);
+    // And yet it is simple as that
+    $channel->send("Hello, World!");
 
 Fetching new messages
 ---------------------
@@ -85,3 +76,7 @@ may or may not provide helpers to fetch them once again if they are kept.
     // let you keep the messages stored depending on both the backend capability
     // and configuration
     $messages = $subscription->fetch();
+
+If you're dealing with user notifications for example, and want to keep them
+persistent for a while, you'll need to store the messages into your own business
+API.
