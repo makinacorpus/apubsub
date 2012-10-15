@@ -37,6 +37,20 @@ class D7Context
     public $messageMaxLifetime = 0;
 
     /**
+     * Delay all checks
+     * 
+     * Delay all checks (queue length, message life time, ...) at garbage
+     * collection time (note that even if deactivate the garbage collection
+     * will still continue to do those checks). Use this is you are running
+     * in an environment where performance is critical and data volume high
+     * enough to cause you slow index troubles. Note that the software env.
+     * arround must run the garbage collection often enough.
+     *
+     * @var bool
+     */
+    public $delayChecks = false;
+
+    /**
      * Default constructor
      *
      * @param \DatabaseConnection $dbConnection Database connection

@@ -252,9 +252,76 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function garbageCollection()
     {
-        // FIXME: Ensure queue max size
         // FIXME: Ensure no consumed messages are left
         // FIXME: Effectively remove potentially unremoved items
-        // FIXME: Ensure messages max lifetime
+
+        // Ensure queue max size
+        $this->cleanUpMessageQueue();
+
+        // Ensure messages max lifetime
+        $this->cleanUpMessageLifeTime();
+    }
+
+    /**
+     * Use context configuration and wipe out sent messages from queue if
+     * the queue limit is reached
+     */
+    public function cleanUpMessageQueue()
+    {
+        if ($this->context->queueGlobalLimit) {
+
+            $min = $this
+                ->context
+                ->dbConnection
+                ->query("
+                    SELECT msg_id FROM {apb_queue}
+                      ORDER BY msg_id DESC
+                      OFFSET :max LIMIT 1
+                    ", array(
+                        ':max' => $this->context->queueGlobalLimit,
+                    ))
+                ->fetchField();
+
+            if ($min) {
+                // If the same message is still in many queues, we will never
+                // reach the exact global limit, but almost a bit more since
+                // we cannot target the exact row here
+                $this
+                    ->context
+                    ->dbConnection
+                    ->query("DELETE FROM {apb_queue} WHERE msg_id < :min", array(
+                        ':min' => $min,
+                    ));
+            }
+        }
+    }
+
+    /**
+     * Use context configuration and removed outdate message according to
+     * maximum message lifetime
+     */
+    public function cleanUpMessageLifeTime()
+    {
+        if (!$this->context->messageMaxLifetime) {
+
+            // Delete messages
+            $this
+                ->context
+                ->dbConnection
+                ->query("DELETE FROM {apb_msg} WHERE created < :time", array(
+                    ':time' => time() - $this->context->messageMaxLifetime,
+                ));
+
+            // Delete in queue FIXME: This query could be very long...
+            $this
+                ->context
+                ->dbConnection
+                ->query("
+                    DELETE FROM {apb_queue}
+                        WHERE msg_id NOT IN (
+                            SELECT msg_id FROM {apb_msg}
+                        )
+                    ");
+        }
     }
 }

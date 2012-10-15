@@ -177,14 +177,19 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
             // Send message to all subscribers
             $cx
                 ->query("
-                    INSERT INTO apb_queue
+                    INSERT INTO {apb_queue}
                         SELECT :msgId AS msg_id, s.id AS sub_id, 0 AS consumed
-                            FROM apb_sub s
+                            FROM {apb_sub} s
                             WHERE s.chan_id = :chanId
                     ", array(
                         'msgId' => $id,
                         'chanId' => $this->dbId,
                     ));
+
+            if (!$this->context->delayChecks) {
+                $this->backend->cleanUpMessageQueue();
+                $this->backend->cleanUpMessageLifeTime();
+            }
 
         } catch (\Exception $e) {
             $tx->rollback();
