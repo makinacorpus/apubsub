@@ -32,19 +32,28 @@ function apb7_menu() {
   $items['admin/messages'] = array(
     'title' => 'Messages (testing)',
     'description' => 'Play with and test APubSub API.',
-    'page callback' => 'system_admin_config_page',
+    'page callback' => 'system_admin_menu_block_page',
     'access arguments' => array('access administration pages'),
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
     'type' => MENU_NORMAL_ITEM,
   );
   $items['admin/messages/channels'] = array(
-    'title' => 'Messages (testing)',
-    'description' => 'Play with and test APubSub API.',
+    'title' => 'Channels',
+    'description' => 'See channel listing.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('apb7_testing_channels_form'),
     'access arguments' => array('access administration pages'),
     'file' => 'apb7.testing.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/messages/stress'] = array(
+    'title' => 'Massive stress test',
+    'description' => 'Multistep interactive wizard to proceed to a massive stress test.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('apb7_testing_volume_form'),
+    'access arguments' => array('access administration pages'),
+    'file' => 'apb7.testing-volume.inc',
     'type' => MENU_NORMAL_ITEM,
   );
 
