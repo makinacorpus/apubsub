@@ -57,7 +57,7 @@ class PredisPubSub extends AbstractPredisObject implements PubSubInterface
      */
     public function getChannel($id)
     {
-        $chanKey = $this->context->getKeyName(PredisContext::KEY_PREFIX_CHAN . 'id');
+        $chanKey = $this->context->getKeyName(PredisContext::KEY_PREFIX_CHAN . $id);
 
         if (!$created = $this->context->client->get($chanKey)) {
             throw new ChannelDoesNotExistException();
@@ -95,7 +95,7 @@ class PredisPubSub extends AbstractPredisObject implements PubSubInterface
      */
     public function createChannel($id)
     {
-        $chanKey = $this->context->getKeyName(PredisContext::KEY_PREFIX_CHAN . 'id');
+        $chanKey = $this->context->getKeyName(PredisContext::KEY_PREFIX_CHAN . $id);
         $created = time();
         $client  = $this->context->client;
 

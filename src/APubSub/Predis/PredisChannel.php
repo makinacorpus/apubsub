@@ -111,46 +111,25 @@ class PredisChannel extends AbstractPredisObject implements ChannelInterface
     public function send($contents, $sendTime = null)
     {
         throw new \Exception("Not implemented yet");
-        if (!$message instanceof DefaultMessage || $message->getChannel() !== $this) {
-            throw new \LogicException(
-                "You are trying to inject a message which does not originate from this channel");
-        }
 
-        // FIXME: Also ensure the message has not been already sent
-
+        $client  = $this->context->client;
+        $id      = $this->context->getNextId('sub');
+        $msgKey  = $this->context->getKeyName(PredisContext::KEY_PREFIX_MSG . $id);
         $created = time();
-        $tx      = $this->dbConnection->startTransaction();
 
-        try {
-            $this
-                ->dbConnection
-                ->insert('apb_msg')
-                ->fields(array(
-                    'chan_id' => $this->dbId,
-                    'created' => $created,
-                    'contents' => serialize($message->getContents()),
-                ))
-                ->execute();
+        $client->pipeline(function ($pipe) use ($msgKey, $created, $id, $contents) {
 
-            $id = $this->dbConnection->lastInsertId();
+            // Save the message 
+            $pipe->hset($msgKey, array(
+                "id"         => $id,
+                "created"    => $created,
+                "contents"   => is_scalar($contents) ? $contents : serialize($contents),
+                "serialized" => is_scalar($contents),
+            ));
 
-            $message->setId($id);
-            $message->setSendTimestamp($created);
-
-            /*
-             * FIXME: Propagate messages to subscribers
-             * 
-            foreach ($this->subscriptions as $subscription) {
-                if ($subscription->isActive()) {
-                    $subscription->addMessage($message);
-                }
-            }
-             */
-        } catch (\Exception $e) {
-            $tx->rollback();
-
-            throw $e;
-        }
+            // Iterate over all subscribers and set the message there
+            
+        });
     }
 
     /**
@@ -166,10 +145,11 @@ class PredisChannel extends AbstractPredisObject implements ChannelInterface
         $now     = time();
 
         $client->hmset($subKey, array(
+            "id"          => $id,
             "created"     => $now,
             "active"      => 0,
             "activated"   => 0,
-            "deactivated" => $now
+            "deactivated" => $now,
         ));
 
         return new PredisSubscription($this, $id, $now, 0, $now, false);
