@@ -9,6 +9,7 @@
  * Massive stress test entry point.
  */
 function apb7_testing_volume_form($form, &$form_state) {
+  $form['#tree'] = TRUE;
 
   if (!isset($form_state['storage'])) {
     $form_state['storage'] = array();
@@ -21,7 +22,7 @@ function apb7_testing_volume_form($form, &$form_state) {
   // notification system.
   $storage += array(
     // User driven variable.
-    'user_count'          => 100000, // Number of users of this network.
+    'user_count'          => 10000,  // Number of users of this network.
     'per_user_chan_count' => 2,      // Each user is a certain number of channel
                                      // (for exemple, private and public).
     'avg_msg_per_chan'    => 10,     // Average of 10 messages per chan per day.
@@ -31,26 +32,35 @@ function apb7_testing_volume_form($form, &$form_state) {
                                      // private).
     'sub_fetch_rate'      => 0.3,    // A subscriber connects 1 day out of 3.
     'day_count'           => 365,    // One year stress test per default.
-    'stepping'            => 13,     // Each iteration is 13 days.
     'avg_modifier'        => 0.15,   // Average more or less 15%.
-    // Working variables.
-    'current'             => 0,      // Start at day 0.
-    'time'                => 0,      // Time taken in computations, in seconds.
-    'step_count'          => 0,      // Number of different steps the user did.
   );
 
   // Empty() because fucking database may loose typing at some point and
   // because in PHP: "any string" == 0.
   if (empty($storage['current'])) {
     // Start
-    return apb7_testing_volume_form_step_start($form, $form_state, $storage);
+    $form = apb7_testing_volume_form_step_start($form, $form_state, $storage);
+    $submit = 'apb7_testing_volume_form_step_start_submit';
   } else if ($storage['day_count'] <= $storage['current']) {
     // End
-    return apb7_testing_volume_form_step_synthesis($form, $form_state, $storage);
+    $form = apb7_testing_volume_form_step_synthesis($form, $form_state, $storage);
+    $submit = 'apb7_testing_volume_form_step_synthesis_submit';
   } else {
     // Middle
-    return apb7_testing_volume_form_step_step($form, $form_state, $storage);
+    $form = apb7_testing_volume_form_step_step($form, $form_state, $storage);
+    $submit = 'apb7_testing_volume_form_step_step_submit';
   }
+
+  $form['actions'] = array(
+    '#type' => 'actions',
+    'submit' => array(
+      '#type' => 'submit',
+      '#value' => t("Go!"),
+      '#submit' => array($submit),
+    ),
+  );
+
+  return $form;
 }
 
 function apb7_testing_volume_form_step_start($form, &$form_state, &$storage) {
@@ -96,7 +106,7 @@ function apb7_testing_volume_form_step_start($form, &$form_state, &$storage) {
   );
   $form['data']['avg_user_chan_count'] = array(
     '#type' => 'select',
-    '#title' => '',
+    '#title' => t("Average friend channel subscription"),
     '#options' => array(
       // Array keys don't like float, they'll be casted as ints.
       "0.1"  => "10%",
@@ -108,7 +118,7 @@ function apb7_testing_volume_form_step_start($form, &$form_state, &$storage) {
     ),
     '#default_value' => $storage['avg_user_chan_count'],
     '#required' => TRUE,
-    '#description' => '',
+    '#description' => t("Each user will subscribe an average of this percentage of all his friend channels."),
   );
   $form['data']['sub_fetch_rate'] = array(
     '#type' => 'select',
@@ -134,31 +144,132 @@ function apb7_testing_volume_form_step_start($form, &$form_state, &$storage) {
     '#description' => t("Run this simulation for the specified number of days."),
     '#size' => 10,
   );
-  $form['data']['stepping'] = array(
-    '#type' => 'select',
-    '#title' => t('Stepping'),
-    '#options' => array(
-      1   => 1,
-      3   => 3,
-      5   => 5,
-      8   => 8,
-      13  => 13,
-      21  => 21,
-      34  => 34,
-      55  => 55,
-      89  => 89,
-      144 => 144,
-    ),
-    '#default_value' => $storage['stepping'],
-    '#required' => TRUE,
-    '#description' => t("Number of days spent per iteration."),
-  );
 
   return $form;
 }
 
+function apb7_testing_volume_form_step_start_submit($form, &$form_state) {
+  $form_state['rebuild'] = TRUE;
+  $storage = &$form_state['storage'];
+
+  // Mark the multistep for beginning.
+  $storage['current'] = 1;
+
+  // Reset values.
+  foreach ($form_state['values']['data'] as $key => $value) {
+    if (array_key_exists($key, $storage)) {
+      $storage[$key] = $value;
+    }
+  }
+
+  // Go for user and channels creation.
+  batch_set(array(
+    'operations' => array(
+      array('_apb7_testing_volume_batch_setup', array($storage)),
+      array('_apb7_testing_volume_stepping', array($storage)),
+    ),
+    'title' => 'Creating channels and subscriptions',
+    'finished' => 'update_finished',
+    'file' => drupal_get_path('module', 'apb7') . '/apb7.testing-volume.inc',
+  ));
+}
+
+/*
+ * FIXME: Need interface for this, we will do manual cleanup waiting for this.
+ *
+function _apb7_testing_volume_batch_cleanup(&$context) {
+}
+ */
+
+function _apb7_testing_volume_batch_setup($storage, &$context) {
+
+  if (empty($context['sandbox'])) {
+    // We cannot create it all, the max value will be approximative.
+    $context['sandbox']['progress']    = 0;
+    $context['sandbox']['current']     = 0;
+    $context['sandbox']['current_sub'] = 0;
+    $context['sandbox']['current_max'] = 0;
+    // Afraid are you?
+    $context['sandbox']['max'] = $storage['user_count'] * $storage['per_user_chan_count'];
+  }
+
+  $sandbox = &$context['sandbox'];
+
+  // N SQL requests per run
+  $limit = 100;
+  $count = 0;
+
+  $backend = apb7_backend_get();
+
+  while ($count < $limit || $sandbox['max'] < $sandbox['progress']) {
+    // Continue last channel if not finished
+    if ($sandbox['current_chan'] && ($sandbox['current_sub'] < $sandbox['current_max'])) {
+      $channel = $backend->getChannel($sandbox['current_chan']);
+    } else {
+      ++$sandbox['progress'];
+      $channel = $backend->createChannel($sandbox['progress']);
+      $sandbox['current_max'] = ceil($storage['avg_user_sub_count'] * $storage['per_user_chan_count'] * $storage['avg_user_chan_count']);
+      $sandbox['current_sub'] = 0;
+    }
+
+    for ($i = 0; $i < $sandbox['current_max']; ++$i) {
+      // Hopefully, default database backend will use a correct sequence
+      $channel->subscribe();
+      ++$sandbox['current_sub'];
+
+      if ($limit < (++$count)) {
+        break;
+      }
+    }
+  }
+
+  if ($sandbox['max'] < $sandbox['progress']) {
+    // Batch is finished
+    $context['finished'] = 1;
+  } else {
+    if (0.99999 < ($context['finished'] = ($sandbox['progress'] / $sandbox['max']))) {
+      $context['finished'] = 0.99999;
+    }
+  }
+}
+
+/*  $storage += array(
+    // User driven variable.
+    'user_count'          => 100000, // Number of users of this network.
+    'per_user_chan_count' => 2,      // Each user is a certain number of channel
+                                     // (for exemple, private and public).
+    'avg_msg_per_chan'    => 10,     // Average of 10 messages per chan per day.
+    'avg_user_sub_count'  => 15,     // Each user has 15 friends.
+    'avg_user_chan_count' => 0.5 ,   // Each user subscribes to a 50% average of
+                                     // its friends channels (public or
+                                     // private).
+    'sub_fetch_rate'      => 0.3,    // A subscriber connects 1 day out of 3.
+    'day_count'           => 365,    // One year stress test per default.
+    'stepping'            => 13,     // Each iteration is 13 days.
+    'avg_modifier'        => 0.15,   // Average more or less 15%.
+    // Working variables.
+    'current'             => 0,      // Start at day 0.
+    'time'                => 0,      // Time taken in computations, in seconds.
+    'step_count'          => 0,      // Number of different steps the user did.
+  ); */
+
+/**
+ * Iteration.
+ */
 function apb7_testing_volume_form_step_synthesis($form, &$form_state, &$storage) {
-  // @todo
+
+  $rows = array();
+  $row[] = array();
+
+  $form['actions'] = array(
+    '#type' => 'actions',
+    'continue' => array(
+      '#type' => 'submit',
+      '#value' => t("Continue"),
+    ),
+  );
+
+  return $form;
 }
 
 function apb7_testing_volume_form_step_step($form, &$form_state, &$storage) {
