@@ -113,11 +113,10 @@ abstract class AbstractSubscriptionTest extends \PHPUnit_Framework_TestCase
         $msg2 = $this->channel->send(2);
         $sub3 = $this->channel->subscribe();
         $sub3->activate();
-        $sub1->deactivate();
         $msg3 = $this->channel->send(3);
 
         $messages = $sub1->fetch();
-        $this->assertCount(2, $messages, "Sub 1 message count is 3");
+        $this->assertCount(3, $messages, "Sub 1 message count is 3");
 
         $messages = $sub2->fetch();
         $this->assertCount(2, $messages, "Sub 2 message count is 3");

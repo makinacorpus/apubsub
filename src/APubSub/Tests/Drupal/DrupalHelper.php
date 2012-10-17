@@ -66,7 +66,7 @@ class DrupalHelper
                     return null;
                 }
 
-                if (!$handler = fopen($bootstrapInc, $mode)) {
+                if (!$handle = fopen($bootstrapInc, 'r')) {
                     trigger_error(sprintf("Cannot open for reading: '%s'", $bootstrapInc));
                     return null;
                 }
@@ -93,7 +93,7 @@ class DrupalHelper
                 switch ($versionMajor) {
 
                     case 7:
-                        drupal_boostrap(DRUPAL_BOOTSTRAP_DATABASE);
+                        drupal_bootstrap(DRUPAL_BOOTSTRAP_DATABASE);
                         return self::$databaseConnection = \Database::getConnection();
 
                     case 8:

@@ -222,7 +222,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
                 ))
                 ->execute();
 
-            $id = $cx->lastInsertId();
+            $id = (int)$cx->lastInsertId();
 
             return new D7SimpleSubscription($this,
                 $id, $created, 0, $deactivated, false);

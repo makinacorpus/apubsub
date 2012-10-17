@@ -56,7 +56,46 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getChannel()
+     * @see \APubSub\PubSubInterface::getChannels()
+     */
+    public function getChannels($idList)
+    {
+        $ret = array();
+
+        // FIXME: We could use a static cache here, but the channel might have
+        // been deleted in another thread, however, this is very unlikely to
+        // happen
+        $recordList = $this
+            ->context
+            ->dbConnection
+            ->select('apb_chan', 'c')
+            ->fields('c')
+            ->condition('name', $idList, 'IN')
+            ->execute()
+            // Fetch all is mandatory, else we cannot count
+            ->fetchAll();
+
+        if (count($recordList) !== count($idList)) {
+            throw new ChannelDoesNotExistException();
+        }
+
+        foreach ($recordList as $record) {
+            $ret[] = new D7SimpleChannel($this, $record->name, (int)$record->id, (int)$record->created);
+        }
+
+        return $ret;
+    }
+
+    /**
+     * Internal helper for pure performances purpose
+     *
+     * @param int $id                           Channel database identifier
+     *
+     * @return \APubSub\Drupal7\D7SimpleChannel Loaded instance
+     *
+     * @throws \APubSub\Error\ChannelDoesNotExistException
+     *                                          If channel does not exist in
+     *                                          database
      */
     public function getChannelByDatabaseId($id)
     {
@@ -67,7 +106,6 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             ->context
             ->dbConnection
             ->query("SELECT * FROM {apb_chan} WHERE id = :id", array(':id' => $id))
-            ->execute()
             ->fetchObject();
 
         if (!$record) {
@@ -78,10 +116,49 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
     }
 
     /**
+     * Internal helper for pure performances purpose
+     *
+     * @param int $idList                       Channel database identifiers
+     *
+     * @return \APubSub\Drupal7\D7SimpleChannel Loaded instance
+     *
+     * @throws \APubSub\Error\ChannelDoesNotExistException
+     *                                          If channel does not exist in
+     *                                          database
+     */
+    public function getChannelsByDatabaseIds($idList)
+    {
+        $ret = array();
+
+        // FIXME: We could use a static cache here, but the channel might have
+        // been deleted in another thread, however, this is very unlikely to
+        // happen
+        $recordList = $this
+            ->context
+            ->dbConnection
+            ->select('apb_chan', 'c')
+            ->fields('c')
+            ->condition('id', $idList, 'IN')
+            ->execute()
+            // Fetch all is mandatory, else we cannot count
+            ->fetchAll();
+
+        if (count($recordList) !== count($idList)) {
+            throw new ChannelDoesNotExistException();
+        }
+
+        foreach ($recordList as $record) {
+            $reŧ[] = new D7SimpleChannel($this, $record->name, (int)$record->id, (int)$record->created);
+        }
+
+        return $ret;
+    }
+
+    /**
      * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::createChannel()
      */
-    public function createChannel($id)
+    public function createChannel($id, $ignoreErrors = false)
     {
         $channel = null;
         $created = time();
@@ -99,30 +176,100 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
                 ->fetchField();
 
             if ($exists) {
-                throw new ChannelAlreadyExistsException();
+                if ($ignoreErrors) {
+                    $channel = $this->getChannel($id);
+                } else {
+                    throw new ChannelAlreadyExistsException();
+                }
+            } else {
+                $cx
+                    ->insert('apb_chan')
+                    ->fields(array(
+                        'name' => $id,
+                        'created' => $created,
+                    ))
+                    ->execute();
+
+                $dbId = (int)$cx->lastInsertId();
+                $channel = new D7SimpleChannel($this, $id, $dbId, $created);
             }
 
-            $cx
-                ->insert('apb_chan')
-                ->fields(array(
-                    'name' => $id,
-                    'created' => $created,
-                ))
-                ->execute();
-
-            $dbId = (int)$cx->lastInsertId();
-
             unset($tx); // Explicit commit
-
-            $channel = new D7SimpleChannel($this, $id, $dbId, $created);
-
         } catch (\Exception $e) {
             $tx->rollback();
 
             throw $e;
         }
 
+        // FIXME: Handle here the static cache (and not in the try/catch block
+        // else we might cache false positives)
+
         return $channel;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::createChannels()
+     */
+    public function createChannels($idList, $ignoreErrors = false)
+    {
+        $ret      = array();
+        $created  = time();
+        $dbId     = null;
+        $cx       = $this->context->dbConnection;
+        $tx       = $cx->startTransaction();
+
+        try {
+            // No not ever use cache here, we cannot afford to try to create
+            // a channel that have been deleted by another thread
+            $existingList = $cx
+                ->select('apb_chan', 'c')
+                ->fields('c', array('name'))
+                ->condition('c.name', $idList, 'IN')
+                ->execute()
+                ->fetchCol();
+
+            if ($existingList && !$ignoreErrors) {
+                throw new ChannelAlreadyExistsException();
+            }
+
+            $query = $cx
+                ->insert('apb_chan')
+                ->fields(array(
+                    'name',
+                    'created',
+                ));
+
+            // Create only the non existing one, in one query
+            foreach (array_diff($idList, $existingList) as $id) {
+                $query->values(array(
+                    $id,
+                    $created,
+                ));
+            }
+
+            $query->execute();
+
+            // We can get back an id with the last insert id, but if the
+            // user created 10 chans, better do 2 SQL queries than 10!
+            // This is also the smart part of this function: we will load
+            // all channels at once instead of doing a first query for
+            // existing and a second for newly created ones, thus allowing
+            // us to keep the list ordered implicitely as long as the get
+            // method keeps it
+            $ret = $this->getChannels($idList);
+
+            unset($tx); // Explicit commit
+        } catch (\Exception $e) {
+            $tx->rollback();
+
+            throw $e;
+        }
+
+        // FIXME: Handle here the static cache (and not in the try/catch block
+        // else we might cache false positives)
+
+        return $ret;
     }
 
     /**
@@ -279,6 +426,19 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         foreach ($idList as $id) {
             $this->deleteSubscription($id);
         }
+    }
+
+    /**
+     * Get or create a new subscriber instance
+     *
+     * @param scalar $id                    Scalar value (will stored as a
+     *                                      string) which must be unique
+     *
+     * @return \APubSub\SubscriberInterface The subscriber instance
+     */
+    public function getSubscriber($id)
+    {
+        throw new \Exception("Not implemented yet");
     }
 
     /**
