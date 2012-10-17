@@ -380,6 +380,24 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::getSubscriptions()
+     */
+    public function getSubscriptions($idList)
+    {
+        // FIXME: I'm too lazy to optimize this, but it needs to be because it
+        // will do N * 2 SQL queries where N is the number of subscriptions
+        // where it could do a constant 2 queries
+        $ret = array();
+
+        foreach ($idList as $id) {
+            $ret[] = $this->getSubscription($id);
+        }
+
+        return $ret;
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::deleteSubscription()
      */
     public function deleteSubscription($id)
@@ -429,16 +447,13 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
     }
 
     /**
-     * Get or create a new subscriber instance
-     *
-     * @param scalar $id                    Scalar value (will stored as a
-     *                                      string) which must be unique
-     *
-     * @return \APubSub\SubscriberInterface The subscriber instance
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::getSubscriber()
      */
     public function getSubscriber($id)
     {
-        throw new \Exception("Not implemented yet");
+        // In this implementation all writes will be delayed on real operations
+        return new D7SimpleSubscriber($this, $id);
     }
 
     /**

@@ -128,6 +128,21 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::getSubscriptions()
+     */
+    public function getSubscriptions($idList)
+    {
+        $ret = array();
+
+        foreach ($idList as $id) {
+            $ret[] = $this->getSubscription($id);
+        }
+
+        return $ret;
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::deleteSubscription()
      */
     public function deleteSubscription($id)

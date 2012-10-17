@@ -95,6 +95,18 @@ interface PubSubInterface
     public function getSubscription($id);
 
     /**
+     * Load existing subscriptions
+     *
+     * @param array $idList      List of subscription ids to load
+     *
+     * @return array|Traversalbe List of subscription instances
+     *
+     * @throws \APubSub\Error\SubscriptionDoesNotExistException
+     *                           If one of the subscriptions does not exist
+     */
+    public function getSubscriptions($idList);
+
+    /**
      * Delete a channel along with all its messages and subscriptions
      *
      * It is eventually an alias of SubscriptionInterface::delete()
