@@ -6,7 +6,7 @@ use APubSub\Impl\DefaultMessage;
 use APubSub\SubscriptionInterface;
 
 /**
- * Array based implementation for unit testing: do not use in production
+ * Drupal 7 simple subscription implementation
  */
 class D7SimpleSubscription extends AbstractD7Object implements
     SubscriptionInterface
@@ -16,28 +16,28 @@ class D7SimpleSubscription extends AbstractD7Object implements
      *
      * @var scalar
      */
-    protected $id;
+    private $id;
 
     /**
      * Channel this message belongs to
      *
      * @var \APubSub\Drupal7\D7SimpleChannel
      */
-    protected $channel;
+    private $channel;
 
     /**
      * Creation UNIX timestamp
      *
      * @var int
      */
-    protected $created;
+    private $created;
 
     /**
      * Is this subscription active
      *
      * @var bool
      */
-    protected $active = false;
+    private $active = false;
 
     /**
      * Time when this subscription has been activated for the last time as a
@@ -45,7 +45,7 @@ class D7SimpleSubscription extends AbstractD7Object implements
      *
      * @var int
      */
-    protected $activatedTime;
+    private $activatedTime;
 
     /**
      * Time when this subscription has been deactivated for the last time as a
@@ -53,7 +53,7 @@ class D7SimpleSubscription extends AbstractD7Object implements
      *
      * @var int
      */
-    protected $deactivatedTime;
+    private $deactivatedTime;
 
     /**
      * Default constructor

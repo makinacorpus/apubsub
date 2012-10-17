@@ -8,7 +8,7 @@ use APubSub\Impl\DefaultMessage;
 use APubSub\MessageInterface;
 
 /**
- * Array based implementation for unit testing: do not use in production
+ * Drupal 7 simple channel implementation
  */
 class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
 {
@@ -17,28 +17,28 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
      *
      * @var string
      */
-    protected $id;
+    private $id;
 
     /**
      * Channel database identifier
      *
      * @var int
      */
-    protected $dbId;
+    private $dbId;
 
     /**
      * Current backend
      *
      * @var \APubSub\Drupal7\D7PubSub
      */
-    protected $backend;
+    private $backend;
 
     /**
      * Creation UNIX timestamp
      *
      * @var int
      */
-    protected $created;
+    private $created;
 
     /**
      * Internal constructor
@@ -125,21 +125,23 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
     public function getMessages($idList)
     {
         // FIXME: See getMessage() for static caching considerations.
-        $result = $this
+        $records = $this
             ->context
             ->dbConnection
             ->select('apb_msg', 'm')
             ->fields('m')
             ->condition('m.id', $idList, 'IN')
-            ->execute();
+            ->execute()
+            // Fetch all is mandatory in order for the result to be countable
+            ->fetchAll();
 
-        if (count($idList) !== count($result)) {
+        if (count($idList) !== count($records)) {
             throw new MessageDoesNotExistException();
         }
 
         $ret = array();
 
-        while ($record = $result->fetchObject()) {
+        foreach ($records as $record) {
             $ret[] = new DefaultMessage($this,
                 unserialize($record->contents),
                 (int)$record->id, (int)$record->created);

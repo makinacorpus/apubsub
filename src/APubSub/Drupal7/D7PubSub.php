@@ -8,7 +8,7 @@ use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\PubSubInterface;
 
 /**
- * Array based implementation for unit testing: do not use in production
+ * Drupal 7 backend implementation
  */
 class D7PubSub extends AbstractD7Object implements PubSubInterface
 {
