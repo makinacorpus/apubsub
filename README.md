@@ -6,8 +6,8 @@ Provides an asynchronous PubSub like generic API.
 Usage
 =====
 
-Creating a channel
-------------------
+Getting started
+---------------
 
 In order to create a channel, you need to have a fully setup and working
 backend available. Setup and object instanciation will depend upon the choosen
@@ -59,7 +59,7 @@ as you unsubscribe it the mapping will be deleted.
     $messages = $subscriber->fetch();
 
 Note that messages will be fetched from all active subscriptions and be sorted
-by creation data.
+by creation date
 
 If you need to do more advanced operations on the subscriber subscriptions, you
 can fetch the subscriptions instances and work directly with it:
