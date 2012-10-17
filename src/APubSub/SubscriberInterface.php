@@ -46,6 +46,9 @@ interface SubscriberInterface
     /**
      * Create a new subscription for a specific channel
      *
+     * Note that unlike the subscription, subscribing from here must activate
+     * the subscription right away
+     *
      * @param string $channelId               Channel identifier
      *
      * @return \APubSub\SubscriptionInterface New subscription instance

@@ -92,11 +92,6 @@ abstract class AbstractSubscriberTest extends \PHPUnit_Framework_TestCase
         // FIXME: Test subscriptions identifiers? Order is not respected
     }
 
-    public function testConcurrency()
-    {
-        
-    }
-
     public function testQueueIsConsumedOnFetch()
     {
         $subscriber = $this->backend->getSubscriber('baz');
@@ -116,7 +111,30 @@ abstract class AbstractSubscriberTest extends \PHPUnit_Framework_TestCase
 
     public function testFetchOrder()
     {
-        
+        $subscriber = $this->backend->getSubscriber('baz');
+
+        $chan1 = $this->channel;
+        $chan2 = $this->backend->createChannel('bar');
+        $chan3 = $this->backend->createChannel('baz');
+
+        $sub1 = $subscriber->subscribe('foo');
+        $sub2 = $subscriber->subscribe('bar');
+        $sub3 = $subscriber->subscribe('baz');
+
+        $chan1->send(1);
+        $chan2->send(2);
+        $chan3->send(3);
+        $chan2->send(4);
+        $chan3->send(5);
+        $chan1->send(6);
+        $chan3->send(7);
+        $chan2->send(8);
+        $chan1->send(9);
+
+        $i = 0;
+        foreach ($subscriber->fetch() as $message) {
+            $this->assertSame(++$i, $message->getContents());
+        }
     }
 
     public function testFetchHead()

@@ -106,26 +106,27 @@ abstract class AbstractSubscriptionTest extends \PHPUnit_Framework_TestCase
     function testMultipleFetch()
     {
         $sub1 = $this->channel->subscribe();
+        $sub1->activate();
         $sub2 = $this->channel->subscribe();
-
         $msg1 = $this->channel->send(1);
+        $sub2->activate();
         $msg2 = $this->channel->send(2);
-
         $sub3 = $this->channel->subscribe();
-
+        $sub3->activate();
+        $sub1->deactivate();
         $msg3 = $this->channel->send(3);
 
         $messages = $sub1->fetch();
-        $this->assertCount(3, $messages, "Sub 1 message count is 3");
+        $this->assertCount(2, $messages, "Sub 1 message count is 3");
 
         $messages = $sub2->fetch();
-        $this->assertCount(3, $messages, "Sub 2 message count is 3");
+        $this->assertCount(2, $messages, "Sub 2 message count is 3");
 
         // We cannot assert that messages 1 and 2 does not exist anymore since
         // the delete behavior is not documented at the interface level, we
         // don't care about that anyway, at least ensure that non fully dequeued
         // messages are still here
-        $messages = $this->backend->getMessage($msg3->getId());
+        $messages = $this->channel->getMessage($msg3->getId());
 
         $messages = $sub3->fetch();
         $this->assertCount(1, $messages, "Sub 3 message count is 1");

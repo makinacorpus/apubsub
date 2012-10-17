@@ -90,6 +90,8 @@ class MemorySubscriber extends AbstractMemoryObject implements
         }
 
         $subscription = $channel->subscribe();
+        $subscription->activate();
+
         $this->subscriptions[$subscription->getId()] = $subscription;
 
         return $subscription;
@@ -105,7 +107,7 @@ class MemorySubscriber extends AbstractMemoryObject implements
      */
     public function fetchHead($limit)
     {
-        throw new \Exception("Not implemented yet");
+        return $this->context->getMessageListFor($idList, $limit, false);
     }
 
     /**
@@ -113,31 +115,30 @@ class MemorySubscriber extends AbstractMemoryObject implements
      *
      * @param int $limit Number of messages to fetch
      *
-     * @return array     List of MessageInterface instances ordered by ascending
-     *                   creation timestamp
+     * @return array     List of MessageInterface instances ordered by
+     *                   descending creation timestamp
      */
     public function fetchTail($limit)
     {
-        throw new \Exception("Not implemented yet");
+        $idList = array();
+        foreach ($this->subscriptions as $subscription) {
+            $idList[] = $subscription->getId();
+        }
+
+        return $this->context->getMessageListFor($idList, $limit, true);
     }
 
     /**
-     * Fetch all messages in queue all active subscriptions included
-     *
-     * @return array List of MessageInterface instances ordered by ascending
-     *               creation timestamp
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::fetch()
      */
     public function fetch()
     {
-        throw new \Exception("Not implemented yet");
-    }
+        $idList = array();
+        foreach ($this->subscriptions as $subscription) {
+            $idList[] = $subscription->getId();
+        }
 
-    /**
-     * For internal use only sort a message list by created time asc (callback
-     * for asort)
-     */
-    public function sortMessagesByCreationAscCallback($a, $b)
-    {
-        return $a->getCreationTime() - $b->getCreationTime();
+        return $this->context->getMessageListFor($idList);
     }
 }

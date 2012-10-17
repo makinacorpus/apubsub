@@ -92,7 +92,7 @@ class MemoryContext
      * @param int $limit    Optionally limits the number of messages fetched
      * @param bool $reverse Set this to TRUE if you want the latest messages
      */
-    public function filterMessagesBySubscriptionIdentifiers(array $idList, $limit = null, $reverse = false)
+    public function getMessageListFor(array $idList, $limit = null, $reverse = false)
     {
         $i = 0;
         $ret = array();

@@ -30,15 +30,32 @@ interface PubSubInterface
     /**
      * Create a channel instance
      *
-     * @param string $id        Channel name
+     * @param string $id           Channel name
+     * @param string $ignoreErrors Allow silent errors when channel already
+     *                             exists
      *
-     * @return ChannelInterface A ready to use channel instance
+     * @return ChannelInterface    A ready to use channel instance
      *
      * @throws \APubSub\Error\ChannelAlreadyExistsException
-     *                          If the channel with the given identifier already
-     *                          exists
+     *                             If the channel with the given identifier
+     *                             already exists
      */
-    public function createChannel($id);
+    public function createChannel($id, $ignoreErrors = false);
+
+    /**
+     * Create multiple channel instances
+     *
+     * @param string $idList       List of channel names
+     * @param string $ignoreErrors Allow silent errors when channel already
+     *                             exists
+     *
+     * @return array|Traversable   List of created channel instances
+     *
+     * @throws \APubSub\Error\ChannelAlreadyExistsException
+     *                          If a channel already exists and errors are not
+     *                          ignored
+     */
+    public function createChannels($idList, $ignoreErrors = false);
 
     /**
      * Delete a channel along with all its messages and subscriptions

@@ -42,13 +42,45 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
      * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::createChannel()
      */
-    public function createChannel($id)
+    public function createChannel($id, $ignoreErrors = false)
     {
         if (isset($this->context->channels[$id])) {
-            throw new ChannelAlreadyExistsException();
+            if ($ignoreErrors) {
+                return $this->getChannel($id);
+            } else {
+                throw new ChannelAlreadyExistsException();
+            }
+        } else {
+            return $this->context->channels[$id] = new MemoryChannel($id, $this);
+        }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::createChannels()
+     */
+    public function createChannels($idList, $ignoreErrors = false)
+    {
+        $ret = array();
+
+        if ($ignoreErrors) {
+            foreach ($idList as $id) {
+                $ret[] = $this->createChannel($id, true);
+            }
+        } else {
+            $existing = array_intersect_key(array_flip($idList), $this->context->channels);
+
+            if (empty($existing)) {
+                foreach ($idList as $id) {
+                    // They are not supposed to exist
+                    $ret[] = $this->createChannel($id, true);
+                }
+            } else {
+                throw new ChannelAlreadyExistsException();
+            }
         }
 
-        return $this->context->channels[$id] = new MemoryChannel($id, $this);
+        return $ret;
     }
 
     /**
@@ -103,8 +135,6 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
         $this->getSubscription($id);
 
         unset($this->context->subscriptions[$id]);
-
-        // FIXME: Delete subscription id from message queue
     }
 
     /**

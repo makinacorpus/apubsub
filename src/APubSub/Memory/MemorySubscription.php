@@ -160,7 +160,7 @@ class MemorySubscription extends AbstractMemoryObject implements
      */
     public function fetch()
     {
-        return $this->context->filterMessagesBySubscriptionIdentifiers(array($this->id));
+        return $this->context->getMessageListFor(array($this->id));
     }
 
     /**
