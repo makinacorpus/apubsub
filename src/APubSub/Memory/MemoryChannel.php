@@ -4,48 +4,33 @@ namespace APubSub\Memory;
 
 use APubSub\ChannelInterface;
 use APubSub\Error\MessageDoesNotExistException;
-use APubSub\Impl\DefaultMessage;
 use APubSub\MessageInterface;
 
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class MemoryChannel implements ChannelInterface
+class MemoryChannel extends AbstractMemoryObject implements ChannelInterface
 {
     /**
      * Channel identifier
      *
      * @var string
      */
-    protected $id;
+    private $id;
 
     /**
      * Current backend
      *
      * @var \APubSub\Memory\MemoryPubSub
      */
-    protected $backend;
+    private $backend;
 
     /**
      * Creation UNIX timestamp
      *
      * @var int
      */
-    protected $created;
-
-    /**
-     * All messages reference
-     *
-     * @var array
-     */
-    protected $messages = array();
-
-    /**
-     * All subscriptions reference
-     *
-     * @var array
-     */
-    protected $subscriptions = array();
+    private $created;
 
     /**
      * Internal constructor
@@ -58,6 +43,8 @@ class MemoryChannel implements ChannelInterface
         $this->id = $id;
         $this->backend = $backend;
         $this->created = time();
+
+        $this->setContext($backend->getContext());
     }
 
     /**
@@ -93,11 +80,17 @@ class MemoryChannel implements ChannelInterface
      */
     public function getMessage($id)
     {
-        if (!isset($this->messages[$id])) {
+        if (!isset($this->context->messages[$id])) {
             throw new MessageDoesNotExistException();
         }
 
-        return $this->messages[$id];
+        $message = $this->context->messages[$id];
+
+        if ($message->getChannel()->getId() !== $this->id) {
+            throw new MessageDoesNotExistException();
+        }
+
+        return $message;
     }
 
     /**
@@ -125,17 +118,21 @@ class MemoryChannel implements ChannelInterface
             $sendTime = time();
         }
 
-        $id = $this->backend->getNextMessageIdentifier();
+        $id = $this->context->getNextMessageIdentifier();
 
-        $message = new DefaultMessage($this, $contents, $id, $sendTime);
+        $message = new MemoryMessage($this, $contents, $id, $sendTime);
 
-        $this->messages[$id] = $message;
-
-        foreach ($this->subscriptions as $subscription) {
-            if ($subscription->isActive()) {
-                $subscription->addMessage($message);
+        $subscriptionIdList = array();
+        foreach ($this->context->subscriptions as $subscription) {
+            if ($subscription->getChannel()->getId() === $this->id &&
+                $subscription->isActive())
+            {
+                $subscriptionIdList[] = $subscription->getId();
             }
         }
+
+        $message->setSubscriptionIds($subscriptionIdList);
+        $this->context->addMessage($message);
 
         return $message;
     }
@@ -146,10 +143,10 @@ class MemoryChannel implements ChannelInterface
      */
     public function subscribe()
     {
-        $id = $this->backend->getNextSubscriptionIdentifier();
+        $id           = $this->context->getNextSubscriptionIdentifier();
+        $subscription = new MemorySubscription($this, $id);
 
-        $this->subscriptions[$id] = $subscription = new MemorySubscription($this, $id);
-        $this->backend->addSubscription($subscription);
+        $this->context->subscriptions[$id] = $subscription;
 
         return $subscription;
     }

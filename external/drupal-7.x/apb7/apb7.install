@@ -140,6 +140,36 @@ function apb7_schema() {
     ),
   );
 
+  $schema['apb_sub_map'] = array(
+    'description' => "APubSub subscribers mapping",
+    'fields' => array(
+      'sub_id' => array(
+        'description' => "Subscription internal int32 identifier",
+        'type' => 'int',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => "User given identifier for the subscriber",
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+    ),
+    // Subscription can be owned by only one subscriber
+    'primary key' => array('sub_id'),
+    'indexes' => array(
+      'apb_sub_map_id_idx' => array('name'),
+    ),
+    'foreign keys' => array(
+      'apb_sub_map_sub_id_fk' => array(
+        'table' => 'apb_sub',
+        'columns' => array('sub_id' => 'id'),
+      ),
+    ),
+  );
+
   // This implements the simple schema, where all messages are queued in the
   // same table. Another implementation with one table per channel will be done
   // but will be entirely dynamic.

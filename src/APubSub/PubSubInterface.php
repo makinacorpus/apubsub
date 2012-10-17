@@ -102,6 +102,16 @@ interface PubSubInterface
     public function deleteSubscriptions($idList);
 
     /**
+     * Get or create a new subscriber instance
+     *
+     * @param scalar $id                    Scalar value (will stored as a
+     *                                      string) which must be unique
+     *
+     * @return \APubSub\SubscriberInterface The subscriber instance
+     */
+    public function getSubscriber($id);
+
+    /**
      * Run garbage collection on backend data
      *
      * This API is supposed to provide high performance methods, thus some

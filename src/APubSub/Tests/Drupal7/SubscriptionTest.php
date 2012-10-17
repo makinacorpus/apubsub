@@ -3,10 +3,10 @@
 namespace APubSub\Tests\Drupal7;
 
 use APubSub\Drupal7\D7PubSub;
-use APubSub\Tests\AbstractSubscriberTest;
+use APubSub\Tests\AbstractSubscriptionTest;
 use APubSub\Tests\Drupal\DrupalHelper;
 
-class SubscriberTest extends AbstractSubscriberTest
+class SubscriptionTest extends AbstractSubscriptionTest
 {
     /**
      * @var bool

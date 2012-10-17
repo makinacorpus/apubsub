@@ -1,23 +1,23 @@
 <?php
 
-namespace APubSub\Drupal7;
+namespace APubSub\Memory;
 
 /**
- * Base implementation for Drupal 7 objects
+ * Base implementation for all memory objects.
  */
-abstract class AbstractD7Object
+abstract class AbstractMemoryObject
 {
     /**
-     * @var \APubSub\Drupal7\D7Context
+     * @var \APubSub\Memory\MemoryContext
      */
     protected $context;
 
     /**
      * Set database connection
      *
-     * @param D7Context $context Context
+     * @param MemoryContext $context Context
      */
-    public function setContext(D7Context $context)
+    public function setContext(MemoryContext $context)
     {
         if (null !== $this->context) {
             throw new \LogicException("Context cannot be unset");
@@ -29,7 +29,7 @@ abstract class AbstractD7Object
     /**
      * Get database connection
      *
-     * @return \APubSub\Drupal7\D7Context Context
+     * @return \APubSub\Memory\MemoryContext Context
     */
     public function getContext()
     {

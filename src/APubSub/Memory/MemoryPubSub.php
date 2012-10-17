@@ -10,54 +10,11 @@ use APubSub\PubSubInterface;
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class MemoryPubSub implements PubSubInterface
+class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
 {
-    /**
-     * Array of channels
-     *
-     * @var array
-     */
-    protected $channels = array();
-
-    /**
-     * Array of subscriptions
-     *
-     * @var array
-     */
-    protected $subscriptions = array();
-
-    /**
-     * Message identifiers sequence
-     *
-     * @var int
-     */
-    protected $messageIdSeq = 0;
-
-    /**
-     * Subscriptions identifiers sequence
-     *
-     * @var int
-     */
-    protected $subscriptionIdSeq = 0;
-
-    /**
-     * Get next message identifier
-     *
-     * @return int
-     */
-    public function getNextMessageIdentifier()
+    public function __construct()
     {
-        return ++$this->messageIdSeq;
-    }
-
-    /**
-     * Get next message identifier
-     *
-     * @return int
-     */
-    public function getNextSubscriptionIdentifier()
-    {
-        return ++$this->subscriptionIdSeq;
+        $this->setContext(new MemoryContext());
     }
 
     /**
@@ -74,11 +31,11 @@ class MemoryPubSub implements PubSubInterface
      */
     public function getChannel($id)
     {
-        if (!isset($this->channels[$id])) {
+        if (!isset($this->context->channels[$id])) {
             throw new ChannelDoesNotExistException();
         }
 
-        return $this->channels[$id];
+        return $this->context->channels[$id];
     }
 
     /**
@@ -87,11 +44,11 @@ class MemoryPubSub implements PubSubInterface
      */
     public function createChannel($id)
     {
-        if (isset($this->channels[$id])) {
+        if (isset($this->context->channels[$id])) {
             throw new ChannelAlreadyExistsException();
         }
 
-        return $this->channels[$id] = new MemoryChannel($id, $this);
+        return $this->context->channels[$id] = new MemoryChannel($id, $this);
     }
 
     /**
@@ -101,7 +58,7 @@ class MemoryPubSub implements PubSubInterface
     public function listChannels($limit, $offset)
     {
         $iterator = new \LimitIterator(
-            new ArrayIterator($this->channels), $offset, $limit);
+            new ArrayIterator($this->context->channels), $offset, $limit);
 
         return iterator_to_array($iterator);
     }
@@ -114,14 +71,14 @@ class MemoryPubSub implements PubSubInterface
     {
         $channel = $this->getChannel($id);
 
-        foreach ($this->subscriptions as $index => $subscription) {
+        foreach ($this->context->subscriptions as $index => $subscription) {
             if ($subscription->getChannel()->getId() === $id) {
-                unset($this->subscriptions[$index]);
+                unset($this->context->subscriptions[$index]);
             }
         }
-        $this->subscriptions = array_filter($this->subscriptions);
+        $this->context->subscriptions = array_filter($this->context->subscriptions);
 
-        unset($this->channels[$id]);
+        unset($this->context->channels[$id]);
     }
 
     /**
@@ -130,21 +87,11 @@ class MemoryPubSub implements PubSubInterface
      */
     public function getSubscription($id)
     {
-        if (!isset($this->subscriptions[$id])) {
+        if (!isset($this->context->subscriptions[$id])) {
             throw new SubscriptionDoesNotExistException();
         }
 
-        return $this->subscriptions[$id];
-    }
-
-    /**
-     * For internal use only: add a newly created subscription
-     *
-     * @param MemorySubscription $subscription The new subscription
-     */
-    public function addSubscription(MemorySubscription $subscription)
-    {
-        $this->subscriptions[$subscription->getId()] = $subscription;
+        return $this->context->subscriptions[$id];
     }
 
     /**
@@ -155,7 +102,9 @@ class MemoryPubSub implements PubSubInterface
     {
         $this->getSubscription($id);
 
-        unset($this->subscriptions[$id]);
+        unset($this->context->subscriptions[$id]);
+
+        // FIXME: Delete subscription id from message queue
     }
 
     /**
@@ -167,6 +116,19 @@ class MemoryPubSub implements PubSubInterface
         foreach ($idList as $id) {
             $this->deleteSubscription($id);
         }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::getSubscriber()
+     */
+    public function getSubscriber($id)
+    {
+        if (!isset($this->context->subscribers[$id])) {
+            $this->context->subscribers[$id] = new MemorySubscriber($id, $this);
+        }
+
+        return $this->context->subscribers[$id];
     }
 
     /**

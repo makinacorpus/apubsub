@@ -2,41 +2,41 @@
 
 namespace APubSub\Memory;
 
-use APubSub\Impl\DefaultMessage;
 use APubSub\SubscriptionInterface;
 
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class MemorySubscription implements SubscriptionInterface
+class MemorySubscription extends AbstractMemoryObject implements
+    SubscriptionInterface
 {
     /**
      * Message identifier
      *
      * @var scalar
      */
-    protected $id;
+    private $id;
 
     /**
      * Channel this message belongs to
      *
      * @var \APubSub\Memory\MemoryChannel
      */
-    protected $channel;
+    private $channel;
 
     /**
      * Creation UNIX timestamp
      *
      * @var int
      */
-    protected $created;
+    private $created;
 
     /**
      * Is this subscription active
      *
      * @var bool
      */
-    protected $active = false;
+    private $active = false;
 
     /**
      * Time when this subscription has been activated for the last time as a
@@ -44,7 +44,7 @@ class MemorySubscription implements SubscriptionInterface
      *
      * @var int
      */
-    protected $activatedTime;
+    private $activatedTime;
 
     /**
      * Time when this subscription has been deactivated for the last time as a
@@ -52,21 +52,21 @@ class MemorySubscription implements SubscriptionInterface
      *
      * @var int
      */
-    protected $deactivatedTime;
+    private $deactivatedTime;
 
     /**
      * Current message queue
      *
      * @var array
      */
-    protected $messageQueue = array();
+    private $messageQueue = array();
 
     /**
      * Already fetched messages
      *
      * @var array
      */
-    protected $readMessages = array();
+    private $readMessages = array();
 
     /**
      * Default constructor
@@ -79,6 +79,8 @@ class MemorySubscription implements SubscriptionInterface
         $this->id = $id;
         $this->channel = $channel;
         $this->created = $this->deactivatedTime = time();
+
+        $this->setContext($this->channel->getContext());
     }
 
     /**
@@ -149,7 +151,7 @@ class MemorySubscription implements SubscriptionInterface
      */
     public function delete()
     {
-        $this->getChannel()->getBackend()->deleteSubscription($this->getId());
+        $this->channel->getBackend()->deleteSubscription($this->getId());
     }
 
     /**
@@ -158,14 +160,7 @@ class MemorySubscription implements SubscriptionInterface
      */
     public function fetch()
     {
-        // Keep older message, no feature is yet stubbed for this but this will
-        // be later
-        $this->readMessages += $this->messageQueue;
-
-        $ret = $this->messageQueue;
-        $this->messageQueue = array();
-
-        return $ret;
+        return $this->context->filterMessagesBySubscriptionIdentifiers(array($this->id));
     }
 
     /**
@@ -186,13 +181,5 @@ class MemorySubscription implements SubscriptionInterface
     {
         $this->active = true;
         $this->activatedTime = time();
-    }
-
-    /**
-     * For internal use only: add a message to this subscription
-     */
-    public function addMessage(DefaultMessage $message)
-    {
-        $this->messageQueue[$message->getId()] = $message;
     }
 }

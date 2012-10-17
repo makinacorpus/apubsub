@@ -2,6 +2,10 @@
 
 namespace APubSub\Tests;
 
+use APubSub\Error\ChannelDoesNotExistException;
+use APubSub\Error\SubscriptionAlreadyExistsException;
+use APubSub\Error\SubscriptionDoesNotExistException;
+
 abstract class AbstractSubscriberTest extends \PHPUnit_Framework_TestCase
 {
     /**
@@ -27,86 +31,101 @@ abstract class AbstractSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->channel = $this->backend->createChannel('foo');
     }
 
+    public function testGetSubscriber()
+    {
+        $subscriber = $this->backend->getSubscriber('foo');
+        $this->assertInstanceOf('\APubSub\SubscriberInterface', $subscriber);
+
+        $subscriber = $this->backend->getSubscriber('bar');
+        $this->assertInstanceOf('\APubSub\SubscriberInterface', $subscriber);
+    }
+
     public function testSubscribe()
     {
-        $subscriber = $this->channel->subscribe();
-        $id         = $subscriber->getId();
-
-        $this->assertFalse(empty($id));
-
-        $channel = $subscriber->getChannel();
-        // Depending on the implementation, the instance might not be the same
-        // so only check for ids to be the same
-        $this->assertSame($channel->getId(), $this->channel->getId());
-
-        // Per definition a new subscription is always inactive
-        $this->assertFalse($subscriber->isActive());
+        $subscriber = $this->backend->getSubscriber('foo');
 
         try {
-            $subscriber->getStartTime();
-            $this->fail("Subscriber should not have a start time");
-        } catch (\Exception $e) {
+            $subscriber->getSubscriptionFor('foo');
+
+            $this->fail("Should have thrown a SubscriptionDoesNotExistException exception");
+        } catch (SubscriptionDoesNotExistException $e) {
+            $this->assertTrue(true, "Subscription does not exists");
         }
 
-        // Should not raise any exception
-        $subscriber->getStopTime();
-
-        $loaded = $this->backend->getSubscription($subscriber->getId());
-        $this->assertSame(get_class($subscriber), get_class($loaded));
-        $this->assertSame($subscriber->getId(), $loaded->getId());
-        $this->assertFalse($loaded->isActive());
-
-        $this->assertSame($this->channel->getId(), $subscriber->getChannel()->getId());
-        $this->assertSame($this->channel->getId(), $loaded->getChannel()->getId());
-
-        $subscriber->activate();
+        $subscription = $subscriber->subscribe('foo');
+        $this->assertInstanceOf('\APubSub\SubscriptionInterface', $subscription);
 
         try {
-            $subscriber->getStartTime();
-        } catch (\Exception $e) {
-            $this->fail("Subscriber should have a start time");
+            $subscriber->subscribe('foo');
+
+            $this->fail("Should have thrown a SubscriptionAlreadyExistsException exception");
+        } catch (SubscriptionAlreadyExistsException $e) {
+            $this->assertTrue(true, "Subscription already exists");
+        }
+
+        try {
+            $subscriber->subscribe('bar');
+
+            $this->fail("Should have thrown a ChannelDoesNotExistException exception");
+        } catch (ChannelDoesNotExistException $e) {
+            $this->assertTrue(true, "Channel does not exists");
         }
     }
 
-    public function testFetch()
+    public function testGetters()
     {
-        $subscriber = $this->channel->subscribe();
-        $channel    = $subscriber->getChannel();
+        $subscriber = $this->backend->getSubscriber('foo');
+        $subscription = $subscriber->subscribe('foo');
+        $id = $subscription->getId();
 
-        $channel->send(42);
+        $channel = $subscription->getChannel();
+        $this->assertSame($channel->getId(), $this->channel->getId());
+
+        $subscription = $subscriber->getSubscriptionFor('foo');
+        $this->assertSame($subscription->getId(), $id);
+
+        $newChannel = $this->backend->createChannel('bar');
+        $newSubscription = $subscriber->subscribe($newChannel->getId());
+
+        $subscriptions = $subscriber->getSubscriptions();
+        $this->assertCount(2, $subscriptions);
+        // FIXME: Test subscriptions identifiers? Order is not respected
+    }
+
+    public function testConcurrency()
+    {
+        
+    }
+
+    public function testQueueIsConsumedOnFetch()
+    {
+        $subscriber = $this->backend->getSubscriber('baz');
+        $subscription = $subscriber->subscribe('foo');
+
+        $this->channel->send(1);
+        $this->channel->send(2);
+        $this->channel->send(3);
 
         $messages = $subscriber->fetch();
-        $this->assertTrue(empty($messages));
+        $this->assertNotEmpty($messages);
 
-        $subscriber->activate();
-        $channel->send(24);
-        $messages = $subscriber->fetch();
-        $this->assertFalse(empty($messages));
-        $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
+        $newSubscription = $this->backend->getSubscription($subscription->getId());
+        $messages = $newSubscription->fetch();
+        $this->assertEmpty($messages);
+    }
 
-        $i = 0;
-        foreach ($messages as $fetched) {
-            if ($i > 1) {
-                throw new \Exception("There should be only one item in the queue");
-            }
-            $this->assertSame(24, $fetched->getContents());
-            ++$i;
-        }
+    public function testFetchOrder()
+    {
+        
+    }
 
-        $messages = $subscriber->fetch();
-        $this->assertTrue(empty($messages));
-        $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
-        foreach ($messages as $fetched) {
-            throw new \Exception("Queue was supposed to be emptied by the fetch() call");
-        }
+    public function testFetchHead()
+    {
+        
+    }
 
-        $subscriber->deactivate();
-        $channel->send(12);
-        $messages = $subscriber->fetch();
-        $this->assertTrue(empty($messages));
-        $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
-        foreach ($messages as $fetched) {
-            throw new \Exception("Subscriber is supposedly inactive");
-        }
+    public function testFetchTail()
+    {
+        
     }
 }
