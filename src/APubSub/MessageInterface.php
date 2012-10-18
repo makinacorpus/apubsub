@@ -2,10 +2,12 @@
 
 namespace APubSub;
 
+use APubSub\Impl\ObjectInterface;
+
 /**
  * Interface for all messages
  */
-interface MessageInterface
+interface MessageInterface extends ObjectInterface
 {
     /**
      * Get internal message identifier

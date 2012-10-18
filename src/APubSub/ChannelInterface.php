@@ -2,10 +2,12 @@
 
 namespace APubSub;
 
+use APubSub\Impl\ObjectInterface;
+
 /**
  * Interface for all channels.
  */
-interface ChannelInterface
+interface ChannelInterface extends ObjectInterface
 {
     /**
      * Get channel identifier

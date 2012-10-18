@@ -18,22 +18,16 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
     private $id;
 
     /**
-     * @var \APubSub\Drupal7\D7PubSub
-     */
-    private $backend;
-
-    /**
      * Default constructor
      *
-     * @param D7PubSub $backend Backend that owns this instance
-     * @param scalar $id        User set identifier
+     * @param D7Context $context Backend that owns this instance
+     * @param scalar $id         User set identifier
      */
-    public function __construct(D7PubSub $backend, $id)
+    public function __construct(D7Context $context, $id)
     {
         $this->id = $id;
-        $this->backend = $backend;
 
-        $this->setContext($this->backend->getContext());
+        $this->setContext($context);
     }
 
     /**
@@ -60,7 +54,7 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
             ))
             ->fetchCol();
 
-       return $this->backend->getSubscriptions($idList);
+       return $this->context->backend->getSubscriptions($idList);
     }
 
     /**
@@ -90,7 +84,7 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
         $activated = time();
         // Should be moved out and a subselect used instead, this triggers an
         // extra and useless SQL query
-        $channel   = $this->backend->getChannel($channelId);
+        $channel   = $this->context->backend->getChannel($channelId);
         $created   = $activated;
         $cx        = $this->context->dbConnection;
         $tx        = $cx->startTransaction();
@@ -118,8 +112,8 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
                 ))
                 ->execute();
 
-            return new D7SimpleSubscription($channel,
-                $id, $created, $activated, 0, false);
+            return new D7SimpleSubscription($this->context,
+                $channel->getId(), $id, $created, $activated, 0, false);
 
         } catch (\Exception $e) {
             $tx->rollback();
@@ -177,7 +171,7 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
 
         // Populate messages array
         foreach ($results as $record) {
-            $ret[] = new DefaultMessage($this->backend,
+            $ret[] = new DefaultMessage($this->context,
                 (string)$record->chan_id, unserialize($record->contents),
                 (int)$record->id, (int)$record->created);
         }

@@ -2,13 +2,18 @@
 
 namespace APubSub\Memory;
 
-use APubSub\Memory\MemoryPubSub;
+use APubSub\Impl\ContextInterface;
 
 /**
  * Shared information for all memory based objects.
  */
-class MemoryContext
+class MemoryContext implements ContextInterface
 {
+    /**
+     * @var \APubSub\Memory\MemoryPubSub
+     */
+    public $backend;
+
     /**
      * Array of channels
      *
@@ -50,6 +55,43 @@ class MemoryContext
      * @var int
      */
     private $subscriptionIdSeq = 0;
+
+    /**
+     * Default constructor
+     *
+     * @param MemoryPubSub $backend Backend
+     */
+    public function __construct(MemoryPubSub $backend)
+    {
+        $this->backend = $backend;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\Impl\ContextInterface::getBackend()
+     */
+    public function getBackend()
+    {
+        return $this->backend;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\Impl\ContextInterface::setOptions()
+     */
+    public function setOptions($options)
+    {
+        // FIXME: Parse options
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\Impl\ContextInterface::getOptions()
+     */
+    public function getOptions()
+    {
+        throw new \Exception("Not implemented yet");
+    }
 
     /**
      * Get next message identifier

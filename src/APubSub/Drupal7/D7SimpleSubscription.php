@@ -18,11 +18,11 @@ class D7SimpleSubscription extends AbstractD7Object implements
     private $id;
 
     /**
-     * Channel this message belongs to
+     * Channel identifier this message belongs to identifier
      *
-     * @var \APubSub\Drupal7\D7SimpleChannel
+     * @var string
      */
-    private $channel;
+    private $chanId;
 
     /**
      * Creation UNIX timestamp
@@ -57,24 +57,25 @@ class D7SimpleSubscription extends AbstractD7Object implements
     /**
      * Default constructor
      *
-     * @param D7SimpleChannel $channel Channel this message belongs to
-     * @param int $id                  Subscription identifier
-     * @param int $created             Creation UNIX timestamp
-     * @param int $activatedTime       Latest activation UNIX timestamp
-     * @param int $deactivatedTime     Latest deactivation UNIX timestamp
-     * @param bool $isActive           Is this subscription active
+     * @param D7Context $context   Context
+     * @param int $chanId         Channel identifier this message belongs to
+     * @param int $id              Subscription identifier
+     * @param int $created         Creation UNIX timestamp
+     * @param int $activatedTime   Latest activation UNIX timestamp
+     * @param int $deactivatedTime Latest deactivation UNIX timestamp
+     * @param bool $isActive       Is this subscription active
      */
-    public function __construct(D7SimpleChannel $channel, $id,
+    public function __construct(D7Context $context, $chanId, $id,
         $created, $activatedTime, $deactivatedTime, $isActive)
     {
         $this->id = $id;
-        $this->channel = $channel;
+        $this->chanId = $chanId;
         $this->created = $created;
         $this->activatedTime = $activatedTime;
         $this->deactivatedTime = $deactivatedTime;
         $this->active = $isActive;
 
-        $this->setContext($this->channel->getContext());
+        $this->setContext($context);
     }
 
     /**
@@ -92,7 +93,7 @@ class D7SimpleSubscription extends AbstractD7Object implements
      */
     public function getChannel()
     {
-        return $this->channel;
+        return $this->context->backend->getChannel($this->chanId);
     }
 
     /**
@@ -173,7 +174,7 @@ class D7SimpleSubscription extends AbstractD7Object implements
             return $ret;
         }
 
-        $ret = $this->channel->getMessages($idList);
+        $ret = $this->getChannel()->getMessages($idList);
 
         // Delete using sub_id index instead would allow newly queued message
         // during our own processing to be deleted: can't do this. Hence the

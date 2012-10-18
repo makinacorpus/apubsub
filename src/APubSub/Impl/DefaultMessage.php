@@ -18,13 +18,6 @@ class DefaultMessage implements MessageInterface
     protected $id;
 
     /**
-     * Backend this message belongs to
-     *
-     * @var \APubSub\PubSubInterface
-     */
-    protected $backend;
-
-    /**
      * Send time UNIX timestamp
      *
      * @var int
@@ -46,22 +39,36 @@ class DefaultMessage implements MessageInterface
     protected $chanId;
 
     /**
+     * @var \APubSub\Impl\ContextInterface
+     */
+    protected $context;
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\Impl\ObjectInterface::getContext()
+     */
+    public function getContext()
+    {
+        return $this->context;
+    }
+
+    /**
      * Default constructor
      *
-     * @param PubSubInterface $backend Backend this message is owned by
-     * @param string $chanId           Channel identifier
-     * @param mixed $contents          Message contents
-     * @param scalar $id               Message identifier
-     * @param int $sendTime            Send time UNIX timestamp
+     * @param ContextInterface $context Context
+     * @param string $chanId            Channel identifier
+     * @param mixed $contents           Message contents
+     * @param scalar $id                Message identifier
+     * @param int $sendTime             Send time UNIX timestamp
      */
-    public function __construct(PubSubInterface $backend,
+    public function __construct(ContextInterface $context,
         $chanId, $contents, $id, $sendTime)
     {
         $this->id = $id;
         $this->chanId = $chanId;
         $this->contents = $contents;
         $this->sendTime = $sendTime;
-        $this->backend = $backend;
+        $this->context = $context;
     }
 
     /**
@@ -116,6 +123,6 @@ class DefaultMessage implements MessageInterface
      */
     public function getChannel()
     {
-        return $this->backend->getChannel($this->chanId);
+        return $this->context->getBackend()->getChannel($this->chanId);
     }
 }

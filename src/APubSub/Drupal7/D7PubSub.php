@@ -20,7 +20,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function __construct(\DatabaseConnection $dbConnection, array $options = null)
     {
-        $this->setContext(new D7Context($dbConnection, $options));
+        $this->setContext(new D7Context($dbConnection, $this, $options));
     }
 
     /**
@@ -51,7 +51,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             throw new ChannelDoesNotExistException();
         }
 
-        return new D7SimpleChannel($this, $record->name, (int)$record->id, (int)$record->created);
+        return new D7SimpleChannel($this->context, $record->name, (int)$record->id, (int)$record->created);
     }
 
     /**
@@ -80,7 +80,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         }
 
         foreach ($recordList as $record) {
-            $ret[] = new D7SimpleChannel($this, $record->name, (int)$record->id, (int)$record->created);
+            $ret[] = new D7SimpleChannel($this->context, $record->name, (int)$record->id, (int)$record->created);
         }
 
         return $ret;
@@ -112,7 +112,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             throw new ChannelDoesNotExistException();
         }
 
-        return new D7SimpleChannel($this, $record->name, (int)$record->id, (int)$record->created);
+        return new D7SimpleChannel($this->context, $record->name, (int)$record->id, (int)$record->created);
     }
 
     /**
@@ -148,7 +148,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         }
 
         foreach ($recordList as $record) {
-            $ret[] = new D7SimpleChannel($this, $record->name, (int)$record->id, (int)$record->created);
+            $ret[] = new D7SimpleChannel($this->context, $record->name, (int)$record->id, (int)$record->created);
         }
 
         return $ret;
@@ -191,7 +191,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
                     ->execute();
 
                 $dbId = (int)$cx->lastInsertId();
-                $channel = new D7SimpleChannel($this, $id, $dbId, $created);
+                $channel = new D7SimpleChannel($this->context, $id, $dbId, $created);
             }
 
             unset($tx); // Explicit commit
@@ -347,7 +347,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         $ret = array();
 
         while ($record = $result->fetchObject()) {
-            $ret[] = new D7SimpleChannel($this, $record->name,
+            $ret[] = new D7SimpleChannel($this->context, $record->name,
                 (int)$record->id, (int)$record->created);
         }
 
@@ -371,13 +371,15 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             ))
             ->fetchObject();
 
+        // FIXME: Useless chan lookup
         if (!$record || !($channel = $this->getChannelByDatabaseId($record->chan_id))) {
             // Subscription may exist, but channel does not anymore case in
             // which we consider it should be dropped
             throw new SubscriptionDoesNotExistException();
         }
 
-        return new D7SimpleSubscription($channel, (int)$record->id,
+        return new D7SimpleSubscription($this->context,
+            $record->chan_id, (int)$record->id,
             (int)$record->created, (int)$record->activated,
             (int)$record->deactivated, (bool)$record->status);
     }
@@ -458,7 +460,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
     public function getSubscriber($id)
     {
         // In this implementation all writes will be delayed on real operations
-        return new D7SimpleSubscriber($this, $id);
+        return new D7SimpleSubscriber($this->context, $id);
     }
 
     /**

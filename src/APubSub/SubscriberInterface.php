@@ -2,6 +2,8 @@
 
 namespace APubSub;
 
+use APubSub\Impl\ObjectInterface;
+
 /**
  * A subscriber is an optional component of the API that may reference
  * one or more subscriptions
@@ -12,7 +14,7 @@ namespace APubSub;
  * Subscriber identifiers are given by the business layer using this API and
  * will be ensured to be unique when creating it
  */
-interface SubscriberInterface
+interface SubscriberInterface extends ObjectInterface
 {
     /**
      * Get identifier

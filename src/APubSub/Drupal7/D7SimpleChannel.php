@@ -27,13 +27,6 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
     private $dbId;
 
     /**
-     * Current backend
-     *
-     * @var \APubSub\Drupal7\D7PubSub
-     */
-    private $backend;
-
-    /**
      * Creation UNIX timestamp
      *
      * @var int
@@ -43,19 +36,18 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
     /**
      * Internal constructor
      *
-     * @param string $id        Channel identifier
-     * @param int $dbId         Channel database identifier
-     * @param D7PubSub $backend Backend
-     * @param int $created      Creation UNIX timestamp
+     * @param string $id         Channel identifier
+     * @param int $dbId          Channel database identifier
+     * @param D7Context $context Backend
+     * @param int $created       Creation UNIX timestamp
      */
-    public function __construct(D7PubSub $backend, $id, $dbId, $created)
+    public function __construct(D7Context $context, $id, $dbId, $created)
     {
         $this->id = $id;
         $this->dbId = $dbId;
-        $this->backend = $backend;
         $this->created = $created;
 
-        $this->setContext($this->backend->getContext());
+        $this->setContext($context);
     }
 
     /**
@@ -83,7 +75,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
      */
     public function getBackend()
     {
-        return $this->backend;
+        return $this->context->backend;
     }
 
     /**
@@ -115,7 +107,8 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
             throw new MessageDoesNotExistException();
         }
 
-        return new DefaultMessage($this->backend, unserialize($record->contents), $id, (int)$record->created);
+        return new DefaultMessage($this->context,
+            unserialize($record->contents), $id, (int)$record->created);
     }
 
     /**
@@ -142,7 +135,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
         $ret = array();
 
         foreach ($records as $record) {
-            $ret[] = new DefaultMessage($this->backend,
+            $ret[] = new DefaultMessage($this->context,
                 $this->id, unserialize($record->contents),
                 (int)$record->id, (int)$record->created);
         }
@@ -191,8 +184,8 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
             unset($tx); // Excplicit commit
 
             if (!$this->context->delayChecks) {
-                $this->backend->cleanUpMessageQueue();
-                $this->backend->cleanUpMessageLifeTime();
+                $this->context->backend->cleanUpMessageQueue();
+                $this->context->backend->cleanUpMessageLifeTime();
             }
         } catch (\Exception $e) {
             $tx->rollback();
@@ -200,7 +193,8 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
             throw $e;
         }
 
-        return new DefaultMessage($this->backend, $this->id, $contents, $id, $sendTime);
+        return new DefaultMessage($this->context,
+            $this->id, $contents, $id, $sendTime);
     }
 
     /**
@@ -234,7 +228,9 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
                     ->execute();
 
                 $idList[] = $id = (int)$cx->lastInsertId();
-                $ret[] = new DefaultMessage($this->backend, $contents, $id, $sendTime);
+
+                $ret[] = new DefaultMessage($this->context,
+                    $contents, $id, $sendTime);
             }
 
             // Send message to all subscribers
@@ -250,8 +246,8 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
                     ));
 
             if (!$this->context->delayChecks) {
-                $this->backend->cleanUpMessageQueue();
-                $this->backend->cleanUpMessageLifeTime();
+                $this->context->backend->cleanUpMessageQueue();
+                $this->context->backend->cleanUpMessageLifeTime();
             }
         } catch (\Exception $e) {
             $tx->rollback();
@@ -286,8 +282,8 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
 
             $id = (int)$cx->lastInsertId();
 
-            return new D7SimpleSubscription($this,
-                $id, $created, 0, $deactivated, false);
+            return new D7SimpleSubscription($this->context,
+                $this->id, $id, $created, 0, $deactivated, false);
 
         } catch (\Exception $e) {
             $tx->rollback();

@@ -120,7 +120,7 @@ class MemoryChannel extends AbstractMemoryObject implements ChannelInterface
 
         $id = $this->context->getNextMessageIdentifier();
 
-        $message = new MemoryMessage($this->backend, $this->id, $contents, $id, $sendTime);
+        $message = new MemoryMessage($this->context, $this->id, $contents, $id, $sendTime);
 
         $subscriptionIdList = array();
         foreach ($this->context->subscriptions as $subscription) {

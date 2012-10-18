@@ -2,10 +2,12 @@
 
 namespace APubSub;
 
+use APubSub\Impl\ObjectInterface;
+
 /**
  * Defines a single subscription
  */
-interface SubscriptionInterface
+interface SubscriptionInterface extends ObjectInterface
 {
     /**
      * Get subscriber identifier

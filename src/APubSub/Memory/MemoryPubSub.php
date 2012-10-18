@@ -14,7 +14,7 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
 {
     public function __construct()
     {
-        $this->setContext(new MemoryContext());
+        $this->setContext(new MemoryContext($this));
     }
 
     /**

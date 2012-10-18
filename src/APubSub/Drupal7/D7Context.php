@@ -2,13 +2,15 @@
 
 namespace APubSub\Drupal7;
 
+use APubSub\Impl\ContextInterface;
+
 /**
  * Drupal 7 context is an internal object that must not be public in any case.
  *
  * It will be spawn when the D7PubSub object will be created, and propagated
  * into every other object handled by this package.
  */
-class D7Context
+class D7Context implements ContextInterface
 {
     /**
      * @var \DatabaseConnection
@@ -51,14 +53,22 @@ class D7Context
     public $delayChecks = true;
 
     /**
+     * @var \APubSub\Drupal7\D7PubSub
+     */
+    public $backend;
+
+    /**
      * Default constructor
      *
      * @param \DatabaseConnection $dbConnection Database connection
-     * @param array $options                    Options, if any
+     * @param D7PubSub $backend                 Backend
+     * @param array|Traversable $options        Options, if any
      */
-    public function __construct($dbConnection, array $options = null)
+    public function __construct(\DatabaseConnection $dbConnection,
+        D7PubSub $backend, $options = null)
     {
         $this->dbConnection = $dbConnection;
+        $this->backend = $backend;
 
         if (null !== $options) {
             $this->parseOptions($options);
@@ -66,12 +76,29 @@ class D7Context
     }
 
     /**
-     * Parse given options and set internals
-     * 
-     * @param array $options Options
+     * (non-PHPdoc)
+     * @see \APubSub\Impl\ContextInterface::getBackend()
      */
-    public function parseOptions(array $options)
+    public function getBackend()
+    {
+        return $this->backend;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\Impl\ContextInterface::setOptions()
+     */
+    public function setOptions($options)
     {
         // FIXME: Parse options
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\Impl\ContextInterface::getOptions()
+     */
+    public function getOptions()
+    {
+        throw new \Exception("Not implemented yet");
     }
 }

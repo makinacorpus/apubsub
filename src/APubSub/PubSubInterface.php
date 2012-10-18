@@ -2,11 +2,13 @@
 
 namespace APubSub;
 
+use APubSub\Impl\ObjectInterface;
+
 /**
  * Backend entry point: allows you to retrieve and create channels and
  * subscriptions.
  */
-interface PubSubInterface
+interface PubSubInterface extends ObjectInterface
 {
     /**
      * Set backend specific options

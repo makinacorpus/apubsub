@@ -2,10 +2,12 @@
 
 namespace APubSub\Drupal7;
 
+use APubSub\Impl\ObjectInterface;
+
 /**
  * Base implementation for Drupal 7 objects
  */
-abstract class AbstractD7Object
+abstract class AbstractD7Object implements ObjectInterface
 {
     /**
      * @var \APubSub\Drupal7\D7Context
