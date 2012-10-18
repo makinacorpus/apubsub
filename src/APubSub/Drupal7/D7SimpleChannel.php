@@ -115,7 +115,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
             throw new MessageDoesNotExistException();
         }
 
-        return new DefaultMessage($this, unserialize($record->contents), $id, (int)$record->created);
+        return new DefaultMessage($this->backend, unserialize($record->contents), $id, (int)$record->created);
     }
 
     /**
@@ -142,7 +142,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
         $ret = array();
 
         foreach ($records as $record) {
-            $ret[] = new DefaultMessage($this,
+            $ret[] = new DefaultMessage($this->backend,
                 unserialize($record->contents),
                 (int)$record->id, (int)$record->created);
         }
@@ -152,7 +152,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::createMessage()
+     * @see \APubSub\ChannelInterface::send()
      */
     public function send($contents, $sendTime = null)
     {
@@ -180,7 +180,68 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
             $cx
                 ->query("
                     INSERT INTO {apb_queue}
-                        SELECT :msgId AS msg_id, s.id AS sub_id, 0 AS consumed
+                        SELECT :msgId AS msg_id, s.id AS sub_id
+                            FROM {apb_sub} s
+                            WHERE s.chan_id = :chanId
+                    ", array(
+                        'msgId' => $id,
+                        'chanId' => $this->dbId,
+                    ));
+
+            unset($tx); // Excplicit commit
+
+            if (!$this->context->delayChecks) {
+                $this->backend->cleanUpMessageQueue();
+                $this->backend->cleanUpMessageLifeTime();
+            }
+        } catch (\Exception $e) {
+            $tx->rollback();
+
+            throw $e;
+        }
+
+        return new DefaultMessage($this->backend, $contents, $id, $sendTime);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\ChannelInterface::massSend()
+     */
+    public function massSend($contentList)
+    {
+        throw new \Exception("Not implemented yet");
+        $ret      = array();
+        $cx       = $this->context->dbConnection;
+        $tx       = $cx->startTransaction();
+        $id       = null;
+        $sendTime = time();
+        $idList   = array();
+
+        try {
+            // This is really bad for performances but because the SQL standard
+            // does not allow to do a BULK INSERT and fetch the generated ids
+            // at the same time: we're fucked. At least, we can optimise the
+            // whole execution by doing the BULK INSERT into the queue only
+            // once thanks to those ids being aggregated.
+            foreach ($contentList as $contents) {
+                $cx
+                    ->insert('apb_msg')
+                    ->fields(array(
+                        'chan_id' => $this->dbId,
+                        'created' => $sendTime,
+                        'contents' => serialize($contents),
+                    ))
+                    ->execute();
+
+                $idList[] = $id = (int)$cx->lastInsertId();
+                $ret[] = new DefaultMessage($this->backend, $contents, $id, $sendTime);
+            }
+
+            // Send message to all subscribers
+            $cx
+                ->query("
+                    INSERT INTO {apb_queue}
+                        SELECT :msgId AS msg_id, s.id AS sub_id
                             FROM {apb_sub} s
                             WHERE s.chan_id = :chanId
                     ", array(
@@ -192,14 +253,13 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
                 $this->backend->cleanUpMessageQueue();
                 $this->backend->cleanUpMessageLifeTime();
             }
-
         } catch (\Exception $e) {
             $tx->rollback();
 
             throw $e;
         }
 
-        return new DefaultMessage($this, $contents, $id, $sendTime);
+        return $ret;
     }
 
     /**

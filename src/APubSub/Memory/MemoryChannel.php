@@ -139,6 +139,17 @@ class MemoryChannel extends AbstractMemoryObject implements ChannelInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\ChannelInterface::sendMultiple()
+     */
+    public function massSend($contentList)
+    {
+        foreach ($contentList as $contents) {
+            $this->send($contents);
+        }
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\ChannelInterface::subscribe()
      */
     public function subscribe()

@@ -6,7 +6,45 @@
  */
 
 /**
- * Massive stress test entry point.
+ * List test scenarios.
+ */
+function apb7_testing_volume_list() {
+
+  $header = array(
+    array('data' => t("Id"),      'field' => 's.id'),
+    array('data' => t("Name"),    'field' => 's.name'),
+    array('data' => t("Created"), 'field' => 's.created'),
+  );
+
+  $rows = array();
+
+  $scenarios = db_select('apb_test_scenario', 's')
+    ->fields('s')
+    ->extend('PagerDefault')
+    ->extend('TableSort')
+    ->limit(20)
+    ->orderByHeader($header)
+    ->execute()
+    ->fetchAll();
+
+  foreach ($scenarios as $scenario) {
+    $scenario->data = unserialize($scenario->data);
+
+    $rows[] = array(
+      $scenario->id,
+      l(check_plain($scenario->name), 'admin/messages/stress/' . $scenario->id),
+      format_date($scenario->created),
+    );
+  }
+
+  return theme('table', array(
+    'header' => $header,
+    'rows'   => $rows,
+  )) . theme('pager');
+}
+
+/**
+ * Add new test scenario form.
  */
 function apb7_testing_volume_form($form, &$form_state) {
   $form['#tree'] = TRUE;
@@ -21,7 +59,9 @@ function apb7_testing_volume_form($form, &$form_state) {
   // Consider that we have a use case for this scenario: a social network
   // notification system.
   $storage += array(
-    // User driven variable.
+    'name'                => 'Social network',
+    'backend'             => '\APubSub\Drupal7\D7PubSub',
+    'name_prefix'         => 'c:' . uniqid() . ':',
     'user_count'          => 10000,  // Number of users of this network.
     'per_user_chan_count' => 2,      // Each user is a certain number of channel
                                      // (for exemple, private and public).
@@ -32,38 +72,8 @@ function apb7_testing_volume_form($form, &$form_state) {
                                      // private).
     'sub_fetch_rate'      => 0.3,    // A subscriber connects 1 day out of 3.
     'day_count'           => 365,    // One year stress test per default.
-    'avg_modifier'        => 0.15,   // Average more or less 15%.
   );
 
-  // Empty() because fucking database may loose typing at some point and
-  // because in PHP: "any string" == 0.
-  if (empty($storage['current'])) {
-    // Start
-    $form = apb7_testing_volume_form_step_start($form, $form_state, $storage);
-    $submit = 'apb7_testing_volume_form_step_start_submit';
-  } else if ($storage['day_count'] <= $storage['current']) {
-    // End
-    $form = apb7_testing_volume_form_step_synthesis($form, $form_state, $storage);
-    $submit = 'apb7_testing_volume_form_step_synthesis_submit';
-  } else {
-    // Middle
-    $form = apb7_testing_volume_form_step_step($form, $form_state, $storage);
-    $submit = 'apb7_testing_volume_form_step_step_submit';
-  }
-
-  $form['actions'] = array(
-    '#type' => 'actions',
-    'submit' => array(
-      '#type' => 'submit',
-      '#value' => t("Go!"),
-      '#submit' => array($submit),
-    ),
-  );
-
-  return $form;
-}
-
-function apb7_testing_volume_form_step_start($form, &$form_state, &$storage) {
   $form['help'] = array(
     '#prefix' => '<p>',
     '#suffix' => '</p>',
@@ -72,6 +82,22 @@ function apb7_testing_volume_form_step_start($form, &$form_state, &$storage) {
        " amount of distribution channels, thus stressing the system a bit."),
   );
 
+  $form['data']['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t("Scenario name"),
+    '#default_value' => $storage['name'],
+    '#required' => TRUE,
+  );
+  $form['data']['backend'] = array(
+    '#type' => 'select',
+    '#title' => t("Select backend to stress"),
+    '#options' => array(
+      'default' => t("Default"),
+    ),
+    '#default_value' => '\APubSub\Drupal7\D7PubSub',
+    '#required' => TRUE,
+    '#description' => t("Only the database backend is supported at the moment."),
+  );
   $form['data']['user_count'] = array(
     '#type' => 'textfield',
     '#title' => t("User count"),
@@ -145,28 +171,88 @@ function apb7_testing_volume_form_step_start($form, &$form_state, &$storage) {
     '#size' => 10,
   );
 
+  $form['actions'] = array(
+    '#type' => 'actions',
+    'submit' => array(
+      '#type' => 'submit',
+      '#value' => t("Create test"),
+    ),
+  );
+
   return $form;
 }
 
-function apb7_testing_volume_form_step_start_submit($form, &$form_state) {
-  $form_state['rebuild'] = TRUE;
+function apb7_testing_volume_form_submit($form, &$form_state) {
   $storage = &$form_state['storage'];
 
-  // Mark the multistep for beginning.
-  $storage['current'] = 1;
-
-  // Reset values.
+  // Ensure values.
   foreach ($form_state['values']['data'] as $key => $value) {
     if (array_key_exists($key, $storage)) {
       $storage[$key] = $value;
     }
   }
 
-  // Go for user and channels creation.
+  db_insert('apb_test_scenario')
+    ->fields(array(
+      'name' => $storage['name'],
+      'created' => time(),
+      'data' => serialize($storage),
+    ))
+    ->execute();
+
+  $id = Database::getConnection()->lastInsertId();
+
+  drupal_set_message(t("Scenario %name has been created.", array(
+    '%name' => check_plain($storage['name']),
+  )));
+
+  $form_state['redirect'] = 'admin/messages/stress/' . $id;
+}
+
+/**
+ * Single scenario overview page.
+ */
+function apb7_testing_volume_view_page($scenario) {
+  drupal_set_title(t("Scenario @name", array(
+    '@name' => $scenario->name,
+  )));
+
+  return array('#markup' => "@todo");
+}
+
+/**
+ * Single scenario populate form.
+ */
+function apb7_testing_volume_scenario_populate_channels_form($form, &$form_state, $scenario) {
+  $form['id'] = array('#type' => 'value', '#value' => $scenario->id);
+
+  $question = t("Drop all data from backend and populate with this scenario data?");
+  $path = 'admin/messages/stress/' . $scenario->id;
+
+  return confirm_form($form, $question, $path);
+}
+
+/**
+ * Single scenario populate form submit handler.
+ */
+function apb7_testing_volume_scenario_populate_channels_form_submit($form, &$form_state) {
+
+  $scenario = apb7_test_scenario_load($form_state['values']['id']);
+
+  // FIXME: MySQL and Drupal7 backend only
+  db_query("TRUNCATE {batch}");
+  db_query("TRUNCATE {queue}");
+  db_query("TRUNCATE {apb_queue}");
+  db_query("TRUNCATE {apb_msg}");
+  db_query("ALTER TABLE {apb_msg} AUTO_INCREMENT=0");
+  db_query("TRUNCATE {apb_sub_map}");
+  db_query("TRUNCATE {apb_sub}");
+  db_query("TRUNCATE {apb_chan}");
+  db_query("ALTER TABLE {apb_chan} AUTO_INCREMENT=0");
+
   batch_set(array(
     'operations' => array(
-      array('_apb7_testing_volume_batch_setup', array($storage)),
-      array('_apb7_testing_volume_stepping', array($storage)),
+      array('_apb7_testing_volume_batch_setup', array($scenario->data)),
     ),
     'title' => 'Creating channels and subscriptions',
     'finished' => 'update_finished',
@@ -174,52 +260,120 @@ function apb7_testing_volume_form_step_start_submit($form, &$form_state) {
   ));
 }
 
-/*
- * FIXME: Need interface for this, we will do manual cleanup waiting for this.
- *
-function _apb7_testing_volume_batch_cleanup(&$context) {
-}
+/**
+ * Single scenario populate form.
  */
+function apb7_testing_volume_scenario_populate_messages_form($form, &$form_state, $scenario) {
+  $form['id'] = array('#type' => 'value', '#value' => $scenario->id);
 
+  $form['day_count'] = array(
+    '#type' => 'textfield',
+    '#title' => t("Number of day to process"),
+    '#default_value' => $scenario->data['day_count'],
+    '#size' => 10,
+  );
+
+  $question = t("Inject messages");
+  $path = 'admin/messages/stress/' . $scenario->id;
+
+  return confirm_form($form, $question, $path);
+}
+
+/**
+ * Single scenario populate form submit handler.
+ */
+function apb7_testing_volume_scenario_populate_messages_form_submit($form, &$form_state) {
+
+  $scenario = apb7_test_scenario_load($form_state['values']['id']);
+
+  batch_set(array(
+    'operations' => array(
+      array('_apb7_testing_volume_batch_messages', array($scenario->data)),
+    ),
+    'title' => 'Creating messages',
+    'finished' => 'update_finished',
+    'file' => drupal_get_path('module', 'apb7') . '/apb7.testing-volume.inc',
+  ));
+}
+/**
+ * Single scenario delete form.
+ */
+function apb7_testing_volume_scenario_delete_form($form, &$form_state, $scenario) {
+  $form['id'] = array('#type' => 'value', '#value' => $scenario->id);
+
+  $question = t("Drop this scenario (data will be left in the backend)?");
+  $path = 'admin/messages/stress/' . $scenario->id;
+
+  return confirm_form($form, $question, $path);
+}
+
+/**
+ * Single scenario delete form submit.
+ */
+function apb7_testing_volume_scenario_delete_form_submit($form, &$form_state) {
+  db_query("DELETE FROM {apb_test_scenario} WHERE id = :id", array(
+    ':id' => $form_state['values']['id'],
+  ));
+  drupal_set_message(t("Scenario has been deleted."));
+  $form_state['redirect'] = 'admin/messages/stress';
+}
+
+/**
+ * Batch operation that will populate data for a scenario.
+ */
 function _apb7_testing_volume_batch_setup($storage, &$context) {
 
   if (empty($context['sandbox'])) {
     // We cannot create it all, the max value will be approximative.
-    $context['sandbox']['progress']    = 0;
-    $context['sandbox']['current']     = 0;
-    $context['sandbox']['current_sub'] = 0;
-    $context['sandbox']['current_max'] = 0;
+    $context['sandbox']['progress'] = 0;
     // Afraid are you?
     $context['sandbox']['max'] = $storage['user_count'] * $storage['per_user_chan_count'];
   }
 
   $sandbox = &$context['sandbox'];
 
-  // N SQL requests per run
-  $limit = 100;
-  $count = 0;
+  // Number of chan per iteration, this is also the number of subscriptions
+  // since a chan is also a user
+  $chanLimit   = 20;
+  $subscribers = array();
+  // First channel id for this iteration
+  $startAt     = $sandbox['progress'] + 1;
+  // Number of subscriptions per channel
+  $subCount    = ceil($storage['avg_user_sub_count'] * $storage['per_user_chan_count'] * $storage['avg_user_chan_count']);
 
-  $backend = apb7_backend_get();
+  // Do not bypass maximum count
+  if (($sandbox['max'] - $sandbox['progress']) < $chanLimit) {
+    $chanLimit = $sandbox['max'] - $sandbox['progress'];
+  }
 
-  while ($count < $limit || $sandbox['max'] < $sandbox['progress']) {
-    // Continue last channel if not finished
-    if ($sandbox['current_chan'] && ($sandbox['current_sub'] < $sandbox['current_max'])) {
-      $channel = $backend->getChannel($sandbox['current_chan']);
-    } else {
-      ++$sandbox['progress'];
-      $channel = $backend->createChannel($sandbox['progress']);
-      $sandbox['current_max'] = ceil($storage['avg_user_sub_count'] * $storage['per_user_chan_count'] * $storage['avg_user_chan_count']);
-      $sandbox['current_sub'] = 0;
-    }
+  $backend = apb7_backend_get($storage['backend']);
 
-    for ($i = 0; $i < $sandbox['current_max']; ++$i) {
-      // Hopefully, default database backend will use a correct sequence
-      $channel->subscribe();
-      ++$sandbox['current_sub'];
+  // Create all chans one shot
+  $chanlist = array();
+  for ($i = 0; $i < $chanLimit; ++$i) {
+    $chanlist[] = $startAt + $i;
+  }
+  $channels = $backend->createChannels($chanlist);
 
-      if ($limit < (++$count)) {
-        break;
-      }
+  // Set the progress right away
+  $sandbox['progress'] += $chanLimit;
+
+  // Create subscribers
+  foreach ($channels as $channel) {
+    $subscribers[] = $backend->getSubscriber('user:' . $channel->getId());
+  }
+  // Create a decal between channels and subscribers so that a channel
+  // subscriber will never subscribe for himself
+  array_unshift($subscribers, array_pop($subscribers));
+
+  // Create subscriptions for channels
+  foreach ($channels as $channel) {
+    $chanId = $channel->getId();
+    for ($j = 0; $j < $subCount; ++$j) {
+      // Select the right subscriber (anyone that is not the channel) and
+      // make him subscribe to the channel
+      $index = (($chanId + $j) % $chanLimit);
+      $subscribers[$index]->subscribe($chanId);
     }
   }
 
@@ -233,45 +387,52 @@ function _apb7_testing_volume_batch_setup($storage, &$context) {
   }
 }
 
-/*  $storage += array(
-    // User driven variable.
-    'user_count'          => 100000, // Number of users of this network.
-    'per_user_chan_count' => 2,      // Each user is a certain number of channel
-                                     // (for exemple, private and public).
-    'avg_msg_per_chan'    => 10,     // Average of 10 messages per chan per day.
-    'avg_user_sub_count'  => 15,     // Each user has 15 friends.
-    'avg_user_chan_count' => 0.5 ,   // Each user subscribes to a 50% average of
-                                     // its friends channels (public or
-                                     // private).
-    'sub_fetch_rate'      => 0.3,    // A subscriber connects 1 day out of 3.
-    'day_count'           => 365,    // One year stress test per default.
-    'stepping'            => 13,     // Each iteration is 13 days.
-    'avg_modifier'        => 0.15,   // Average more or less 15%.
-    // Working variables.
-    'current'             => 0,      // Start at day 0.
-    'time'                => 0,      // Time taken in computations, in seconds.
-    'step_count'          => 0,      // Number of different steps the user did.
-  ); */
-
 /**
- * Iteration.
+ * Batch operation that will create messages for the given scenario.
  */
-function apb7_testing_volume_form_step_synthesis($form, &$form_state, &$storage) {
+function _apb7_testing_volume_batch_messages($storage, &$context) {
 
-  $rows = array();
-  $row[] = array();
+  $limit           = 20; // Maximum number of chans processed
+  $messagesPerChan = $storage['avg_msg_per_chan'];
+  $totalChans      = $storage['user_count'] * $storage['per_user_chan_count'];
+  $dayCount        = 10; // FIXME: Start soft
 
-  $form['actions'] = array(
-    '#type' => 'actions',
-    'continue' => array(
-      '#type' => 'submit',
-      '#value' => t("Continue"),
-    ),
-  );
+  if (empty($context['sandbox'])) {
+    // We cannot create it all, the max value will be approximative.
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['current_chan'] = 0;
+    $context['sandbox']['current_day'] = 0;
+    // Afraid are you?
+    $context['sandbox']['max'] = $totalChans * $dayCount;
+  }
 
-  return $form;
-}
+  $sandbox = &$context['sandbox'];
 
-function apb7_testing_volume_form_step_step($form, &$form_state, &$storage) {
-  // @todo
+  $backend = apb7_backend_get($storage['backend']);
+
+  for ($i = 0; $i < $limit; ++$i) {
+
+    // Compute channel id, we will just proceed to an infinite rotation on
+    // the known channels until we reached the max value.
+    $channelId = ((++$sandbox['progress']) % $totalChans);
+    if ($channelId === 0) {
+      $channelId = $limit;
+    }
+
+    $channel = $backend->getChannel($channelId);
+
+    // Send messages to the channel
+    for ($j = 0; $j < $messagesPerChan; ++$j) {
+      $channel->send($j);
+    }
+  }
+
+  if ($sandbox['max'] < $sandbox['progress']) {
+    // Batch is finished
+    $context['finished'] = 1;
+  } else {
+    if (0.99999 < ($context['finished'] = ($sandbox['progress'] / $sandbox['max']))) {
+      $context['finished'] = 0.99999;
+    }
+  }
 }

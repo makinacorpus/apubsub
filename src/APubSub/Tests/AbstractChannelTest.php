@@ -4,6 +4,8 @@ namespace APubSub\Tests;
 
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
+use APubSub\Error\MessageDoesNotExistException;
+use APubSub\Error\SubscriptionDoesNotExistException;
 
 abstract class AbstractChannelTest extends \PHPUnit_Framework_TestCase
 {
@@ -127,6 +129,36 @@ abstract class AbstractChannelTest extends \PHPUnit_Framework_TestCase
             $this->assertSame($contents, $fetched->getContents());
             $this->assertSame($id, $fetched->getId());
             break; // Only test the first
+        }
+    }
+
+    public function testDelete()
+    {
+        // Create a channel and populate with some junk
+        $channel = $this->backend->createChannel("delete_me");
+        $sub1 = $channel->subscribe();
+        $sub1->activate();
+        $sub1Id = $sub1->getId();
+        $msg1 = $channel->send(1);
+        $sub2 = $channel->subscribe();
+        $sub2->activate();
+        $msg2 = $channel->send(2);
+
+        // Ok, first of all, deletion
+        $this->backend->deleteChannel("delete_me");
+
+        try {
+            $oldChannel = $this->backend->getChannel("delete_me");
+            $this->fail("Should have caught a ChannelDoesNotExistException");
+        } catch (ChannelDoesNotExistException $e) {
+            $this->assertTrue(true, "Caught a ChannelDoesNotExistException");
+        }
+
+        try {
+            $oldSub1 = $this->backend->getSubscription($sub1Id);
+            $this->fail("Should have caught a SubscriptionDoesNotExistException");
+        } catch (SubscriptionDoesNotExistException $e) {
+            $this->assertTrue(true, "Caught a SubscriptionDoesNotExistException");
         }
     }
 }

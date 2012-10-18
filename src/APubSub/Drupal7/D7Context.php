@@ -38,7 +38,7 @@ class D7Context
 
     /**
      * Delay all checks
-     * 
+     *
      * Delay all checks (queue length, message life time, ...) at garbage
      * collection time (note that even if deactivate the garbage collection
      * will still continue to do those checks). Use this is you are running
@@ -48,7 +48,7 @@ class D7Context
      *
      * @var bool
      */
-    public $delayChecks = false;
+    public $delayChecks = true;
 
     /**
      * Default constructor

@@ -2,8 +2,8 @@
 
 namespace APubSub\Impl;
 
-use APubSub\ChannelInterface;
 use APubSub\MessageInterface;
+use APubSub\PubSubInterface;
 
 /**
  * Default message implementation suitable for most backends
@@ -18,11 +18,11 @@ class DefaultMessage implements MessageInterface
     protected $id;
 
     /**
-     * Channel this message belongs to
+     * Backend this message belongs to
      *
-     * @var \APubSub\ChannelInterface
+     * @var \APubSub\PubSubInterface
      */
-    protected $channel;
+    protected $backend;
 
     /**
      * Send time UNIX timestamp
@@ -39,19 +39,27 @@ class DefaultMessage implements MessageInterface
     protected $contents;
 
     /**
+     * Channel identifier
+     *
+     * @var string
+     */
+    protected $chanId;
+
+    /**
      * Default constructor
      *
-     * @param ChannelInterface $channel Channel this message belongs to
-     * @param mixed $contents           Message contents
-     * @param scalar $id                Message identifier
-     * @param int $sendTime             Send time UNIX timestamp
+     * @param PubSubInterface $backend Backend this message is owned by
+     * @param string $chanId           Channel identifier
+     * @param mixed $contents          Message contents
+     * @param scalar $id               Message identifier
+     * @param int $sendTime            Send time UNIX timestamp
      */
-    public function __construct(ChannelInterface $channel,
-        $contents, $id, $sendTime)
+    public function __construct(PubSubInterface $backend,
+        $chanId, $contents, $id, $sendTime)
     {
         $this->id = $id;
+        $this->chanId = $chanId;
         $this->contents = $contents;
-        $this->channel = $channel;
         $this->sendTime = $sendTime;
     }
 
@@ -94,10 +102,19 @@ class DefaultMessage implements MessageInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\MessageInterface::getChannelId()
+     */
+    public function getChannelId()
+    {
+        return $this->chanId;
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\MessageInterface::getChannel()
      */
     public function getChannel()
     {
-        return $this->channel;
+        return $this->backend->getChannel($id);
     }
 }

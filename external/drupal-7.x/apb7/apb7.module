@@ -5,6 +5,11 @@
  * APubSub module file.
  */
 
+/**
+ * Default backend class.
+ */
+define('APB_DEFAULT_CLASS', '\APubSub\Drupal7\D7PubSub');
+
 if (!class_exists('APubSub\PubSubInterface')) {
   // In case no custom autoloader is provided, use the composer one.
   // In order to use it, you need to run "composer install" in the
@@ -47,17 +52,75 @@ function apb7_menu() {
     'file' => 'apb7.testing.inc',
     'type' => MENU_NORMAL_ITEM,
   );
+
+  // Stress test UI.
   $items['admin/messages/stress'] = array(
     'title' => 'Massive stress test',
     'description' => 'Multistep interactive wizard to proceed to a massive stress test.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('apb7_testing_volume_form'),
+    'page callback' => 'apb7_testing_volume_list',
     'access arguments' => array('access administration pages'),
     'file' => 'apb7.testing-volume.inc',
     'type' => MENU_NORMAL_ITEM,
   );
+  $items['admin/messages/stress/add'] = array(
+    'title' => 'Add scenario',
+    'description' => 'Create new test scenario.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('apb7_testing_volume_form'),
+    'access arguments' => array('access administration pages'),
+    'file' => 'apb7.testing-volume.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+  $items['admin/messages/stress/%apb7_test_scenario'] = array(
+    'title' => 'View scenario',
+    'page callback' => 'apb7_testing_volume_view_page',
+    'page arguments' => array(3),
+    'access arguments' => array('access administration pages'),
+    'file' => 'apb7.testing-volume.inc',
+    'type' => MENU_CALLBACK | MENU_VISIBLE_IN_BREADCRUMB,
+  );
+  $items['admin/messages/stress/%apb7_test_scenario/populate-channels'] = array(
+    'title' => 'Populate channels',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('apb7_testing_volume_scenario_populate_channels_form', 3),
+    'access arguments' => array('access administration pages'),
+    'file' => 'apb7.testing-volume.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+  $items['admin/messages/stress/%apb7_test_scenario/populate-messages'] = array(
+    'title' => 'Populate messages',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('apb7_testing_volume_scenario_populate_messages_form', 3),
+    'access arguments' => array('access administration pages'),
+    'file' => 'apb7.testing-volume.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+  $items['admin/messages/stress/%apb7_test_scenario/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('apb7_testing_volume_scenario_delete_form', 3),
+    'access arguments' => array('access administration pages'),
+    'file' => 'apb7.testing-volume.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
 
   return $items;
+}
+
+/**
+ * Menu helper.
+ */
+function apb7_test_scenario_load($id) {
+  $scenario = db_select('apb_test_scenario', 't')
+    ->fields('t')
+    ->condition('t.id', $id)
+    ->execute()
+    ->fetchObject();
+  if ($scenario) {
+    $scenario->data = unserialize($scenario->data);
+    return $scenario;
+  }
+  return FALSE;
 }
 
 /**
@@ -80,7 +143,7 @@ function apb7_backend_get($name = 'default') {
           sprintf("Class '%s' does not exist", $class));
       }
     } else {
-      $class = '\APubSub\Drupal7\D7PubSub';
+      $class = APB_DEFAULT_CLASS;
     }
 
     // Check for options and set them if any.
@@ -119,4 +182,19 @@ function apb7_backend_get($name = 'default') {
   }
 
   return $backends[$name];
+}
+
+/**
+ * Implements hook_cron().
+ */
+function apb7_cron() {
+  $backends = variable_get('apubsub_backend', array());
+  if (isset($backends['default'])) {
+    $backends['default'] = array();
+  }
+  foreach ($backends as $name => $options) {
+    if ($backend = apb7_backend_get($name)) {
+      $backend->garbageCollection();
+    }
+  }
 }

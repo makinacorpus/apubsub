@@ -148,7 +148,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         }
 
         foreach ($recordList as $record) {
-            $reŧ[] = new D7SimpleChannel($this, $record->name, (int)$record->id, (int)$record->created);
+            $ret[] = new D7SimpleChannel($this, $record->name, (int)$record->id, (int)$record->created);
         }
 
         return $ret;
@@ -213,6 +213,10 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function createChannels($idList, $ignoreErrors = false)
     {
+        if (empty($idList)) {
+            return $ret;
+        }
+
         $ret      = array();
         $created  = time();
         $dbId     = null;
@@ -289,7 +293,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
                 ->query("SELECT id FROM {apb_chan} WHERE name = :name", array(
                     ':name' => $id,
                 ))
-                ->fecthField();
+                ->fetchField();
 
             if (!$dbId) {
                 throw new ChannelDoesNotExistException();
@@ -301,8 +305,8 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             // means that consumers will lost unseen messages
             // FIXME: Joining with apb_sub instead might be more efficient
             $cx->query("
-                DELETE FROM {apb_queue} q
-                    WHERE q.msg IN (
+                DELETE FROM {apb_queue}
+                    WHERE msg_id IN (
                         SELECT m.id FROM {apb_msg} m
                             WHERE m.chan_id = :dbId
                     )
@@ -421,7 +425,8 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
                 throw new ChannelDoesNotExistException();
             }
 
-            // Clean queue then delete subscription
+            // Clean subscribers and queue then delete subscription
+            $cx->query("DELETE FROM {apb_sub_map} WHERE sub_id = :id", $args);
             $cx->query("DELETE FROM {apb_queue} WHERE sub_id = :id", $args);
             $cx->query("DELETE FROM {apb_sub} WHERE id = :id", $args);
 
@@ -467,10 +472,6 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
         // Ensure messages max lifetime
         $this->cleanUpMessageLifeTime();
-
-        // Ensure no consumed messages are left: all queue cleanup operations
-        // must have happened first
-        $this->cleanUpConsumedMessages();
     }
 
     /**
@@ -501,8 +502,8 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
                 ->dbConnection
                 ->query("
                     SELECT msg_id FROM {apb_queue}
-                      ORDER BY msg_id DESC
-                      OFFSET :max LIMIT 1
+                        ORDER BY msg_id DESC
+                        OFFSET :max LIMIT 1
                     ", array(
                         ':max' => $this->context->queueGlobalLimit,
                     ))
@@ -528,7 +529,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function cleanUpMessageLifeTime()
     {
-        if (!$this->context->messageMaxLifetime) {
+        if ($this->context->messageMaxLifetime) {
 
             // Delete messages
             $this
@@ -548,26 +549,6 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
                             SELECT id FROM {apb_msg}
                         )
                     ");
-        }
-    }
-
-    /**
-     * Use context configuration and remove messages that have been consumed
-     */
-    public function cleanUpConsumedMessages()
-    {
-        if (!$this->context->keepMessages) {
-            // Delete in queue FIXME: This query could be very long...
-            $this
-                ->context
-                ->dbConnection
-                ->query("
-                      DELETE FROM {apb_msg}
-                          WHERE id NOT IN (
-                              SELECT q.msg_id FROM {apb_queue} q
-                                  WHERE q.consumed = 0
-                          )
-                      ");
         }
     }
 }

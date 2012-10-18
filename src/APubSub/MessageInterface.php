@@ -30,6 +30,16 @@ interface MessageInterface
     public function getContents();
 
     /**
+     * Get the originating channel identifier
+     *
+     * Always prefer this getter than the getChannel() method, which will
+     * attempt an implicit channel load
+     *
+     * @return string
+     */
+    public function getChannelId();
+
+    /**
      * Get the originating channel
      *
      * @return \APubSub\ChannelInterface Channel that owns this message

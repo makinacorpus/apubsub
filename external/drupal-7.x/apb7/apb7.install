@@ -190,25 +190,13 @@ function apb7_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'consumed' => array(
-        'description' => "Has been consumed",
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
     ),
     'primary key' => array('msg_id', 'sub_id'),
-    'indexes' => array(
-      // Needed for load operations.
-      'apb_queue_consumed_idx' => array('consumed'),
-    ),
     'foreign keys' => array(
       'apb_queue_msg_id_fk' => array(
         'table' => 'apb_msg',
         'columns' => array('msg_id' => 'id'),
       ),
-    ),
-    'foreign keys' => array(
       'apb_queue_sub_id_fk' => array(
         'table' => 'apb_sub',
         'columns' => array('sub_id' => 'id'),
@@ -216,5 +204,34 @@ function apb7_schema() {
     ),
   );
 
+  $schema['apb_test_scenario'] = array(
+    'description' => "APubSub test scenarios",
+    'fields' => array(
+      'id' => array(
+        'description' => "Internal int32 identifier",
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'description' => "Name",
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+      ),
+      'data' => array(
+        'description' => "Serialized data blob",
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => "Creation UNIX timestamp",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
   return $schema;
 }

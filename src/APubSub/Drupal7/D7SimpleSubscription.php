@@ -2,7 +2,6 @@
 
 namespace APubSub\Drupal7;
 
-use APubSub\Impl\DefaultMessage;
 use APubSub\SubscriptionInterface;
 
 /**
@@ -165,7 +164,7 @@ class D7SimpleSubscription extends AbstractD7Object implements
             // Don't care about sort hopefully the items will be naturally
             // ordered by insertion time even thought this is not guaranteed
             // by any SQL standard
-            ->query("SELECT msg_id FROM {apb_queue} WHERE sub_id = :id AND consumed = 0", array(
+            ->query("SELECT msg_id FROM {apb_queue} WHERE sub_id = :id", array(
                 ':id' => $this->id,
             ))
             ->fetchCol();
@@ -176,25 +175,14 @@ class D7SimpleSubscription extends AbstractD7Object implements
 
         $ret = $this->channel->getMessages($idList);
 
-        // Delete/update using sub_id instead would allow newly queued message
+        // Delete using sub_id index instead would allow newly queued message
         // during our own processing to be deleted: can't do this. Hence the
         // WHERE IN condition on $idList 
-        if ($this->context->keepMessages) {
-            $cx
-                ->update('apb_queue')
-                ->fields(array(
-                    'consumed' => 1,
-                ))
-                ->condition('sub_id', $this->id)
-                ->condition('msg_id', $idList, 'IN')
-                ->execute();
-        } else {
-          $cx
-              ->delete('apb_queue')
-              ->condition('sub_id', $this->id)
-              ->condition('msg_id', $idList, 'IN')
-              ->execute();
-        }
+        $cx
+            ->delete('apb_queue')
+            ->condition('sub_id', $this->id)
+            ->condition('msg_id', $idList, 'IN')
+            ->execute();
 
         return $ret;
     }
