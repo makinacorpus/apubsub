@@ -147,7 +147,12 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
      */
     protected function getMessages($idList, $limit = null, $reverse = false)
     {
+        throw new \Exception("Not implemented yet");
         $ret = array();
+
+        if (empty($idList)) {
+            return array();
+        }
 
         $query = $this
             ->context
@@ -234,7 +239,7 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
            FIXME: Add standalone index on apb_queue.sub_id
 
            */
-        $idLIst = $this
+        $idList = $this
             ->context
             ->dbConnection
             ->query("

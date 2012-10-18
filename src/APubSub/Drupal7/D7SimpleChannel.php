@@ -143,7 +143,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
 
         foreach ($records as $record) {
             $ret[] = new DefaultMessage($this->backend,
-                unserialize($record->contents),
+                $this->id, unserialize($record->contents),
                 (int)$record->id, (int)$record->created);
         }
 
@@ -200,7 +200,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
             throw $e;
         }
 
-        return new DefaultMessage($this->backend, $contents, $id, $sendTime);
+        return new DefaultMessage($this->backend, $this->id, $contents, $id, $sendTime);
     }
 
     /**

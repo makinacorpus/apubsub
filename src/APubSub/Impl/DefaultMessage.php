@@ -61,6 +61,7 @@ class DefaultMessage implements MessageInterface
         $this->chanId = $chanId;
         $this->contents = $contents;
         $this->sendTime = $sendTime;
+        $this->backend = $backend;
     }
 
     /**
@@ -115,6 +116,6 @@ class DefaultMessage implements MessageInterface
      */
     public function getChannel()
     {
-        return $this->backend->getChannel($id);
+        return $this->backend->getChannel($this->chanId);
     }
 }
