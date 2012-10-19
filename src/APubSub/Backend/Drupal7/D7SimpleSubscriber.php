@@ -42,7 +42,9 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
             ->context
             ->dbConnection
             // This query will also remove non existing stalling subscriptions
-            // from the subscriber map
+            // from the subscriber map thanks to the JOIN statements, thus
+            // avoiding potential exceptions being thrown at single subscription
+            // get time
             ->query("
                 SELECT c.name, mp.sub_id
                     FROM {apb_sub_map} mp
@@ -97,8 +99,6 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
     public function subscribe($channelId)
     {
         $activated = time();
-        // Should be moved out and a subselect used instead, this triggers an
-        // extra and useless SQL query
         $created   = $activated;
         $cx        = $this->context->dbConnection;
         $tx        = $cx->startTransaction();
@@ -139,8 +139,8 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
                 $id, $created, $activated, 0, false);
 
             // Also ensure a few static caches are setup in the global context:
-            // this will be the only cache instance direct access from this
-            // class
+            // this will be the only cache object instance direct access from
+            // this class
             $this->context->cache->addSubscription($subscription);
             $this->idList[$channelId] = $id;
 
@@ -163,10 +163,10 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
      * This method will do 2 SQL queries, one for fetch messages, and the other
      * one for removing those messages from the list.
      *
-     * @param array $idList List of message identifiers
      * @param int $limit    Number of message to fetch
      * @param bool $reverse Set this to true if you want to fetch latest
-     *                      messages instead of oldest messages
+     *                      messages instead of oldest messages, case in which
+     *                      sorting will be switched from ID DESC to ID ASC
      *
      * @return array        List of DefaultMessage instances
      */
@@ -177,7 +177,7 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
 
         /*
          * Targeted query: benchmarked along 4 different variants, including
-         * subqueries, different JOIN order, different indexes: this is one
+         * subqueries, different JOIN order, different indexes: this one
          * is the one that will give you the best performances with MySQL.
          *
          * SELECT m.id, m.* FROM apb_sub_map mp
@@ -193,7 +193,7 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
          *
          * On a poor box, with few CPU and few RAM this query runs in 0.01s
          * (MySQL result) with no query cache and 5 millions of records in
-         * the apb_queue table.
+         * the apb_queue table and 300,000 in the apb_sub_map table.
          *
          * Note that for other DBMS' this will need to be tested, and a
          * switch/case on the dbConnection class may proove itself to be very

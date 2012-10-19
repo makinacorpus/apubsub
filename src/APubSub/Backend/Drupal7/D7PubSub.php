@@ -16,9 +16,9 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      * Default constructor
      *
      * @param DatabaseConnection $dbConnection Drupal database connexion
-     * @param array $options                   Options
+     * @param array|Traversable $options       Options
      */
-    public function __construct(\DatabaseConnection $dbConnection, array $options = null)
+    public function __construct(\DatabaseConnection $dbConnection, $options = null)
     {
         $this->context = new D7Context($dbConnection, $this, $options);
     }
@@ -29,7 +29,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function setOptions(array $options)
     {
-        $this->context->parseOptions($options);
+        $this->context->setOptions($options);
     }
 
     /**
@@ -218,7 +218,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         $tx      = $cx->startTransaction();
 
         try {
-            // No not ever use cache here, we cannot afford to try to create
+            // Do not ever use cache here, we cannot afford to try to create
             // a channel that have been deleted by another thread
             $exists = $cx
                 ->query("SELECT 1 FROM {apb_chan} c WHERE c.name = :name", array(
@@ -275,7 +275,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         $tx       = $cx->startTransaction();
 
         try {
-            // No not ever use cache here, we cannot afford to try to create
+            // Do not ever use cache here, we cannot afford to try to create
             // a channel that have been deleted by another thread
             $existingList = $cx
                 ->select('apb_chan', 'c')
@@ -311,7 +311,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             // all channels at once instead of doing a first query for
             // existing and a second for newly created ones, thus allowing
             // us to keep the list ordered implicitely as long as the get
-            // method keeps it
+            // method keeps it ordered too
             $ret = $this->getChannels($idList);
 
             unset($tx); // Explicit commit
@@ -349,8 +349,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
             $args = array(':dbId' => $dbId);
 
-            // Queue is not the most optimized query, but it is necessary: this
-            // means that consumers will lost unseen messages
+            // Queue is not the most optimized query but is necessary
             // FIXME: Joining with apb_sub instead might be more efficient
             $cx->query("
                 DELETE FROM {apb_queue}
@@ -373,7 +372,8 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             // including deleting subscriptions, removing messages and
             // invalidating subscribers: do not allow anything to remain in
             // static cache, checking all dependencies one by one would be
-            // uselessly complex code
+            // uselessly complex code considering that deleting a channel
+            // is *not* something you are going to do in every day
             $this->context->cache->flush();
 
         } catch (\Exception $e) {
@@ -616,9 +616,10 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
                 ->fetchField();
 
             if ($min) {
-                // If the same message is still in many queues, we will never
-                // reach the exact global limit, but almost a bit more since
-                // we cannot target the exact row here
+                // If the same message exists in many queues, we will never
+                // reach the exact global limit: deleting all messages with
+                // a lower id ensures that we may be close enought to this
+                // limit
                 $this
                     ->context
                     ->dbConnection
