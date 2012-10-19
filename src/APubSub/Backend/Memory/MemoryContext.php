@@ -1,16 +1,16 @@
 <?php
 
-namespace APubSub\Memory;
+namespace APubSub\Backend\Memory;
 
-use APubSub\Impl\ContextInterface;
+use APubSub\ContextInterface;
 
 /**
- * Shared information for all memory based objects.
+ * Context implementation for memory objects
  */
 class MemoryContext implements ContextInterface
 {
     /**
-     * @var \APubSub\Memory\MemoryPubSub
+     * @var \APubSub\Backend\Memory\MemoryPubSub
      */
     public $backend;
 
@@ -68,7 +68,7 @@ class MemoryContext implements ContextInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\Impl\ContextInterface::getBackend()
+     * @see \APubSub\ContextInterface::getBackend()
      */
     public function getBackend()
     {
@@ -77,7 +77,7 @@ class MemoryContext implements ContextInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\Impl\ContextInterface::setOptions()
+     * @see \APubSub\ContextInterface::setOptions()
      */
     public function setOptions($options)
     {
@@ -86,7 +86,7 @@ class MemoryContext implements ContextInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\Impl\ContextInterface::getOptions()
+     * @see \APubSub\ContextInterface::getOptions()
      */
     public function getOptions()
     {

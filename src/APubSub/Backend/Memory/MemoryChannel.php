@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Memory;
+namespace APubSub\Backend\Memory;
 
 use APubSub\ChannelInterface;
 use APubSub\Error\MessageDoesNotExistException;
@@ -19,13 +19,6 @@ class MemoryChannel extends AbstractMemoryObject implements ChannelInterface
     private $id;
 
     /**
-     * Current backend
-     *
-     * @var \APubSub\Memory\MemoryPubSub
-     */
-    private $backend;
-
-    /**
      * Creation UNIX timestamp
      *
      * @var int
@@ -35,16 +28,14 @@ class MemoryChannel extends AbstractMemoryObject implements ChannelInterface
     /**
      * Internal constructor
      *
-     * @param string $id            Channel identifier
-     * @param MemoryPubSub $backend Backend
+     * @param MemoryContext $context Context
+     * @param string $id             Channel identifier
      */
-    public function __construct($id, MemoryPubSub $backend)
+    public function __construct(MemoryContext $context, $id)
     {
         $this->id = $id;
-        $this->backend = $backend;
         $this->created = time();
-
-        $this->setContext($backend->getContext());
+        $this->context = $context;
     }
 
     /**
@@ -54,15 +45,6 @@ class MemoryChannel extends AbstractMemoryObject implements ChannelInterface
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::getBackend()
-     */
-    public function getBackend()
-    {
-        return $this->backend;
     }
 
     /**
@@ -139,23 +121,12 @@ class MemoryChannel extends AbstractMemoryObject implements ChannelInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::sendMultiple()
-     */
-    public function massSend($contentList)
-    {
-        foreach ($contentList as $contents) {
-            $this->send($contents);
-        }
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\ChannelInterface::subscribe()
      */
     public function subscribe()
     {
         $id           = $this->context->getNextSubscriptionIdentifier();
-        $subscription = new MemorySubscription($this, $id);
+        $subscription = new MemorySubscription($this->context, $this->id, $id);
 
         $this->context->subscriptions[$id] = $subscription;
 

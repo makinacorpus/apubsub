@@ -77,12 +77,12 @@ abstract class AbstractSubscriptionTest extends \PHPUnit_Framework_TestCase
         $channel->send(42);
 
         $messages = $subscription->fetch();
-        $this->assertTrue(empty($messages));
+        $this->assertEmpty($messages);
 
         $subscription->activate();
         $channel->send(24);
         $messages = $subscription->fetch();
-        $this->assertFalse(empty($messages));
+        $this->assertNotEmpty($messages);
         $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
         $this->assertCount(1, $messages);
         foreach ($messages as $message) {
@@ -91,14 +91,14 @@ abstract class AbstractSubscriptionTest extends \PHPUnit_Framework_TestCase
         }
 
         $messages = $subscription->fetch();
-        $this->assertTrue(empty($messages));
+        $this->assertEmpty($messages);
         $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
         $this->assertCount(0, $messages);
 
         $subscription->deactivate();
         $channel->send(12);
         $messages = $subscription->fetch();
-        $this->assertTrue(empty($messages));
+        $this->assertEmpty($messages);
         $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
         $this->assertCount(0, $messages);
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Memory;
+namespace APubSub\Backend\Memory;
 
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
@@ -14,7 +14,7 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
 {
     public function __construct()
     {
-        $this->setContext(new MemoryContext($this));
+        $this->context = new MemoryContext($this);
     }
 
     /**
@@ -51,7 +51,7 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
                 throw new ChannelAlreadyExistsException();
             }
         } else {
-            return $this->context->channels[$id] = new MemoryChannel($id, $this);
+            return $this->context->channels[$id] = new MemoryChannel($this->context, $id);
         }
     }
 
@@ -170,10 +170,18 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
     public function getSubscriber($id)
     {
         if (!isset($this->context->subscribers[$id])) {
-            $this->context->subscribers[$id] = new MemorySubscriber($id, $this);
+            $this->context->subscribers[$id] = new MemorySubscriber($this->context, $id);
         }
 
         return $this->context->subscribers[$id];
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::flushCaches()
+     */
+    public function flushCaches()
+    {
     }
 
     /**

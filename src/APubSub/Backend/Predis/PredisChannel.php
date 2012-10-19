@@ -1,10 +1,10 @@
 <?php
 
-namespace APubSub\Predis;
+namespace APubSub\Backend\Predis;
 
+use APubSub\Backend\DefaultMessage;
 use APubSub\ChannelInterface;
 use APubSub\Error\MessageDoesNotExistException;
-use APubSub\Impl\DefaultMessage;
 use APubSub\MessageInterface;
 
 /**
@@ -22,7 +22,7 @@ class PredisChannel extends AbstractPredisObject implements ChannelInterface
     /**
      * Current backend
      *
-     * @var \APubSub\Predis\PredisPubSub
+     * @var \APubSub\Backend\Predis\PredisPubSub
      */
     protected $backend;
 

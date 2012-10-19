@@ -192,6 +192,12 @@ function apb7_schema() {
       ),
     ),
     'primary key' => array('msg_id', 'sub_id'),
+    'indexes' => array(
+      // Thought that having it in primary key was sufficient? Well, no: if you
+      // try to JOIN with this field, without this index, MySQL will always do
+      // a full scan.
+      'apb_queue_sub_id_idx' => array('sub_id'),
+    ),
     'foreign keys' => array(
       'apb_queue_msg_id_fk' => array(
         'table' => 'apb_msg',

@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Drupal7;
+namespace APubSub\Backend\Drupal7;
 
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
@@ -20,7 +20,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function __construct(\DatabaseConnection $dbConnection, array $options = null)
     {
-        $this->setContext(new D7Context($dbConnection, $this, $options));
+        $this->context = new D7Context($dbConnection, $this, $options);
     }
 
     /**
@@ -38,9 +38,10 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function getChannel($id)
     {
-        // FIXME: We could use a static cache here, but the channel might have
-        // been deleted in another thread, however, this is very unlikely to
-        // happen
+        if ($channel = $this->context->cache->getChannel($id)) {
+            return $channel;
+        }
+
         $record = $this
             ->context
             ->dbConnection
@@ -51,7 +52,12 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             throw new ChannelDoesNotExistException();
         }
 
-        return new D7SimpleChannel($this->context, $record->name, (int)$record->id, (int)$record->created);
+        $channel = new D7SimpleChannel($this->context,
+            $record->name, (int)$record->id, (int)$record->created);
+
+        $this->context->cache->addChannel($channel);
+
+        return $channel;
     }
 
     /**
@@ -60,28 +66,47 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function getChannels($idList)
     {
-        $ret = array();
+        $ret           = array();
+        $missingIdList = array();
 
-        // FIXME: We could use a static cache here, but the channel might have
-        // been deleted in another thread, however, this is very unlikely to
-        // happen
+        // First populate cache from what we have
+        foreach ($idList as $id) {
+            if ($channel = $this->context->cache->getChannel($id)) {
+                $ret[$id] = $channel;
+            } else {
+                $missingIdList[] = $id;
+            }
+        }
+
+        // Short-circuiting thus avoiding useless SQL queries
+        if (empty($missingIdList)) {
+            return $ret;
+        }
+
         $recordList = $this
             ->context
             ->dbConnection
             ->select('apb_chan', 'c')
             ->fields('c')
-            ->condition('name', $idList, 'IN')
+            ->condition('name', $missingIdList, 'IN')
             ->execute()
             // Fetch all is mandatory, else we cannot count
             ->fetchAll();
 
-        if (count($recordList) !== count($idList)) {
+        if (count($recordList) !== count($missingIdList)) {
             throw new ChannelDoesNotExistException();
         }
 
         foreach ($recordList as $record) {
-            $ret[] = new D7SimpleChannel($this->context, $record->name, (int)$record->id, (int)$record->created);
+            $channel = new D7SimpleChannel($this->context,
+                $record->name, (int)$record->id, (int)$record->created);
+
+            $ret[$record->name] = $channel;
+
+            $this->context->cache->addChannel($channel);
         }
+
+        array_multisort($idList, $ret);
 
         return $ret;
     }
@@ -91,7 +116,8 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      *
      * @param int $id                           Channel database identifier
      *
-     * @return \APubSub\Drupal7\D7SimpleChannel Loaded instance
+     * @return \APubSub\Backend\Drupal7\D7SimpleChannel
+     *                                          Loaded instance
      *
      * @throws \APubSub\Error\ChannelDoesNotExistException
      *                                          If channel does not exist in
@@ -99,9 +125,10 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function getChannelByDatabaseId($id)
     {
-        // FIXME: We could use a static cache here, but the channel might have
-        // been deleted in another thread, however, this is very unlikely to
-        // happen
+        if ($channel = $this->context->cache->getChannel($id)) {
+            return $channel;
+        }
+
         $record = $this
             ->context
             ->dbConnection
@@ -112,7 +139,11 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             throw new ChannelDoesNotExistException();
         }
 
-        return new D7SimpleChannel($this->context, $record->name, (int)$record->id, (int)$record->created);
+        $channel = new D7SimpleChannel($this->context, $record->name, (int)$record->id, (int)$record->created);
+
+        $this->context->cache->addChannel($channel);
+
+        return $channel;
     }
 
     /**
@@ -120,7 +151,8 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      *
      * @param int $idList                       Channel database identifiers
      *
-     * @return \APubSub\Drupal7\D7SimpleChannel Loaded instance
+     * @return \APubSub\Backend\Drupal7\D7SimpleChannel
+     *                                          Loaded instance
      *
      * @throws \APubSub\Error\ChannelDoesNotExistException
      *                                          If channel does not exist in
@@ -129,27 +161,46 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
     public function getChannelsByDatabaseIds($idList)
     {
         $ret = array();
+        $missingIdList = array();
 
-        // FIXME: We could use a static cache here, but the channel might have
-        // been deleted in another thread, however, this is very unlikely to
-        // happen
+        // First populate cache from what we have
+        foreach ($idList as $id) {
+            if ($channel = $this->context->cache->getChannelByDatabaseId($id)) {
+                $ret[$id] = $channel;
+            } else {
+                $missingIdList[] = $id;
+            }
+        }
+
+        // Short-circuiting thus avoiding useless SQL queries
+        if (empty($missingIdList)) {
+            return $ret;
+        }
+
         $recordList = $this
             ->context
             ->dbConnection
             ->select('apb_chan', 'c')
             ->fields('c')
-            ->condition('id', $idList, 'IN')
+            ->condition('id', $missingIdList, 'IN')
             ->execute()
             // Fetch all is mandatory, else we cannot count
             ->fetchAll();
 
-        if (count($recordList) !== count($idList)) {
+        if (count($recordList) !== count($missingIdList)) {
             throw new ChannelDoesNotExistException();
         }
 
         foreach ($recordList as $record) {
-            $ret[] = new D7SimpleChannel($this->context, $record->name, (int)$record->id, (int)$record->created);
+            $id = (int)$record->id;
+            $channel = new D7SimpleChannel($this->context, $record->name, $id, (int)$record->created);;
+
+            $ret[$id] = $channel;
+
+            $this->context->cache->addChannel($channel);
         }
+
+        array_multisort($idList, $ret);
 
         return $ret;
     }
@@ -192,6 +243,9 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
                 $dbId = (int)$cx->lastInsertId();
                 $channel = new D7SimpleChannel($this->context, $id, $dbId, $created);
+
+                // In case of success, populate internal static cache
+                $this->context->cache->addChannel($channel);
             }
 
             unset($tx); // Explicit commit
@@ -200,9 +254,6 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
             throw $e;
         }
-
-        // FIXME: Handle here the static cache (and not in the try/catch block
-        // else we might cache false positives)
 
         return $channel;
     }
@@ -270,9 +321,6 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             throw $e;
         }
 
-        // FIXME: Handle here the static cache (and not in the try/catch block
-        // else we might cache false positives)
-
         return $ret;
     }
 
@@ -321,6 +369,13 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
             unset($tx); // Explicit commit
 
+            // FIXME: Deleting a channel actually does a lot of bad things
+            // including deleting subscriptions, removing messages and
+            // invalidating subscribers: do not allow anything to remain in
+            // static cache, checking all dependencies one by one would be
+            // uselessly complex code
+            $this->context->cache->flush();
+
         } catch (\Exception $e) {
             $tx->rollback();
 
@@ -334,24 +389,18 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function listChannels($limit, $offset)
     {
-        $result = $this
+        $idList = $this
             ->context
             ->dbConnection
             ->select('apb_chan', 'c')
-            ->fields('c')
+            ->fields('c', array('id'))
             ->range($offset, $limit)
             // Force an order to avoid SQL unpredictable behavior
             ->orderBy('c.created')
-            ->execute();
+            ->execute()
+            ->fetchCol();
 
-        $ret = array();
-
-        while ($record = $result->fetchObject()) {
-            $ret[] = new D7SimpleChannel($this->context, $record->name,
-                (int)$record->id, (int)$record->created);
-        }
-
-        return $ret;
+        return $this->getChannelsByDatabaseIds($idList);
     }
 
     /**
@@ -360,9 +409,10 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function getSubscription($id)
     {
-        // FIXME: We could use a static cache here, but the channel might have
-        // been deleted in another thread, however, this is very unlikely to
-        // happen
+        if ($subscription = $this->context->cache->getSubscription($id)) {
+            return $subscription;
+        }
+
         $record = $this
             ->context
             ->dbConnection
@@ -371,17 +421,21 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             ))
             ->fetchObject();
 
-        // FIXME: Useless chan lookup
+        // FIXME: Useless chan lookup?
         if (!$record || !($channel = $this->getChannelByDatabaseId($record->chan_id))) {
             // Subscription may exist, but channel does not anymore case in
             // which we consider it should be dropped
             throw new SubscriptionDoesNotExistException();
         }
 
-        return new D7SimpleSubscription($this->context,
-            $record->chan_id, (int)$record->id,
+        $subscription = new D7SimpleSubscription($this->context,
+            (int)$record->chan_id, (int)$record->id,
             (int)$record->created, (int)$record->activated,
             (int)$record->deactivated, (bool)$record->status);
+
+        $this->context->cache->addSubscription($subscription);
+
+        return $subscription;
     }
 
     /**
@@ -390,14 +444,50 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function getSubscriptions($idList)
     {
-        // FIXME: I'm too lazy to optimize this, but it needs to be because it
-        // will do N * 2 SQL queries where N is the number of subscriptions
-        // where it could do a constant 2 queries
         $ret = array();
+        $missingIdList = array();
 
+        // First populate cache from what we have
         foreach ($idList as $id) {
-            $ret[] = $this->getSubscription($id);
+            if ($subscription = $this->context->cache->getSubscription($id)) {
+                $ret[$id] = $subscription;
+            } else {
+                $missingIdList[] = $id;
+            }
         }
+
+        // Short-circuiting thus avoiding useless SQL queries
+        if (empty($missingIdList)) {
+            return $ret;
+        }
+
+        $recordList = $this
+            ->context
+            ->dbConnection
+            ->select('apb_sub', 's')
+            ->fields('s')
+            ->condition('id', $missingIdList, 'IN')
+            ->execute()
+            // Fetch all is mandatory, else we cannot count
+            ->fetchAll();
+
+        if (count($recordList) !== count($missingIdList)) {
+            throw new SubscriptionDoesNotExistException();
+        }
+
+        foreach ($recordList as $record) {
+            $id = (int)$record->id;
+            $subscription = new D7SimpleSubscription($this->context,
+                (int)$record->chan_id, $id,
+                (int)$record->created, (int)$record->activated,
+                (int)$record->deactivated, (bool)$record->status);
+
+            $ret[$id] = $subscription;
+
+            $this->context->cache->addSubscription($subscription);
+        }
+
+        array_multisort($idList, $ret);
 
         return $ret;
     }
@@ -434,6 +524,8 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
             unset($tx); // Explicit commit
 
+            $this->context->cache->removeSubscription($id);
+
         } catch (\Exception $e) {
             $tx->rollback();
 
@@ -447,7 +539,10 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function deleteSubscriptions($idList)
     {
-        // FIXME: Optimize this if necessary
+        // This doesn't sound revelant to optimize this method, subscriptions
+        // should not be to transcient, they have not been meant to anyway:
+        // deleting subscriptions will be a costy operation whatever the effort
+        // to make in deleting them faster
         foreach ($idList as $id) {
             $this->deleteSubscription($id);
         }
@@ -461,6 +556,15 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
     {
         // In this implementation all writes will be delayed on real operations
         return new D7SimpleSubscriber($this->context, $id);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::flushCaches()
+     */
+    public function flushCaches()
+    {
+        $this->context->flushCaches();
     }
 
     /**
@@ -541,7 +645,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
                     ':time' => time() - $this->context->messageMaxLifetime,
                 ));
 
-            // Delete in queue FIXME: This query could be very long...
+            // Delete in queue
             $this
                 ->context
                 ->dbConnection

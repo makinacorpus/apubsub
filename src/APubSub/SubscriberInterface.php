@@ -2,8 +2,6 @@
 
 namespace APubSub;
 
-use APubSub\Impl\ObjectInterface;
-
 /**
  * A subscriber is an optional component of the API that may reference
  * one or more subscriptions
@@ -40,8 +38,6 @@ interface SubscriberInterface extends ObjectInterface
      * @throws \APubSub\Error\SubscriptionDoesNotExistException
      *                                        If the subscriber did not
      *                                        subscribe to the given channel
-     * @throws \APubSub\Error\ChannelDoesNotExistException
-     *                                        If channel does not exist
      */
     public function getSubscriptionFor($channelId);
 

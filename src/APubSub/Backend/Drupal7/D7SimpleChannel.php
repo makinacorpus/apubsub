@@ -1,14 +1,18 @@
 <?php
 
-namespace APubSub\Drupal7;
+namespace APubSub\Backend\Drupal7;
 
+use APubSub\Backend\DefaultMessage;
 use APubSub\ChannelInterface;
 use APubSub\Error\MessageDoesNotExistException;
-use APubSub\Impl\DefaultMessage;
 use APubSub\MessageInterface;
 
 /**
  * Drupal 7 simple channel implementation
+ *
+ * This implementation does not statically cache messages at all: messages are
+ * not supposed to be read multiple times, they should never be, and multiple
+ * queries on the same message must remain uncommon
  */
 class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
 {
@@ -46,8 +50,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
         $this->id = $id;
         $this->dbId = $dbId;
         $this->created = $created;
-
-        $this->setContext($context);
+        $this->context = $context;
     }
 
     /**
@@ -71,15 +74,6 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::getBackend()
-     */
-    public function getBackend()
-    {
-        return $this->context->backend;
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see APubSub.ChannelInterface::getCreationTime()
      */
     public function getCreationTime()
@@ -93,7 +87,6 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
      */
     public function getMessage($id)
     {
-        // FIXME: Could/should use a static cache here? I guess so.
         $record = $this
             ->context
             ->dbConnection
@@ -107,7 +100,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
             throw new MessageDoesNotExistException();
         }
 
-        return new DefaultMessage($this->context,
+        return new DefaultMessage($this->context, $this->id,
             unserialize($record->contents), $id, (int)$record->created);
     }
 
@@ -117,7 +110,6 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
      */
     public function getMessages($idList)
     {
-        // FIXME: See getMessage() for static caching considerations.
         $records = $this
             ->context
             ->dbConnection
@@ -176,6 +168,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
                         SELECT :msgId AS msg_id, s.id AS sub_id
                             FROM {apb_sub} s
                             WHERE s.chan_id = :chanId
+                            AND s.status = 1
                     ", array(
                         'msgId' => $id,
                         'chanId' => $this->dbId,
@@ -195,67 +188,6 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
 
         return new DefaultMessage($this->context,
             $this->id, $contents, $id, $sendTime);
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::massSend()
-     */
-    public function massSend($contentList)
-    {
-        throw new \Exception("Not implemented yet");
-        $ret      = array();
-        $cx       = $this->context->dbConnection;
-        $tx       = $cx->startTransaction();
-        $id       = null;
-        $sendTime = time();
-        $idList   = array();
-
-        try {
-            // This is really bad for performances but because the SQL standard
-            // does not allow to do a BULK INSERT and fetch the generated ids
-            // at the same time: we're fucked. At least, we can optimise the
-            // whole execution by doing the BULK INSERT into the queue only
-            // once thanks to those ids being aggregated.
-            foreach ($contentList as $contents) {
-                $cx
-                    ->insert('apb_msg')
-                    ->fields(array(
-                        'chan_id' => $this->dbId,
-                        'created' => $sendTime,
-                        'contents' => serialize($contents),
-                    ))
-                    ->execute();
-
-                $idList[] = $id = (int)$cx->lastInsertId();
-
-                $ret[] = new DefaultMessage($this->context,
-                    $contents, $id, $sendTime);
-            }
-
-            // Send message to all subscribers
-            $cx
-                ->query("
-                    INSERT INTO {apb_queue}
-                        SELECT :msgId AS msg_id, s.id AS sub_id
-                            FROM {apb_sub} s
-                            WHERE s.chan_id = :chanId
-                    ", array(
-                        'msgId' => $id,
-                        'chanId' => $this->dbId,
-                    ));
-
-            if (!$this->context->delayChecks) {
-                $this->context->backend->cleanUpMessageQueue();
-                $this->context->backend->cleanUpMessageLifeTime();
-            }
-        } catch (\Exception $e) {
-            $tx->rollback();
-
-            throw $e;
-        }
-
-        return $ret;
     }
 
     /**
@@ -282,8 +214,12 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
 
             $id = (int)$cx->lastInsertId();
 
-            return new D7SimpleSubscription($this->context,
-                $this->id, $id, $created, 0, $deactivated, false);
+            $subscription = new D7SimpleSubscription($this->context,
+                $this->dbId, $id, $created, 0, $deactivated, false);
+
+            $this->context->cache->addSubscription($subscription);
+
+            return $subscription;
 
         } catch (\Exception $e) {
             $tx->rollback();

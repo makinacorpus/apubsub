@@ -2,7 +2,10 @@
 
 namespace APubSub\Stat;
 
-interface ChannelStatInterface
+use APubSub\ChannelAwareInterface;
+use APubSub\ObjectInterface;
+
+interface ChannelStatInterface extends ObjectInterface, ChannelAwareInterface
 {
     /**
      * Get channel

@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Memory;
+namespace APubSub\Backend\Memory;
 
 use APubSub\SubscriptionInterface;
 
@@ -18,11 +18,11 @@ class MemorySubscription extends AbstractMemoryObject implements
     private $id;
 
     /**
-     * Channel this message belongs to
+     * Channel identifier this message belongs to
      *
-     * @var \APubSub\Memory\MemoryChannel
+     * @var string
      */
-    private $channel;
+    private $chanId;
 
     /**
      * Creation UNIX timestamp
@@ -71,16 +71,16 @@ class MemorySubscription extends AbstractMemoryObject implements
     /**
      * Default constructor
      *
-     * @param ChannelInterface $channel Channel this message belongs to
-     * @param scalar $id                Message identifier
+     * @param MemoryContext $context Context
+     * @param string $chanId         Channel identifier
+     * @param scalar $id             Message identifier
      */
-    public function __construct(MemoryChannel $channel, $id = null)
+    public function __construct(MemoryContext $context, $chanId, $id = null)
     {
         $this->id = $id;
-        $this->channel = $channel;
+        $this->chanId = $chanId;
         $this->created = $this->deactivatedTime = time();
-
-        $this->setContext($this->channel->getContext());
+        $this->context = $context;
     }
 
     /**
@@ -94,11 +94,20 @@ class MemorySubscription extends AbstractMemoryObject implements
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::getChannel()
+     * @see \APubSub\ChannelAwareInterface::getChannelId()
+     */
+    public function getChannelId()
+    {
+        return $this->chanId;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\ChannelAwareInterface::getChannel()
      */
     public function getChannel()
     {
-        return $this->channel;
+        return $this->context->backend->getChannel($this->chanId);
     }
 
     /**
@@ -151,7 +160,7 @@ class MemorySubscription extends AbstractMemoryObject implements
      */
     public function delete()
     {
-        $this->channel->getBackend()->deleteSubscription($this->getId());
+        $this->context->backend->deleteSubscription($this->getId());
     }
 
     /**

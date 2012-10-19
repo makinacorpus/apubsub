@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Drupal7;
+namespace APubSub\Backend\Drupal7;
 
 use APubSub\SubscriptionInterface;
 
@@ -18,11 +18,11 @@ class D7SimpleSubscription extends AbstractD7Object implements
     private $id;
 
     /**
-     * Channel identifier this message belongs to identifier
+     * Channel database identifier
      *
      * @var string
      */
-    private $chanId;
+    private $chanDbId;
 
     /**
      * Creation UNIX timestamp
@@ -58,24 +58,23 @@ class D7SimpleSubscription extends AbstractD7Object implements
      * Default constructor
      *
      * @param D7Context $context   Context
-     * @param int $chanId         Channel identifier this message belongs to
+     * @param int $chanDbId        Channel database identifier
      * @param int $id              Subscription identifier
      * @param int $created         Creation UNIX timestamp
      * @param int $activatedTime   Latest activation UNIX timestamp
      * @param int $deactivatedTime Latest deactivation UNIX timestamp
      * @param bool $isActive       Is this subscription active
      */
-    public function __construct(D7Context $context, $chanId, $id,
+    public function __construct(D7Context $context, $chanDbId, $id,
         $created, $activatedTime, $deactivatedTime, $isActive)
     {
         $this->id = $id;
-        $this->chanId = $chanId;
+        $this->chanDbId = $chanDbId;
         $this->created = $created;
         $this->activatedTime = $activatedTime;
         $this->deactivatedTime = $deactivatedTime;
         $this->active = $isActive;
-
-        $this->setContext($context);
+        $this->context = $context;
     }
 
     /**
@@ -89,11 +88,20 @@ class D7SimpleSubscription extends AbstractD7Object implements
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::getChannel()
+     * @see \APubSub\ChannelAwareInterface::getChannelId()
+     */
+    public function getChannelId()
+    {
+        return $this->chanId;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\ChannelAwareInterface::getChannel()
      */
     public function getChannel()
     {
-        return $this->context->backend->getChannel($this->chanId);
+        return $this->context->backend->getChannelByDatabaseId($this->chanDbId);
     }
 
     /**
@@ -146,10 +154,7 @@ class D7SimpleSubscription extends AbstractD7Object implements
      */
     public function delete()
     {
-        $this
-            ->getChannel()
-            ->getBackend()
-            ->deleteSubscription($this->getId());
+        $this->context->backend->deleteSubscription($this->getId());
     }
 
     /**

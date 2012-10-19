@@ -2,8 +2,6 @@
 
 namespace APubSub;
 
-use APubSub\Impl\ObjectInterface;
-
 /**
  * Interface for all channels.
  */
@@ -15,13 +13,6 @@ interface ChannelInterface extends ObjectInterface
      * @return string Channel identifier
      */
     public function getId();
-
-    /**
-     * Get the backend this channel is originating from
-     *
-     * @return \APubSub\PubSubInterface The owner backend
-     */
-    public function getBackend();
 
     /**
      * Get message by identifier
@@ -64,16 +55,6 @@ interface ChannelInterface extends ObjectInterface
      * @return \APubSub\MessageInterface The new message
      */
     public function send($contents, $sendTime = null);
-
-    /**
-     * Send a set of messages
-     *
-     * Use this method when you have a lot of messages to send at the same time
-     * and no use of fetching back the message instance
-     *
-     * @param array|Traversable $contentList Messages contents
-     */
-    //public function massSend($contentList);
 
     /**
      * Create a new subscription to this channel.

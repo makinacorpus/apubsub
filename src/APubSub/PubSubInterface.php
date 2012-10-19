@@ -2,8 +2,6 @@
 
 namespace APubSub;
 
-use APubSub\Impl\ObjectInterface;
-
 /**
  * Backend entry point: allows you to retrieve and create channels and
  * subscriptions.
@@ -141,6 +139,12 @@ interface PubSubInterface extends ObjectInterface
      * @return \APubSub\SubscriberInterface The subscriber instance
      */
     public function getSubscriber($id);
+
+    /**
+     * Flush any non essential internal cache this backend may hold. Backends
+     * implementor can choose to do nothing on such call
+     */
+    public function flushCaches();
 
     /**
      * Run garbage collection on backend data

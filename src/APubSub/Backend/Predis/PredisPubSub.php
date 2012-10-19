@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Predis;
+namespace APubSub\Backend\Predis;
 
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;

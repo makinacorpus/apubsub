@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Predis;
+namespace APubSub\Backend\Predis;
 
 /**
  * Base implementation for Predis objects
@@ -8,7 +8,7 @@ namespace APubSub\Predis;
 abstract class AbstractPredisObject
 {
     /**
-     * @var \APubSub\Predis\PredisContext
+     * @var \APubSub\Backend\Predis\PredisContext
      */
     protected $context;
 
@@ -29,7 +29,7 @@ abstract class AbstractPredisObject
     /**
      * Get database connection
      *
-     * @return \APubSub\Predis\PredisContext Context
+     * @return \APubSub\Backend\Predis\PredisContext Context
     */
     public function getContext()
     {

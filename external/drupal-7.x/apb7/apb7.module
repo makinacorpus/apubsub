@@ -8,7 +8,7 @@
 /**
  * Default backend class.
  */
-define('APB_DEFAULT_CLASS', '\APubSub\Drupal7\D7PubSub');
+define('APB_DEFAULT_CLASS', '\APubSub\Backend\Drupal7\D7PubSub');
 
 if (!class_exists('APubSub\PubSubInterface')) {
   // In case no custom autoloader is provided, use the composer one.
@@ -156,15 +156,15 @@ function apb7_backend_get($name = 'default') {
     // Does a specific case for known backends.
     switch ($class) {
 
-      case '\APubSub\Drupal7\D7PubSub':
-        $backend = new \APubSub\Drupal7\D7PubSub(Database::getConnection());
+      case '\APubSub\Backend\Drupal7\D7PubSub':
+        $backend = new \APubSub\Backend\Drupal7\D7PubSub(Database::getConnection());
         break;
 
-      case '\APubSub\Predis\PredisPubSub':
+      case '\APubSub\Backend\Predis\PredisPubSub':
         // If the Redis module is enabled, connection options will be ignored
         // and the one provided by the module will be instead.
         if (module_exists('redis')) {
-          $backend = new \APubSub\Predis\PredisPubSub(Redis_Client::getClient());
+          $backend = new \APubSub\Backend\Predis\PredisPubSub(Redis_Client::getClient());
           break;
         }
         // Else fallback

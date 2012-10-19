@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Memory;
+namespace APubSub\Backend\Memory;
 
 use APubSub\Error\SubscriptionAlreadyExistsException;
 use APubSub\Error\SubscriptionDoesNotExistException;
@@ -27,16 +27,15 @@ class MemorySubscriber extends AbstractMemoryObject implements
     private $subscriptions = array();
 
     /**
-     * @var \APubSub\Memory\MemoryPubSub
+     * Default constructor
+     *
+     * @param MemoryContext $context Context
+     * @param scalar $id             Identifier
      */
-    private $backend;
-
-    public function __construct($id, MemoryPubSub $backend)
+    public function __construct(MemoryContext $context, $id)
     {
         $this->id = $id;
-        $this->backend = $backend;
-
-        $this->setContext($backend->getContext());
+        $this->context = $context;
     }
 
     /**
@@ -78,7 +77,7 @@ class MemorySubscriber extends AbstractMemoryObject implements
      */
     public function subscribe($channelId)
     {
-        $channel = $this->backend->getChannel($channelId);
+        $channel = $this->context->backend->getChannel($channelId);
 
         // Remember, this is for testing purposes only
         try {

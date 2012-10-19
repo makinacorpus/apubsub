@@ -1,7 +1,8 @@
 <?php
 
-namespace APubSub\Impl;
+namespace APubSub\Backend;
 
+use APubSub\ContextInterface;
 use APubSub\MessageInterface;
 use APubSub\PubSubInterface;
 
@@ -39,13 +40,13 @@ class DefaultMessage implements MessageInterface
     protected $chanId;
 
     /**
-     * @var \APubSub\Impl\ContextInterface
+     * @var \APubSub\ContextInterface
      */
     protected $context;
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\Impl\ObjectInterface::getContext()
+     * @see \APubSub\ObjectInterface::getContext()
      */
     public function getContext()
     {
@@ -110,7 +111,7 @@ class DefaultMessage implements MessageInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getChannelId()
+     * @see \APubSub\ChannelAwareInterface::getChannelId()
      */
     public function getChannelId()
     {
@@ -119,7 +120,7 @@ class DefaultMessage implements MessageInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getChannel()
+     * @see \APubSub\ChannelAwareInterface::getChannel()
      */
     public function getChannel()
     {

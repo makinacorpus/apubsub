@@ -2,12 +2,12 @@
 
 namespace APubSub;
 
-use APubSub\Impl\ObjectInterface;
+use APubSub\ObjectInterface;
 
 /**
  * Interface for all messages
  */
-interface MessageInterface extends ObjectInterface
+interface MessageInterface extends ObjectInterface, ChannelAwareInterface
 {
     /**
      * Get internal message identifier
@@ -30,21 +30,4 @@ interface MessageInterface extends ObjectInterface
      * @return mixed Data set by the sender
      */
     public function getContents();
-
-    /**
-     * Get the originating channel identifier
-     *
-     * Always prefer this getter than the getChannel() method, which will
-     * attempt an implicit channel load
-     *
-     * @return string
-     */
-    public function getChannelId();
-
-    /**
-     * Get the originating channel
-     *
-     * @return \APubSub\ChannelInterface Channel that owns this message
-     */
-    public function getChannel();
 }

@@ -2,12 +2,10 @@
 
 namespace APubSub;
 
-use APubSub\Impl\ObjectInterface;
-
 /**
  * Defines a single subscription
  */
-interface SubscriptionInterface extends ObjectInterface
+interface SubscriptionInterface extends ObjectInterface, ChannelAwareInterface
 {
     /**
      * Get subscriber identifier
@@ -17,14 +15,6 @@ interface SubscriptionInterface extends ObjectInterface
      *                                     subscribers
      */
     public function getId();
-
-    /**
-     * Get the originating channel
-     *
-     * @return \APubSub\ChannelInterface The channel this subscription is
-     *                                   attached to
-     */
-    public function getChannel();
 
     /**
      * Get creation time as a UNIX timestamp

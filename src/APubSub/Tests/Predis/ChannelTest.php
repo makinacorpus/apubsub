@@ -2,7 +2,7 @@
 
 namespace APubSub\Tests\Predis;
 
-use APubSub\Predis\PredisPubSub;
+use APubSub\Backend\Predis\PredisPubSub;
 use APubSub\Tests\AbstractChannelTest;
 
 use Predis\Client;

@@ -1,8 +1,8 @@
 <?php
 
-namespace APubSub\Predis;
+namespace APubSub\Backend\Predis;
 
-use APubSub\Impl\DefaultMessage;
+use APubSub\Backend\DefaultMessage;
 use APubSub\SubscriptionInterface;
 
 /**
@@ -20,7 +20,7 @@ class PredisSubscription extends AbstractPredisObject implements SubscriptionInt
     /**
      * Channel this message belongs to
      *
-     * @var \APubSub\Predis\PredisChannel
+     * @var \APubSub\Backend\Predis\PredisChannel
      */
     protected $channel;
 

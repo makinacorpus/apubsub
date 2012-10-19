@@ -1,8 +1,8 @@
 <?php
 
-namespace APubSub\Memory;
+namespace APubSub\Backend\Memory;
 
-use APubSub\Impl\DefaultMessage;
+use APubSub\Backend\DefaultMessage;
 
 class MemoryMessage extends DefaultMessage
 {

@@ -2,7 +2,7 @@
 
 namespace APubSub\Tests\Drupal7;
 
-use APubSub\Drupal7\D7PubSub;
+use APubSub\Backend\Drupal7\D7PubSub;
 use APubSub\Tests\AbstractSubscriberTest;
 use APubSub\Tests\Drupal\DrupalHelper;
 

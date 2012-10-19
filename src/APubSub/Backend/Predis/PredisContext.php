@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Predis;
+namespace APubSub\Backend\Predis;
 
 use Predis\Client;
 
