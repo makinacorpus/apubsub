@@ -5,7 +5,7 @@ namespace APubSub\Backend\Drupal7;
 use APubSub\Backend\DefaultMessage;
 use APubSub\ChannelInterface;
 use APubSub\Error\MessageDoesNotExistException;
-use APubSub\MessageInterface;
+use APubSub\Error\UncapableException;
 
 /**
  * Drupal 7 simple channel implementation
@@ -226,5 +226,14 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
 
             throw $e;
         }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\ChannelInterface::getStatHelper()
+     */
+    public function getStatHelper()
+    {
+        throw new UncapableException();
     }
 }

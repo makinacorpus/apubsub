@@ -4,6 +4,7 @@ namespace APubSub\Backend\Memory;
 
 use APubSub\ChannelInterface;
 use APubSub\Error\MessageDoesNotExistException;
+use APubSub\Error\UncapableException;
 use APubSub\MessageInterface;
 
 /**
@@ -131,5 +132,15 @@ class MemoryChannel extends AbstractMemoryObject implements ChannelInterface
         $this->context->subscriptions[$id] = $subscription;
 
         return $subscription;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\ChannelInterface::getStatHelper()
+     */
+    public function getStatHelper()
+    {
+        // FIXME: Easy to implement.
+        throw new UncapableException();
     }
 }

@@ -64,4 +64,16 @@ interface ChannelInterface extends ObjectInterface
      *                                        identifier has been generated
      */
     public function subscribe();
+
+    /**
+     * Get statistics helper
+     *
+     * This method is optional for backends
+     *
+     * @return \APubSub\Helper\ChannelStatInterface Stat helper
+     *
+     * @throws \APubSub\Error\UncapableException    If backend doesn't implement
+     *                                              this helper
+     */
+    public function getStatHelper();
 }
