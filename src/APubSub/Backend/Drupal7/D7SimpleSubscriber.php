@@ -269,4 +269,16 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
     {
         return $this->getMessages();
     }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::flush()
+     */
+    public function flush()
+    {
+        $cx
+            ->delete('apb_queue')
+            ->condition('sub_id', $this->idList, 'IN')
+            ->execute();
+    }
 }

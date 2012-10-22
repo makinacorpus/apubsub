@@ -71,4 +71,9 @@ interface SubscriptionInterface extends ObjectInterface, ChannelAwareInterface
      * silent
      */
     public function activate();
+
+    /**
+     * Delete everyting in this subscription queue
+     */
+    public function flush();
 }

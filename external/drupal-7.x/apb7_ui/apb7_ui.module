@@ -1,0 +1,83 @@
+<?php
+
+/**
+ * @file
+ * APubSub module file.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function apb7_ui_menu() {
+  $items = array();
+
+  // Administration screens.
+  $items['admin/content/pubsub'] = array(
+    'title' => 'Pub/Sub',
+    'description' => 'Manage channels and subscriptions.',
+    'page callback' => 'apb7_ui_content_backend_list',
+    'access arguments' => array('access administration pages'),
+    'file' => 'apb7_ui.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  // FIXME: We don't have a backend listing helper yet because we don't have
+  // static registration. Is that bad?
+  foreach (array('default') as $name) {
+    $backend = apb7_backend_get($name);
+
+    $items['admin/content/pubsub/' . $name] = array(
+      'title' => 'Backend overview',
+      'page callback' => 'apb7_ui_content_backend_overview_page',
+      'page arguments' => array($name),
+      'access arguments' => array('access administration pages'),
+      'file' => 'apb7_ui.admin.inc',
+      'type' => MENU_NORMAL_ITEM,
+    );
+    $items['admin/content/pubsub/' . $name . '/overview'] = array(
+      'title' => 'Overview',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+    );
+
+    try {
+      $backend->getChannelListHelper();
+      $items['admin/content/pubsub/' . $name . '/channels'] = array(
+        'title' => 'Channels',
+        'description' => 'Manage channels and subscriptions.',
+        'page callback' => 'apb7_ui_content_backend_channel_list',
+        'page arguments' => array($name),
+        'access arguments' => array('access administration pages'),
+        'file' => 'apb7_ui.admin.inc',
+        'type' => MENU_LOCAL_TASK,
+      );
+    } catch (\APubSub\Error\UncapableException $e) {}
+
+    try {
+      $backend->getSubscriptionListHelper();
+      $items['admin/content/pubsub/' . $name . '/subscriptions'] = array(
+        'title' => 'Subscriptions',
+        'description' => 'Manage channels and subscriptions.',
+        'page callback' => 'apb7_ui_content_backend_subscription_list',
+        'page arguments' => array($name),
+        'access arguments' => array('access administration pages'),
+        'file' => 'apb7_ui.admin.inc',
+        'type' => MENU_LOCAL_TASK,
+      );
+    } catch (\APubSub\Error\UncapableException $e) {}
+
+    try {
+      $backend->getSubscriberListHelper();
+      $items['admin/content/pubsub/' . $name . '/subscribers'] = array(
+        'title' => 'Subscribers',
+        'description' => 'Manage channels and subscriptions.',
+        'page callback' => 'apb7_ui_content_backend_subscriber_list',
+        'page arguments' => array($name),
+        'access arguments' => array('access administration pages'),
+        'file' => 'apb7_ui.admin.inc',
+        'type' => MENU_LOCAL_TASK,
+      );
+    } catch (\APubSub\Error\UncapableException $e) {}
+  }
+
+  return $items;
+}

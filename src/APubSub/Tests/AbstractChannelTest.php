@@ -7,25 +7,8 @@ use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\MessageDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
 
-abstract class AbstractChannelTest extends \PHPUnit_Framework_TestCase
+abstract class AbstractChannelTest extends AbstractBackendBasedTest
 {
-    /**
-     * @var \APubSub\PubSubInterface
-     */
-    protected $backend;
-
-    /**
-     * Create the backend for testing
-     *
-     * @return \APubSub\PubSubInterface Ready to use mock instance
-     */
-    abstract protected function setUpBackend();
-
-    protected function setUp()
-    {
-        $this->backend = $this->setUpBackend();
-    }
-
     public function testChannelCreation()
     {
         $channel = $this->backend->createChannel('foo');

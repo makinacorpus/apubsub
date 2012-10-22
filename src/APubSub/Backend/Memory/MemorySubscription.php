@@ -191,4 +191,13 @@ class MemorySubscription extends AbstractMemoryObject implements
         $this->active = true;
         $this->activatedTime = time();
     }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriptionInterface::flush()
+     */
+    public function flush()
+    {
+        $this->context->getMessageListFor(array($this->id));
+    }
 }

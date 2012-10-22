@@ -1,0 +1,77 @@
+<?php
+
+/**
+ * @file
+ * APubSub Follow module file.
+ *
+ * User notifications will be fetched using a subscriber instance. Everything
+ * will happen with this instance, and almost never using directly subscriptions
+ * instead (except for some rare edge case needs).
+ *
+ * Because the APubSub API deletes everything once messages have been fetched,
+ * the user notifications will be stored into an LRU like persistent cache,
+ * either directly in a cache bin, either in a persistent database table.
+ */
+
+// This module exists for sample purposes: register a PSR-0 autoloader
+// for our own library
+spl_autoload_register(function ($className) {
+  if (false !== strpos($className, '\\')) {
+    $parts = explode('\\', $className);
+    if ('Apb' === $parts[0] && 'Follow' === $parts[1]) {
+      $filename = __DIR__ . '/lib' . implode('/', $parts) . '.php';
+      if (file_exists($filename)) {
+        return (bool)require_once $filename;
+      }
+    }
+  }
+  return false;
+});
+
+/**
+ * Implements hook_block_info().
+ */
+function apb7_follow_block_info() {
+  return array(
+    'notifications' => array(
+      'info' => t("User notifications"),
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function apb7_follow_block_view($delta = '') {
+  global $user;
+
+  switch ($delta) {
+
+    case 'notifications':
+      return array(
+        'subject' => t("Notifications"),
+        'content' => apb7_follow_notification_render($user),
+      );
+  }
+}
+
+/**
+ * List all notifications
+ */
+function apb7_follow_notification_list() {
+  
+}
+
+/**
+ * Render the notifications for the given user account
+ *
+ * @param object $account
+ */
+function apb7_follow_notification_render($account) {
+  $key = 'u:n:' . $account->uid;
+
+  $subscriber = apb7_backend_get()->getSubscriber($key);
+  $messages = $subscriber->fetch();
+
+  // FIXME: Render it!
+}

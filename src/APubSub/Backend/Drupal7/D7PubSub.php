@@ -2,6 +2,9 @@
 
 namespace APubSub\Backend\Drupal7;
 
+use APubSub\Backend\Drupal7\Helper\D7ChannelList;
+use APubSub\Backend\Drupal7\Helper\D7SubscriberList;
+use APubSub\Backend\Drupal7\Helper\D7SubscriptionList;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
@@ -385,22 +388,11 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::listChannels()
+     * @see \APubSub\PubSubInterface::getChannelListHelper()
      */
-    public function listChannels($limit, $offset)
+    public function getChannelListHelper()
     {
-        $idList = $this
-            ->context
-            ->dbConnection
-            ->select('apb_chan', 'c')
-            ->fields('c', array('id'))
-            ->range($offset, $limit)
-            // Force an order to avoid SQL unpredictable behavior
-            ->orderBy('c.created')
-            ->execute()
-            ->fetchCol();
-
-        return $this->getChannelsByDatabaseIds($idList);
+        return new D7ChannelList($this->context);
     }
 
     /**
@@ -550,12 +542,30 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::getSubscriptionListHelper()
+     */
+    public function getSubscriptionListHelper()
+    {
+        return new D7SubscriptionList($this->context);
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::getSubscriber()
      */
     public function getSubscriber($id)
     {
         // In this implementation all writes will be delayed on real operations
         return new D7SimpleSubscriber($this->context, $id);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::getSubscriberListHelper()
+     */
+    public function getSubscriberListHelper()
+    {
+        return new D7SubscriberList($this->context);
     }
 
     /**

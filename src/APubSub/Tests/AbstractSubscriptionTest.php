@@ -2,28 +2,16 @@
 
 namespace APubSub\Tests;
 
-abstract class AbstractSubscriptionTest extends \PHPUnit_Framework_TestCase
+abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
 {
-    /**
-     * @var \APubSub\PubSubInterface
-     */
-    protected $backend;
-
     /**
      * @var \APubSub\ChannelInterface
      */
     protected $channel;
 
-    /**
-     * Create the backend for testing
-     *
-     * @return \APubSub\PubSubInterface Ready to use mock instance
-     */
-    abstract protected function setUpBackend();
-
     protected function setUp()
     {
-        $this->backend = $this->setUpBackend();
+        parent::setUp();
         $this->channel = $this->backend->createChannel('foo');
     }
 

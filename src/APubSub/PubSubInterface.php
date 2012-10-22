@@ -68,19 +68,13 @@ interface PubSubInterface extends ObjectInterface
     public function deleteChannel($id);
 
     /**
-     * List known channels
+     * Get channel list helper if this backend implements it
      *
-     * Warning: some backends might not implement this and throw exceptions:
-     * this is not a mandatory feature
+     * @return \APubSub\Helper\ListInterface     List object
      *
-     * @param int $limit
-     * @param int $offset
-     *
-     * @return array             List of \APubSub\ChannelInterface instances
-     *
-     * @throws \RuntimeException If the backend doesn't support this feature
+     * @throws \APubSub\Error\UncapableException If backend cannot list
      */
-    public function listChannels($limit, $offset);
+    public function getChannelListHelper();
 
     /**
      * Load an existing subscription
@@ -131,6 +125,15 @@ interface PubSubInterface extends ObjectInterface
     public function deleteSubscriptions($idList);
 
     /**
+     * Get subscription list helper if this backend implements it
+     *
+     * @return \APubSub\Helper\ListInterface     List object
+     *
+     * @throws \APubSub\Error\UncapableException If backend cannot list
+     */
+    public function getSubscriptionListHelper();
+
+    /**
      * Get or create a new subscriber instance
      *
      * @param scalar $id                    Scalar value (will stored as a
@@ -139,6 +142,15 @@ interface PubSubInterface extends ObjectInterface
      * @return \APubSub\SubscriberInterface The subscriber instance
      */
     public function getSubscriber($id);
+
+    /**
+     * Get subscriber list helper if this backend implements it
+     *
+     * @return \APubSub\Helper\ListInterface     List object
+     *
+     * @throws \APubSub\Error\UncapableException If backend cannot list
+     */
+    public function getSubscriberListHelper();
 
     /**
      * Flush any non essential internal cache this backend may hold. Backends

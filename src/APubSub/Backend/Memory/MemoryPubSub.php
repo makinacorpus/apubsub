@@ -2,6 +2,7 @@
 
 namespace APubSub\Backend\Memory;
 
+use APubSub\Backend\Memory\Helper\ArrayList;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
@@ -85,18 +86,6 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::listChannels()
-     */
-    public function listChannels($limit, $offset)
-    {
-        $iterator = new \LimitIterator(
-            new ArrayIterator($this->context->channels), $offset, $limit);
-
-        return iterator_to_array($iterator);
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::deleteChannel()
      */
     public function deleteChannel($id)
@@ -111,6 +100,15 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
         $this->context->subscriptions = array_filter($this->context->subscriptions);
 
         unset($this->context->channels[$id]);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::getChannelListHelper()
+     */
+    public function getChannelListHelper()
+    {
+        return new ArrayList($this->context->channels);
     }
 
     /**
@@ -165,6 +163,15 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::getSubscriptionListHelper()
+     */
+    public function getSubscriptionListHelper()
+    {
+        return new ArrayList($this->context->subscriptions);
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::getSubscriber()
      */
     public function getSubscriber($id)
@@ -174,6 +181,15 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
         }
 
         return $this->context->subscribers[$id];
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::getSubscriberListHelper()
+     */
+    public function getSubscriberListHelper()
+    {
+        return new ArrayList($this->context->subscribers);
     }
 
     /**

@@ -86,4 +86,9 @@ interface SubscriberInterface extends ObjectInterface
      *               creation timestamp
      */
     public function fetch();
+
+    /**
+     * Delete everyting in all of this subscriber's subscription queues
+     */
+    public function flush();
 }

@@ -140,4 +140,15 @@ class MemorySubscriber extends AbstractMemoryObject implements
 
         return $this->context->getMessageListFor($idList);
     }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::flush()
+     */
+    public function flush()
+    {
+        foreach ($this->getSubscriptions() as $subscription) {
+            $subscription->flush();
+        }
+    }
 }

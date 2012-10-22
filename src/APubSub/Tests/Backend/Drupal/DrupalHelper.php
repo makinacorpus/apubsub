@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Tests\Drupal;
+namespace APubSub\Tests\Backend\Drupal;
 
 class DrupalHelper
 {

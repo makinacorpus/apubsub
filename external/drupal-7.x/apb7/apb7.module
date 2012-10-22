@@ -24,87 +24,12 @@ if (!class_exists('APubSub\PubSubInterface')) {
  * Implements hook_menu().
  */
 function apb7_menu() {
-  $items = array();
-
-  // Administration screens.
-
-  if (!variable_get('apubsub_testing', FALSE)) {
-    // Short-circuiting!
-    return $items;
+  if (variable_get('apubsub_testing', FALSE)) {
+    require_once __DIR__ . '/apb7.testing.inc';
+    return apb7_testing_menu();
+  } else {
+    return array();
   }
-
-  // Testing stuff.
-  $items['admin/messages'] = array(
-    'title' => 'Messages (testing)',
-    'description' => 'Play with and test APubSub API.',
-    'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array('access administration pages'),
-    'file' => 'system.admin.inc',
-    'file path' => drupal_get_path('module', 'system'),
-    'type' => MENU_NORMAL_ITEM,
-  );
-  $items['admin/messages/channels'] = array(
-    'title' => 'Channels',
-    'description' => 'See channel listing.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('apb7_testing_channels_form'),
-    'access arguments' => array('access administration pages'),
-    'file' => 'apb7.testing.inc',
-    'type' => MENU_NORMAL_ITEM,
-  );
-
-  // Stress test UI.
-  $items['admin/messages/stress'] = array(
-    'title' => 'Massive stress test',
-    'description' => 'Multistep interactive wizard to proceed to a massive stress test.',
-    'page callback' => 'apb7_testing_volume_list',
-    'access arguments' => array('access administration pages'),
-    'file' => 'apb7.testing-volume.inc',
-    'type' => MENU_NORMAL_ITEM,
-  );
-  $items['admin/messages/stress/add'] = array(
-    'title' => 'Add scenario',
-    'description' => 'Create new test scenario.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('apb7_testing_volume_form'),
-    'access arguments' => array('access administration pages'),
-    'file' => 'apb7.testing-volume.inc',
-    'type' => MENU_LOCAL_ACTION,
-  );
-  $items['admin/messages/stress/%apb7_test_scenario'] = array(
-    'title' => 'View scenario',
-    'page callback' => 'apb7_testing_volume_view_page',
-    'page arguments' => array(3),
-    'access arguments' => array('access administration pages'),
-    'file' => 'apb7.testing-volume.inc',
-    'type' => MENU_CALLBACK | MENU_VISIBLE_IN_BREADCRUMB,
-  );
-  $items['admin/messages/stress/%apb7_test_scenario/populate-channels'] = array(
-    'title' => 'Populate channels',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('apb7_testing_volume_scenario_populate_channels_form', 3),
-    'access arguments' => array('access administration pages'),
-    'file' => 'apb7.testing-volume.inc',
-    'type' => MENU_LOCAL_ACTION,
-  );
-  $items['admin/messages/stress/%apb7_test_scenario/populate-messages'] = array(
-    'title' => 'Populate messages',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('apb7_testing_volume_scenario_populate_messages_form', 3),
-    'access arguments' => array('access administration pages'),
-    'file' => 'apb7.testing-volume.inc',
-    'type' => MENU_LOCAL_ACTION,
-  );
-  $items['admin/messages/stress/%apb7_test_scenario/delete'] = array(
-    'title' => 'Delete',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('apb7_testing_volume_scenario_delete_form', 3),
-    'access arguments' => array('access administration pages'),
-    'file' => 'apb7.testing-volume.inc',
-    'type' => MENU_LOCAL_ACTION,
-  );
-
-  return $items;
 }
 
 /**
@@ -121,6 +46,13 @@ function apb7_test_scenario_load($id) {
     return $scenario;
   }
   return FALSE;
+}
+
+/**
+ * Menu helper, please do not use directly.
+ */
+function apb7_backend_load($name) {
+  return apb7_backend_get($name);
 }
 
 /**

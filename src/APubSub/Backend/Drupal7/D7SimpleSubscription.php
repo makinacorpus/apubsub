@@ -92,7 +92,8 @@ class D7SimpleSubscription extends AbstractD7Object implements
      */
     public function getChannelId()
     {
-        return $this->chanId;
+        // FIXME: return $this->chanId;
+        return $this->getChannel()->getId();
     }
 
     /**
@@ -231,5 +232,18 @@ class D7SimpleSubscription extends AbstractD7Object implements
 
         $this->active = true;
         $this->activatedTime = $activated;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriptionInterface::flush()
+     */
+    public function flush()
+    {
+        // Even de-activated, ensure a flush
+        $cx
+            ->delete('apb_queue')
+            ->condition('sub_id', $this->id)
+            ->execute();
     }
 }

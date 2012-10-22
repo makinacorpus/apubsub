@@ -1,4 +1,4 @@
-name = "Async PubSub"
+name = "APubSub"
 description = "Provides an asynchronous PubSub like API with Drupal implementations"
 core = 7.x
 package = Utility
