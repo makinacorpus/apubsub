@@ -28,6 +28,18 @@ interface PubSubInterface extends ObjectInterface
     public function getChannel($id);
 
     /**
+     * Load existing channels
+     *
+     * @param array $idList      List of channels ids to load
+     *
+     * @return array|Traversable List of channel instances
+     *
+     * @throws \APubSub\Error\ChannelDoesNotExistException
+     *                           If one of the channel does not exist
+     */
+    public function getChannels(array $idList);
+
+    /**
      * Create a channel instance
      *
      * @param string $id           Channel name
