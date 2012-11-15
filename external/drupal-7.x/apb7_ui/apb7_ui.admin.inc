@@ -9,7 +9,30 @@
  * List all known backends
  */
 function apb7_ui_content_backend_list() {
-  return array('#markup' => "@todo : backend list");
+
+  $headers = array(t("Name"), t("Class"), t("Status"), t("Operations"));
+  $rows = array();
+
+  foreach (apb7_backend_list() as $name => $backend) {
+    $row = array();
+
+    $row[] = check_plain($name);
+    $row[] = check_plain($backend['class']);
+    $row[] = class_exists($backend['class']) ? t("Active") : ('<strong>' . t("Class does not exist!") . '</strong>');
+
+    $links = array(
+      array(
+        'title' => t("Overview"),
+        'href' => 'admin/content/pubsub/' . $name,
+      ),
+    );
+
+    $row[] = theme('links', array('links' => $links));
+
+    $rows[] = $row;
+  }
+
+  return theme('table', array('header' => $headers, 'rows' => $rows));
 }
 
 /**
