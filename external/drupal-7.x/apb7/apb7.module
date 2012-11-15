@@ -8,8 +8,12 @@
 /**
  * Default backend class.
  */
-define('APB_DEFAULT_CLASS', '\APubSub\Backend\Drupal7\D7PubSub');
+const APB_DEFAULT_CLASS = '\APubSub\Backend\Drupal7\D7PubSub';
 
+/**
+ * Define a custom autoloader if non declared, this prerequisite that the
+ * library lives under the same folder hierarchy than the composer package.
+ */
 if (!class_exists('APubSub\PubSubInterface')) {
   // In case no custom autoloader is provided, use the composer one.
   // In order to use it, you need to run "composer install" in the
@@ -56,23 +60,47 @@ function apb7_backend_load($name) {
 }
 
 /**
- * Get the APubSub backend
+ * List all known backends.
+ *
+ * @return array
+ *   Configuration array.
+ */
+function apb7_backend_list() {
+  static $backend_conf;
+
+  if (null === $backend_conf) {
+    $backend_conf = variable_get('apubsub_backend', array());
+
+    if (!isset($backend_conf['default'])) {
+      $backend_conf['default']['class'] = APB_DEFAULT_CLASS;
+    }
+  }
+
+  return $backend_conf;
+}
+
+/**
+ * Get the APubSub backend.
  *
  * @return \APubSub\PubSubInterface
+ *   Pub/Sub backend.
  */
 function apb7_backend_get($name = 'default') {
   static $backends = array();
 
   if (!isset($backends[$name])) {
-    $conf = variable_get('apubsub_backend', array());
+    $conf = apb7_backend_list();
+
+    if (!isset($conf[$name])) {
+      throw new InvalidArgumentException(sprintf("Backend '%s' does not exist", $name));
+    }
 
     // First fetch configuration
     if (isset($conf[$name]['class'])) {
       $class = $conf[$name]['class'];
 
-      if (!class_exists($conf[$name]['class'])) {
-        throw new InvalidArgumentException(
-          sprintf("Class '%s' does not exist", $class));
+      if (!class_exists($class)) {
+        throw new InvalidArgumentException(sprintf("Class '%s' does not exist", $class));
       }
     } else {
       $class = APB_DEFAULT_CLASS;
@@ -88,15 +116,15 @@ function apb7_backend_get($name = 'default') {
     // Does a specific case for known backends.
     switch ($class) {
 
-      case '\APubSub\Backend\Drupal7\D7PubSub':
-        $backend = new \APubSub\Backend\Drupal7\D7PubSub(Database::getConnection());
+      case APB_DEFAULT_CLASS: 
+        $backend = new $class(Database::getConnection());
         break;
 
       case '\APubSub\Backend\Predis\PredisPubSub':
         // If the Redis module is enabled, connection options will be ignored
         // and the one provided by the module will be instead.
         if (module_exists('redis')) {
-          $backend = new \APubSub\Backend\Predis\PredisPubSub(Redis_Client::getClient());
+          $backend = new $class(Redis_Client::getClient());
           break;
         }
         // Else fallback
