@@ -10,11 +10,14 @@
         }
     ],
     "autoload": {
-        "psr-0": {"APubSub": "src/"}
+        "psr-0": {
+            "ApbX": "src/",
+            "APubSub": "src/",
+        }
     },
-	 "require": {
-	 		"predis/predis": "*"
-	 },
+    "require": {
+        "predis/predis": "*"
+    },
     "suggest": {
         "predis/predis": "Allows to use the Predis backend"
     }

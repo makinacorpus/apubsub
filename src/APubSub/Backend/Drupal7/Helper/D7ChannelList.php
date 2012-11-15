@@ -40,7 +40,7 @@ class D7ChannelList extends AbstractD7List
      */
     protected function loadObject($id)
     {
-        return $this->context->backend->getChannel($id);
+        return $this->context->backend->getChannelByDatabaseId($id);
     }
 
     /**
@@ -49,7 +49,7 @@ class D7ChannelList extends AbstractD7List
      */
     protected function loadObjects($idList)
     {
-        return $this->context->backend->getChannels($idList);
+        return $this->context->backend->getChannelsByDatabaseId($idList);
     }
 
     /**

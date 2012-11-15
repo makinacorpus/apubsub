@@ -67,7 +67,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::getChannels()
      */
-    public function getChannels($idList)
+    public function getChannels(array $idList)
     {
         $ret           = array();
         $missingIdList = array();
@@ -92,6 +92,60 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             ->select('apb_chan', 'c')
             ->fields('c')
             ->condition('name', $missingIdList, 'IN')
+            ->execute()
+            // Fetch all is mandatory, else we cannot count
+            ->fetchAll();
+
+        if (count($recordList) !== count($missingIdList)) {
+            throw new ChannelDoesNotExistException();
+        }
+
+        foreach ($recordList as $record) {
+            $channel = new D7SimpleChannel($this->context,
+                $record->name, (int)$record->id, (int)$record->created);
+
+            $ret[$record->name] = $channel;
+
+            $this->context->cache->addChannel($channel);
+        }
+
+        array_multisort($idList, $ret);
+
+        return $ret;
+    }
+
+    /**
+     * Get channels by database identifiers
+     *
+     * Method signature is the same as getChannels()
+     *
+     * @param array $idList List of database identifiers
+     */
+    public function getChannelsByDatabaseId(array $idList)
+    {
+        $ret           = array();
+        $missingIdList = array();
+
+        // First populate cache from what we have
+        foreach ($idList as $id) {
+            if ($channel = $this->context->cache->getChannelByDatabaseId($id)) {
+                $ret[$id] = $channel;
+            } else {
+                $missingIdList[] = $id;
+            }
+        }
+
+        // Short-circuiting thus avoiding useless SQL queries
+        if (empty($missingIdList)) {
+            return $ret;
+        }
+
+        $recordList = $this
+            ->context
+            ->dbConnection
+            ->select('apb_chan', 'c')
+            ->fields('c')
+            ->condition('id', $missingIdList, 'IN')
             ->execute()
             // Fetch all is mandatory, else we cannot count
             ->fetchAll();
@@ -494,13 +548,16 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         $tx = $cx->startTransaction();
 
         try {
-            $args = array(':id' => $dbId);
+            $args = array(':id' => $id);
 
             // FIXME: SELECT FOR UPDATE here in all tables
 
             $exists = (bool)$cx
-                ->query("SELECT 1 FROM {apb_sub} WHERE id = :id", $args)
-                ->fecthField();
+                // SELECT 1 would have been better, but as always Drupal is
+                // incredibly stupid and does not allow us to write the SQL
+                // we really want to
+                ->query("SELECT id FROM {apb_sub} WHERE id = :id", $args)
+                ->fetchField();
 
             if (!$exists) {
                 // See comment in createChannel() method

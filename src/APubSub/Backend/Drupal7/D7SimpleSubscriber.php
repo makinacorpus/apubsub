@@ -232,13 +232,15 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
             $idList[] = (int)$record->id;
         }
 
-        // Queue removal: very important step
-        $this
-            ->context
-            ->dbConnection
-            ->delete('apb_queue')
-            ->condition('msg_id', $idList, 'IN')
-            ->execute();
+        if (!empty($idList)) {
+            // Queue removal: very important step
+            $this
+                ->context
+                ->dbConnection
+                ->delete('apb_queue')
+                ->condition('sub_id', $this->idList, 'IN')
+                ->execute();
+        }
 
         return $ret;
     }

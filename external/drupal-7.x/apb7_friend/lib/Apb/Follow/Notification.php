@@ -2,53 +2,52 @@
 
 namespace Apb\Follow;
 
-use APubSub\MessageInterface;
+use ApbX\LocalCache\QueueMessage;
 
-class Notification
+/**
+ * Single notification is tied to its container: modification of its read
+ * status must change the modified status of the container so that it can
+ * be saved.
+ */
+class Notification extends QueueMessage
 {
     /**
-     * Has this notification been read
+     * Get arbitrary set data when message was sent
      *
-     * @var bool
+     * @return mixed Arbitrary set data
      */
-    private $unread = true;
-
-    /**
-     * Inner message
-     *
-     * @var \APubSub\MessageInterface
-     */
-    private $message;
-
-    /**
-     * Default constructor
-     *
-     * @param MessageInterface $message Inner message
-     * @param bool $unread              Read status
-     */
-    public function __construct(MessageInterface $message, $unread = true)
+    public function getData()
     {
-        $this->message = $message;
-        $this->unread = true;
+        return $this->contents;
     }
 
     /**
-     * Get inner message
+     * Get notification source identifier
      *
-     * @return \APubSub\MessageInterface Inner message
+     * @return mixed Arbitrary source identifier
      */
-    public function getMessage()
+    public function getSourceId()
     {
-        return $this->message;
+        return $this->contents['_i'];
     }
 
     /**
-     * Has this instance been read
+     * Get notification type
      *
-     * @return bool True if this instance has not been read
+     * @return string Notification type
      */
-    public function isUnread()
+    public function getType()
     {
-        return $this->unread;
+        return $this->contents['_t'];
+    }
+
+    /**
+     * Get arbitrary value from arbitrary data
+     *
+     * @param string $key Value key
+     */
+    public function get($key)
+    {
+        return isset($this->contents[$key]) ? $this->contents[$key] : null;
     }
 }

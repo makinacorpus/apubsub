@@ -1,0 +1,77 @@
+
+#notification {
+  position: relative;
+}
+
+#notifications .list {
+  font-size: 85%;
+  display: none;
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background: #3B3B3B;
+  color: white;
+  z-index: 10;
+  width: 300px;
+  padding: none;
+  border: 1px solid #202020;
+  border-radius: 6px;
+  box-shadow: 3px 3px 4px #000;
+}
+
+#notifications .list ul {
+  list-style: none;
+  list-style-position: inside;
+  margin: 0;
+  padding: 0;
+}
+
+#notifications .list li {
+  padding: 3px 6px;
+  border-bottom: 1px solid #505050;
+}
+
+#notifications .list li:hover {
+  background: #505050;
+}
+
+#notifications .list .time {
+  font-style: italic;
+}
+
+#notifications .list .unread {
+  font-weight: bold;
+}
+
+#notifications .top {
+  height: 15px;
+  pading: 2px;
+  cursor: pointer;
+}
+
+#notifications .image {
+  float: left;
+  padding-right: 5px;
+}
+
+#notifications .top div {
+  float: left;
+  margin-right: 3px;
+}
+
+#notifications .top .number {
+  color: white;
+  background: #808080;
+  border-radius: 6px;
+  width: 15px;
+  height: 15px;
+  text-align: center;
+  line-height: 13px;
+  font-size: 11px;
+}
+
+#notifications .top .unread {
+  color: white;
+  background: red;
+  font-weight: bold;
+}
