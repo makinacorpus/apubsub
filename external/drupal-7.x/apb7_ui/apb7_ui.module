@@ -21,9 +21,7 @@ function apb7_ui_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  // FIXME: We don't have a backend listing helper yet because we don't have
-  // static registration. Is that bad?
-  foreach (array('default') as $name) {
+  foreach (apb7_backend_list() as $name => $info) {
     $backend = apb7_backend_get($name);
 
     $items['admin/content/pubsub/' . $name] = array(
@@ -37,6 +35,7 @@ function apb7_ui_menu() {
     $items['admin/content/pubsub/' . $name . '/overview'] = array(
       'title' => 'Overview',
       'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10,
     );
 
     try {
