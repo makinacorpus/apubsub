@@ -5,6 +5,8 @@
  * APubSub administration pages
  */
 
+use APubSub\PubSubInterface;
+
 /**
  * List all known backends
  */
@@ -38,8 +40,7 @@ function apb7_ui_content_backend_list() {
 /**
  * Display information about the given backend
  */
-function apb7_ui_content_backend_overview_page($name) {
-  $backend = apb7_backend_get($name);
+function apb7_ui_content_backend_overview_page(PubSubInterface $backend) {
   $build   = array();
 
   // Recap of backend capabilities, using some bit of introspection.
@@ -56,7 +57,7 @@ function apb7_ui_content_backend_overview_page($name) {
   try {
     $backend->getChannelListHelper();
     $row[] = $yes;
-  } catch (APubSub\Error\UncapableException $e) {
+  } catch (\APubSub\Error\UncapableException $e) {
     $row[] = $no;
   }
   $rows[] = $row;
@@ -65,7 +66,7 @@ function apb7_ui_content_backend_overview_page($name) {
   try {
     $backend->getSubscriptionListHelper();
     $row[] = $yes;
-  } catch (APubSub\Error\UncapableException $e) {
+  } catch (\APubSub\Error\UncapableException $e) {
     $row[] = $no;
   }
   $rows[] = $row;
@@ -74,7 +75,7 @@ function apb7_ui_content_backend_overview_page($name) {
   try {
     $backend->getSubscriberListHelper();
     $row[] = $yes;
-  } catch (APubSub\Error\UncapableException $e) {
+  } catch (\APubSub\Error\UncapableException $e) {
     $row[] = $no;
   }
   $rows[] = $row;
@@ -110,8 +111,7 @@ function apb7_ui_content_backend_overview_page($name) {
 /**
  * Display backend channel list
  */
-function apb7_ui_content_backend_channel_list($name) {
-  $backend = apb7_backend_get($name);
+function apb7_ui_content_backend_channel_list(PubSubInterface $backend) {
   $build = array();
   $limit = 16;
 
@@ -151,8 +151,7 @@ function apb7_ui_content_backend_channel_list($name) {
 /**
  * Display backend subscription list
  */
-function apb7_ui_content_backend_subscription_list($name) {
-  $backend = apb7_backend_get($name);
+function apb7_ui_content_backend_subscription_list(PubSubInterface $backend) {
   $build = array();
   $limit = 16;
   $yes   = t("Yes");
@@ -207,8 +206,7 @@ function apb7_ui_content_backend_subscription_list($name) {
 /**
  * Display backend subscriber list
  */
-function apb7_ui_content_backend_subscriber_list($name) {
-  $backend = apb7_backend_get($name);
+function apb7_ui_content_backend_subscriber_list(PubSubInterface $backend) {
   $build = array();
   $limit = 16;
   $yes   = t("Yes");

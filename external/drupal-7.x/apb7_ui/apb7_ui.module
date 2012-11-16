@@ -21,62 +21,94 @@ function apb7_ui_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  foreach (apb7_backend_list() as $name => $info) {
-    $backend = apb7_backend_get($name);
+  $items['admin/content/pubsub/%apb7_backend'] = array(
+    'title' => 'Backend overview',
+    'page callback' => 'apb7_ui_content_backend_overview_page',
+    'page arguments' => array(3),
+    'access callback' => 'apb7_ui_access',
+    'access arguments' => array(3),
+    'file' => 'apb7_ui.admin.inc',
+    'type' => MENU_CALLBACK | MENU_VISIBLE_IN_BREADCRUMB,
+  );
+  $items['admin/content/pubsub/%apb7_backend/overview'] = array(
+    'title' => 'Overview',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
 
-    $items['admin/content/pubsub/' . $name] = array(
-      'title' => 'Backend overview',
-      'page callback' => 'apb7_ui_content_backend_overview_page',
-      'page arguments' => array($name),
-      'access arguments' => array('access administration pages'),
-      'file' => 'apb7_ui.admin.inc',
-      'type' => MENU_NORMAL_ITEM,
-    );
-    $items['admin/content/pubsub/' . $name . '/overview'] = array(
-      'title' => 'Overview',
-      'type' => MENU_DEFAULT_LOCAL_TASK,
-      'weight' => -10,
-    );
-
-    try {
-      $backend->getChannelListHelper();
-      $items['admin/content/pubsub/' . $name . '/channels'] = array(
-        'title' => 'Channels',
-        'description' => 'Manage channels and subscriptions.',
-        'page callback' => 'apb7_ui_content_backend_channel_list',
-        'page arguments' => array($name),
-        'access arguments' => array('access administration pages'),
-        'file' => 'apb7_ui.admin.inc',
-        'type' => MENU_LOCAL_TASK,
-      );
-    } catch (\APubSub\Error\UncapableException $e) {}
-
-    try {
-      $backend->getSubscriptionListHelper();
-      $items['admin/content/pubsub/' . $name . '/subscriptions'] = array(
-        'title' => 'Subscriptions',
-        'description' => 'Manage channels and subscriptions.',
-        'page callback' => 'apb7_ui_content_backend_subscription_list',
-        'page arguments' => array($name),
-        'access arguments' => array('access administration pages'),
-        'file' => 'apb7_ui.admin.inc',
-        'type' => MENU_LOCAL_TASK,
-      );
-    } catch (\APubSub\Error\UncapableException $e) {}
-
-    try {
-      $backend->getSubscriberListHelper();
-      $items['admin/content/pubsub/' . $name . '/subscribers'] = array(
-        'title' => 'Subscribers',
-        'description' => 'Manage channels and subscriptions.',
-        'page callback' => 'apb7_ui_content_backend_subscriber_list',
-        'page arguments' => array($name),
-        'access arguments' => array('access administration pages'),
-        'file' => 'apb7_ui.admin.inc',
-        'type' => MENU_LOCAL_TASK,
-      );
-    } catch (\APubSub\Error\UncapableException $e) {}
-  }
+  $items['admin/content/pubsub/%apb7_backend/channels'] = array(
+    'title' => 'Channels',
+    'description' => 'Manage channels and subscriptions.',
+    'page callback' => 'apb7_ui_content_backend_channel_list',
+    'page arguments' => array(3),
+    'access callback' => 'apb7_ui_access',
+    'access arguments' => array(3, 4),
+    'file' => 'apb7_ui.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['admin/content/pubsub/%apb7_backend/subscriptions'] = array(
+    'title' => 'Subscriptions',
+    'description' => 'Manage channels and subscriptions.',
+    'page callback' => 'apb7_ui_content_backend_subscription_list',
+    'page arguments' => array(3),
+    'access callback' => 'apb7_ui_access',
+    'access arguments' => array(3, 4),
+    'file' => 'apb7_ui.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['admin/content/pubsub/%apb7_backend/subscribers'] = array(
+    'title' => 'Subscribers',
+    'description' => 'Manage channels and subscriptions.',
+    'page callback' => 'apb7_ui_content_backend_subscriber_list',
+    'page arguments' => array(3),
+    'access callback' => 'apb7_ui_access',
+    'access arguments' => array(3, 4),
+    'file' => 'apb7_ui.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
 
   return $items;
+}
+
+/**
+ * Menu access helper.
+ *
+ * @param \APubSub\APubSubInterface $backend
+ *   Backend referenced in the menu.
+ * @param string $page
+ *   Page to access.
+ *
+ * @return bool
+ *   True for access false else.
+ */
+function apb7_ui_access($backend = null, $page = null) {
+  if (($backend instanceof \APubSub\PubSubInterface) &&
+      user_access('access administration pages'))
+  {
+    // This try/catch statement is here to ensure that the given backend
+    // supports the asked functionnality
+    try {
+      switch ($page) {
+
+        case 'channels':
+          $backend->getChannelListHelper();
+          return true;
+
+        case 'subscriptions':
+          $backend->getSubscriptionListHelper();
+          return true;
+
+        case 'subscribers':
+          $backend->getSubscriptionListHelper();
+          return true;
+
+        default:
+          return true;
+      }
+    } catch (\APubSub\Error\UncapableException $e) {
+      return false;
+    }
+  }
+
+  return false;
 }
