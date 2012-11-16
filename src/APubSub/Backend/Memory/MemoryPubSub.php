@@ -207,4 +207,15 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
     public function garbageCollection()
     {
     }
+
+    public function getAnalysis()
+    {
+        // This is a pure implementation sample, there is no way you would ever
+        // try to run this on a production environment
+        return array(
+            "Number of chans" => count($this->context->channels),
+            "Number of subscribers" => count($this->context->subscribers),
+            "Number of subscriptions" => count($this->context->subscriptions),
+        );
+    }
 }

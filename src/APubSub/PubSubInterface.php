@@ -180,4 +180,16 @@ interface PubSubInterface extends ObjectInterface
      * backend do heavy operations
      */
     public function garbageCollection();
+
+    /**
+     * Get a set of random information about the backend state
+     *
+     * Backends can return null here if no analysis information can fetched or
+     * if this method is not implemented/not important
+     *
+     * @return array Key/value pairs, keys are english names and values are
+     *               any value you would ever want to display. String values
+     *               can be prone to translation attempts
+     */
+    public function getAnalysis();
 }

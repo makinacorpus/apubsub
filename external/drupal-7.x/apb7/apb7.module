@@ -148,13 +148,14 @@ function apb7_backend_get($name = 'default') {
  * Implements hook_cron().
  */
 function apb7_cron() {
-  $backends = variable_get('apubsub_backend', array());
-  if (isset($backends['default'])) {
-    $backends['default'] = array();
-  }
-  foreach ($backends as $name => $options) {
-    if ($backend = apb7_backend_get($name)) {
-      $backend->garbageCollection();
+  foreach (apb7_backend_list() as $name => $info) {
+    try {
+      apb7_backend_get($name)->garbageCollection();
+    } catch (Exception $e) {
+      // We cannot afford cron failure here, outdated data must be wiped
+      // out no matter the cost, just leave some comprehensive exception
+      // logging in case of any error
+      watchdog_exception('apb7', $e, sprintf("Backend name '%s' could not be instanciated"), NULL, WATCHDOG_ERROR);
     }
   }
 }

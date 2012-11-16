@@ -725,4 +725,9 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
                     ");
         }
     }
+
+    public function getAnalysis()
+    {
+        // @todo
+    }
 }
