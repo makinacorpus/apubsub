@@ -67,6 +67,16 @@ function apb7_ui_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
+  $items['admin/content/pubsub/%apb7_backend/analysis'] = array(
+    'title' => 'Run analysis',
+    'page callback' => 'apb7_ui_content_backend_analysis',
+    'page arguments' => array(3),
+    'access callback' => 'apb7_ui_access',
+    'access arguments' => array(3),
+    'file' => 'apb7_ui.admin.inc',
+    'type' => MENU_LOCAL_ACTION | MENU_VISIBLE_IN_BREADCRUMB,
+  );
+
   return $items;
 }
 

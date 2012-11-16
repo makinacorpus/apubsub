@@ -109,6 +109,42 @@ function apb7_ui_content_backend_overview_page(PubSubInterface $backend) {
 }
 
 /**
+ * Run backend analysis and display result.
+ */
+function apb7_ui_content_backend_analysis(PubSubInterface $backend) {
+
+  if (!$analysis = $backend->getAnalysis()) {
+    return array(
+      '#prefix' => '<p>',
+      '#suffix' => '</p>',
+      '#markup' => t("This backend does not support analysis feature."),
+    );
+  }
+
+  $rows = array();
+
+  foreach ($analysis as $name => $value) {
+    if (is_null($value)) {
+      $value = '<em>null</em>';
+    } else if (is_bool($value)) {
+      $value = '<em>' . ($value ? "true" : "false") . '</em>';
+    } else if (is_int($value)) {
+      $value = $value; 
+    } else if (is_string($value)) {
+      $value = '"' . $value . '"';
+    } else {
+      $value = '<em>' . t("Undisplayable value type") . '</em>';
+    }
+
+    $name = t($name);
+
+    $rows[] = array($name, $value);
+  }
+
+  return theme('table', array('rows' => $rows));
+}
+
+/**
  * Display backend channel list
  */
 function apb7_ui_content_backend_channel_list(PubSubInterface $backend) {
