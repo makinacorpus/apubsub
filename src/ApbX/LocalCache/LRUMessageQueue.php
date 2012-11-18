@@ -149,7 +149,7 @@ class LRUMessageQueue implements \IteratorAggregate, MessageQueueInterface
      */
     public function prependAll($messages)
     {
-        foreach (array_reverse($messages) as $message) {
+        foreach ($messages as $message) {
             $this->prepend($message);
         }
     }

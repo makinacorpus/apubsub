@@ -312,9 +312,7 @@ function apb7_follow_notification_list($account) {
   }
 
   if (!empty($messages)) {
-    foreach ($messages as $message) {
-      $current->prepend($message);
-    }
+    $current->prependAll($message);
   }
 
   // Save the new list if modified at shutdown, if some notifications end up
