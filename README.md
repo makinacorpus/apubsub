@@ -136,6 +136,85 @@ If you're dealing with user notifications for example, and want to keep them
 persistent for a while, you'll need to store the messages into your own business
 API.
 
+Making messages persistent on business side
+-------------------------------------------
+
+The _ApbX_ (_X_ as in eXternal) namespace will give you some optional helpers:
+the one you're looking for is the _ApbX\LocalCache\MessageQueueInterface_. This
+object aims to provide a simple and serializable message queue. One default
+implementation is provided: _ApbX\LocalCache\LRUMessageQueue_.
+
+The idea is that when you fetch messages for a given subscription or subscriber
+the backend will drop them per design, while fetching them you will be able to
+store them into the queue:
+
+    use ApbX\LocalCache\LRUMessageQueue
+
+    function getQueue($name)
+    {
+        // Depending on your framework you might want to do things differently
+        static $queues;
+
+        if (isset($queues[$name])) {
+            return $queues[$name];
+        }
+
+        $queueSize  = 30;
+        $subscriber = $backend->getSubscriber($name);
+
+        // Fetch you stored instance from anywhere you'd want to store it for
+        // the sake of example we will use APC user cache
+        $queue = apc_fetch($name);
+
+        if (!$queue) {
+            // Create the new queue, it never has been stored before
+            $queue = LRUMessageQueue(30);
+        }
+
+        $messages = $subscriber->fetch();
+
+        if (!empty($messages)) {
+            $messages->prependAll($messages);
+        }
+
+        // The message queue is able to determine if it has been modified or
+        // not, including modifications on messages instances. For performance
+        // reasons you might want to store again the queue only if modified
+        register_shutdown_function(function () use ($queue, $name) {
+            if ($queue->isModified()) {
+                apc_store($name, $queue);
+            }
+        });
+
+        return $queues[$name] = $queue;
+    }
+
+The queue object will be your new interface for working with messages: let's
+assume you have a user 'foo' which is a subscriber, and you want to display
+all his subscribed channel messages:
+
+    $username = 'foo';
+
+    $queue = getQueue($username);
+
+    if (!$queue->isEmpty()) {
+        foreach ($queue as $message) {
+            if ($message->isUnread()) {
+                // Do something with your message
+                // The next line will actually set the queue modified state
+                // to true, allowing it to be saved in the shutdown handler
+                $messagee->setReadStatus(true);
+            } else {
+                // Do something else with your message
+            }
+        }
+    } else {
+        echo "You have no messages!";
+    }
+
+You'll notice that messages in the queue are not the original instances from
+the backend but a specialization instead.
+
 Performance considerations
 ==========================
 
@@ -161,9 +240,3 @@ But always do this instead:
     $chanId = $message->getChannelId();
 
 Because the channel is lazy loaded on demand by the default implementation.
-
-Another strategy could have been used: always double backend queries in order
-to prefetch all channels in one multiple load operation: this would allow the
-user to manipulate all objects without triggering any extra backend queries,
-but in real life, this API is meant to have very fast fetch operations, this
-why the lazy loading strategy has been choosen.

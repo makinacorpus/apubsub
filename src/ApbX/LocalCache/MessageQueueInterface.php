@@ -71,6 +71,13 @@ interface MessageQueueInterface extends \Countable, \Traversable
     public function prepend(MessageInterface $message);
 
     /**
+     * Prepend list of messages
+     *
+     * @param array|\Traversable $messages Message list
+     */
+    public function prependAll($messages);
+
+    /**
      * Append a message to the list
      *
      * If the maximum queue size is reached the item won't be appended
@@ -82,6 +89,13 @@ interface MessageQueueInterface extends \Countable, \Traversable
      *                                  queue maximum size reached
      */
     public function append(MessageInterface $message);
+
+    /**
+     * Append list of messages
+     *
+     * @param array|\Traversable $messages Message list
+     */
+    public function appendAll($messages);
 
     /**
      * Remove a message from the list

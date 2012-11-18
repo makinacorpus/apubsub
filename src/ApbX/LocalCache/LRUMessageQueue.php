@@ -145,6 +145,17 @@ class LRUMessageQueue implements \IteratorAggregate, MessageQueueInterface
 
     /**
      * (non-PHPdoc)
+     * @see \ApbX\LocalCache\MessageQueueInterface::prependAll()
+     */
+    public function prependAll($messages)
+    {
+        foreach (array_reverse($messages) as $message) {
+            $this->prepend($message);
+        }
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \ApbX\LocalCache\MessageQueueInterface::append()
      */
     public function append(MessageInterface $message)
@@ -156,6 +167,20 @@ class LRUMessageQueue implements \IteratorAggregate, MessageQueueInterface
         $this->list[] = $this->ensureMessageType($message);
 
         return $this->modified = true;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \ApbX\LocalCache\MessageQueueInterface::appendAll()
+     */
+    public function appendAll($messages)
+    {
+        foreach ($messages as $message) {
+            if (!$this->append($message)) {
+                // Queue is full, do not continue
+                break;
+            }
+        }
     }
 
     /**

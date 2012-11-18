@@ -51,8 +51,8 @@ const APB_TYPE_ENTITY= 'e';
  */
 function apb7_follow_apb7_follow_type_info() {
   return array(
-      APB_TYPE_ENTITY => 'Apb\Follow\Notification\EntityNotificationType',
-      APB_TYPE_USER   => 'Apb\Follow\Notification\UserNotificationType',
+    APB_TYPE_ENTITY => 'Apb\Follow\Notification\EntityNotificationType',
+    APB_TYPE_USER   => 'Apb\Follow\Notification\UserNotificationType',
   );
 }
 
@@ -386,9 +386,9 @@ function apb7_follow_notification_render($account) {
       }
 
       if ($uri = $type->getUri($notification)) {
-          $text = l($text, $uri, array(
-              'html' => TRUE,
-          ));
+        $text = l($text, $uri, array(
+          'html' => TRUE,
+        ));
       }
 
       if ($uri = $type->getImageURI($notification)) {

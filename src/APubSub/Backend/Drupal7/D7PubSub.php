@@ -728,6 +728,20 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
     public function getAnalysis()
     {
-        // @todo
+        $cx = $this->context->dbConnection;
+
+        $chanCount       = (int)$cx->query("SELECT COUNT(*) FROM {apb_chan}")->fetchField();
+        $msgCount        = (int)$cx->query("SELECT COUNT(*) FROM {apb_msg}")->fetchField();
+        $subCount        = (int)$cx->query("SELECT COUNT(*) FROM {apb_sub}")->fetchField();
+        $subscriberCount = (int)$cx->query("SELECT COUNT(name) FROM {apb_sub_map} GROUP BY name")->fetchField();
+        $queueSize       = (int)$cx->query("SELECT COUNT(*) FROM {apb_queue}")->fetchField();
+
+        return array(
+            "Channel count"       => $chanCount,
+            "Message count"       => $msgCount,
+            "Subscriptions count" => $subCount,
+            "Subscribers count"   => $subscriberCount,
+            "Total queue size"    => $queueSize,
+        );
     }
 }

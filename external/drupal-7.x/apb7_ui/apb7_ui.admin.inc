@@ -95,7 +95,7 @@ function apb7_ui_content_backend_overview_page(PubSubInterface $backend) {
     } else if (is_bool($value)) {
       $value = '<em>' . ($value ? "true" : "false") . '</em>';
     } else if (is_int($value)) {
-      $value = $value; 
+      $value = number_format($value); 
     } else if (is_string($value)) {
       $value = '"' . $value . '"';
     } else {
@@ -129,7 +129,7 @@ function apb7_ui_content_backend_analysis(PubSubInterface $backend) {
     } else if (is_bool($value)) {
       $value = '<em>' . ($value ? "true" : "false") . '</em>';
     } else if (is_int($value)) {
-      $value = $value; 
+      $value = number_format($value); 
     } else if (is_string($value)) {
       $value = '"' . $value . '"';
     } else {
