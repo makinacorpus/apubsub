@@ -168,7 +168,7 @@ store them into the queue:
 
         if (!$queue) {
             // Create the new queue, it never has been stored before
-            $queue = LRUMessageQueue(30);
+            $queue = new LRUMessageQueue(30);
         }
 
         $messages = $subscriber->fetch();
