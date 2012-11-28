@@ -17,9 +17,10 @@ Creating a channel
 ------------------
 
     // Simply create the new channel
-    $channel = $pubsub->createChannel("foo");
-    $channel = $pubsub->createChannel("bar");
-    $channel = $pubsub->createChannel("baz");
+    // The channel instance is returned by the createChannel() method
+    $channel_foo = $pubsub->createChannel("foo");
+    $channel_bar = $pubsub->createChannel("bar");
+    $channel_baz = $pubsub->createChannel("baz");
 
 Creating a message
 ------------------
