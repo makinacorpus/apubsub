@@ -76,14 +76,6 @@ The real use case where you'd need a subscriber instead of working directly
 with subscriptions is when you need to fetch messages from multiple channels
 at once (for example, user notifications in a social network).
 
-It can also fetch only a limited number of messages:
-
-    // Fetch the 10 oldest messages in queue
-    $messages = $subscriber->fetchHead(10);
-
-    // Fetch the 20 most recent messages in queue
-    $messages = $subscriber->fetchTail(20);
-
 Working directly with subscription
 ----------------------------------
 
@@ -119,10 +111,8 @@ on a higher level.
 Fetching new messages
 ---------------------
 
-Fetching new messages will only be possible on a per subscription basis. Note
-that when you fetch messages, the new message queue is emptied and you cannot
-get them anymore as they will be deleted or marked for deletion. The backend may
-or may not provide helpers to fetch them after that.
+Fetching new messages will be possible on both a per subscription or
+subscriber basis.
 
     // Retrieve the subscription: the identifier here is the one you kept
     // and stored when you created the subscription
@@ -136,85 +126,6 @@ or may not provide helpers to fetch them after that.
 If you're dealing with user notifications for example, and want to keep them
 persistent for a while, you'll need to store the messages into your own business
 API.
-
-Making messages persistent on business side
--------------------------------------------
-
-The _ApbX_ (_X_ as in eXternal) namespace will give you some optional helpers:
-the one you're looking for is the _ApbX\LocalCache\MessageQueueInterface_. This
-object aims to provide a simple and serializable message queue. One default
-implementation is provided: _ApbX\LocalCache\LRUMessageQueue_.
-
-The idea is that when you fetch messages for a given subscription or subscriber
-the backend will drop them per design, while fetching them you will be able to
-store them into the queue:
-
-    use ApbX\LocalCache\LRUMessageQueue
-
-    function getQueue($name)
-    {
-        // Depending on your framework you might want to do things differently
-        static $queues;
-
-        if (isset($queues[$name])) {
-            return $queues[$name];
-        }
-
-        $queueSize  = 30;
-        $subscriber = $backend->getSubscriber($name);
-
-        // Fetch you stored instance from anywhere you'd want to store it for
-        // the sake of example we will use APC user cache
-        $queue = apc_fetch($name);
-
-        if (!$queue) {
-            // Create the new queue, it never has been stored before
-            $queue = new LRUMessageQueue(30);
-        }
-
-        $messages = $subscriber->fetch();
-
-        if (!empty($messages)) {
-            $messages->prependAll($messages);
-        }
-
-        // The message queue is able to determine if it has been modified or
-        // not, including modifications on messages instances. For performance
-        // reasons you might want to store again the queue only if modified
-        register_shutdown_function(function () use ($queue, $name) {
-            if ($queue->isModified()) {
-                apc_store($name, $queue);
-            }
-        });
-
-        return $queues[$name] = $queue;
-    }
-
-The queue object will be your new interface for working with messages: let's
-assume you have a user 'foo' which is a subscriber, and you want to display
-all his subscribed channel messages:
-
-    $username = 'foo';
-
-    $queue = getQueue($username);
-
-    if (!$queue->isEmpty()) {
-        foreach ($queue as $message) {
-            if ($message->isUnread()) {
-                // Do something with your message
-                // The next line will actually set the queue modified state
-                // to true, allowing it to be saved in the shutdown handler
-                $messagee->setReadStatus(true);
-            } else {
-                // Do something else with your message
-            }
-        }
-    } else {
-        echo "You have no messages!";
-    }
-
-You'll notice that messages in the queue are not the original instances from
-the backend but a specialization instead.
 
 Performance considerations
 ==========================
