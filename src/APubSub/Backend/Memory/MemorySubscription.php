@@ -2,6 +2,7 @@
 
 namespace APubSub\Backend\Memory;
 
+use APubSub\Filter;
 use APubSub\SubscriptionInterface;
 
 /**
@@ -10,6 +11,91 @@ use APubSub\SubscriptionInterface;
 class MemorySubscription extends AbstractMemoryObject implements
     SubscriptionInterface
 {
+    /**
+     * Sort helper for messages
+     *
+     * @param MemoryMessage $a   Too lazy to comment
+     * @param MemoryMessage $b   Too lazy to comment
+     * @param string $sortField  Too lazy to comment
+     * @param int $sortDirection Too lazy to comment
+     *
+     * @return int               Too lazy to comment
+     */
+    public static function sortMessages(MemoryMessage $a, MemoryMessage $b, $sortField, $sortDirection)
+    {
+        $value = 0;
+
+        switch ($sortField) {
+
+            case Filter::FIELD_CHANNEL:
+                $value = strcmp($a->getChannelId(), $b->getChannelId());
+                break;
+
+            case Filter::FIELD_SENT:
+                $value = $a->getSendTimestamp() - $b->getSendTimestamp();
+                break;
+
+            case Filter::FIELD_SUBSCRIPTION:
+                $value = $a->getSubscriptionId() - $b->getSubscriptionId();
+                break;
+
+            case Filter::FIELD_UNREAD:
+                $value = ((int)$a->isUnread()) - ((int)$b->isUnread());
+                break;
+        }
+
+        if (0 === $value) {
+            $value = $a->getId() - $b->getId();
+        }
+
+        if (Filter::SORT_DESC === $sortDirection) {
+            $value = 0 - $value;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Sort helper for messages
+     *
+     * @param MemoryMessage $a  Too lazy to comment
+     * @param array $conditions Too lazy to comment
+     *
+     * @return bool             Too lazy to comment
+     */
+    public static function filterMessages(MemoryMessage $a, array $conditions)
+    {
+        foreach ($conditions as $key => $value) {
+
+            $value = null;
+
+            switch ($key) {
+
+                case Filter::FIELD_CHANNEL:
+                    $value = $a->getChannelId();
+                    break;
+
+                case Filter::FIELD_SENT:
+                    $value = $a->getSendTimestamp();
+                    break;
+
+                case Filter::FIELD_SUBSCRIPTION:
+                    $value = $a->getSubscriptionId();
+                    break;
+
+                case Filter::FIELD_UNREAD:
+                    $value = $a->isUnread();
+                    break;
+            }
+
+            if (null === $key && $value !== null || $key != $value) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Message identifier
      *
@@ -167,13 +253,35 @@ class MemorySubscription extends AbstractMemoryObject implements
      * (non-PHPdoc)
      * @see \APubSub\SubscriptionInterface::fetch()
      */
-    public function fetch()
+    public function fetch(
+        $limit            = Filter::NO_LIMIT,
+        $offset           = 0,
+        array $conditions = null,
+        $sortField        = Filter::FIELD_SENT,
+        $sortDirection    = Filter::SORT_DESC)
     {
-        if (isset($this->context->subscriptionMessages[$this->id])) {
-            return $this->context->subscriptionMessages[$this->id];
-        } else {
+        if (!isset($this->context->subscriptionMessages[$this->id])) {
             return array();
         }
+
+        $ret = $this->context->subscriptionMessages[$this->id];
+
+        uasort($ret, function ($a, $b) use ($sortField, $sortDirection) {
+            return MemorySubscription::sortMessages(
+                $a, $b, $sortField, $sortDirection);
+        });
+
+        if ($conditions) {
+            $ret = array_filter($ret, function ($a) use ($conditions) {
+                return MemorySubscription::filterMessages($a, $conditions);
+            });
+        }
+
+        if ($limit) {
+            $ret = array_slice($ret, $offset, $limit);
+        }
+
+        return $ret;
     }
 
     /**

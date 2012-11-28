@@ -5,6 +5,7 @@ namespace APubSub\Tests;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionAlreadyExistsException;
 use APubSub\Error\SubscriptionDoesNotExistException;
+use APubSub\Filter;
 
 abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
 {
@@ -102,19 +103,30 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
         $chan2->send(8);
         $chan1->send(9);
 
+        $i = 10;
+        $messages = $subscriber->fetch();
+        foreach ($messages as $message) {
+            $this->assertSame(--$i, $message->getContents());
+        }
+
         $i = 0;
-        foreach ($subscriber->fetch() as $message) {
+        $messages = $subscriber->fetch(Filter::NO_LIMIT, 0, null, Filter::FIELD_SENT, Filter::SORT_ASC);
+        foreach ($messages as $message) {
             $this->assertSame(++$i, $message->getContents());
         }
-    }
 
-    public function testFetchHead()
-    {
-        
-    }
+        $i = 10;
+        $messages = $subscriber->fetch(3, 0);
+        foreach ($messages as $message) {
+            $this->assertSame(--$i, $message->getContents());
+        }
+        $this->assertEquals(3, 10 - $i);
 
-    public function testFetchTail()
-    {
-        
+        $i = 7;
+        $messages = $subscriber->fetch(3, 3);
+        foreach ($messages as $message) {
+          $this->assertSame(--$i, $message->getContents());
+        }
+        $this->assertEquals(3, 7 - $i);
     }
 }

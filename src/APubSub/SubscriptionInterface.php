@@ -56,9 +56,22 @@ interface SubscriptionInterface extends ObjectInterface, ChannelAwareInterface
     /**
      * Fetch current message queue
      *
-     * @return Array of \APubSub\MessageInterface instances
+     * @param number $limit      Message count to fetch
+     * @param number $offset     Start offset
+     * @param array $conditions  Array of key value pairs conditions, only the
+     *                           = operator is supported right now
+     * @param string $sortField  Sort field: all Filter::FIELD_* constants will
+     *                           be supported by all backends
+     * @param int $sortDirection Sort direction
+     *
+     * @return array            Array of messages
      */
-    public function fetch();
+    public function fetch(
+        $limit            = Filter::NO_LIMIT,
+        $offset           = 0,
+        array $conditions = null,
+        $sortField        = Filter::FIELD_SENT,
+        $sortDirection    = Filter::SORT_DESC);
 
     /**
      * Deactivate this subscription, if it is already deactivated it will

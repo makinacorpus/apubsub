@@ -4,6 +4,7 @@ namespace APubSub\Backend\Memory;
 
 use APubSub\Error\SubscriptionAlreadyExistsException;
 use APubSub\Error\SubscriptionDoesNotExistException;
+use APubSub\Filter;
 use APubSub\SubscriberInterface;
 
 /**
@@ -99,7 +100,7 @@ class MemorySubscriber extends AbstractMemoryObject implements
     /**
      * (non-PHPdoc)
      * @see \APubSub\SubscriberInterface::fetch()
-     */
+     *
     public function fetch()
     {
         $ret = array();
@@ -111,6 +112,42 @@ class MemorySubscriber extends AbstractMemoryObject implements
         uasort($ret, function ($m1, $m2) {
             return $m1->getId() - $m2->getId();
         });
+
+        return $ret;
+    }
+     */
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::fetch()
+     */
+    public function fetch(
+        $limit            = Filter::NO_LIMIT,
+        $offset           = 0,
+        array $conditions = null,
+        $sortField        = Filter::FIELD_SENT,
+        $sortDirection    = Filter::SORT_DESC)
+    {
+        $ret = array();
+
+        foreach ($this->getSubscriptions() as $subscription) {
+            $ret = array_merge($subscription->fetch(), $ret);
+        }
+
+        uasort($ret, function ($a, $b) use ($sortField, $sortDirection) {
+            return MemorySubscription::sortMessages(
+                $a, $b, $sortField, $sortDirection);
+        });
+
+        if ($conditions) {
+            $ret = array_filter($ret, function ($a) use ($conditions) {
+                return MemorySubscription::filterMessages($a, $conditions);
+            });
+        }
+
+        if ($limit) {
+            $ret = array_slice($ret, $offset, $limit);
+        }
 
         return $ret;
     }

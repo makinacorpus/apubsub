@@ -30,7 +30,7 @@ class DefaultMessage implements MessageInterface
      *
      * @var bool
      */
-    protected $unread = false;
+    protected $unread = true;
 
     /**
      * Message raw data
@@ -70,7 +70,7 @@ class DefaultMessage implements MessageInterface
      * @param bool $isUnread            Is this message unread
      */
     public function __construct(ContextInterface $context, $chanId,
-        $subscriptionId, $contents, $id, $sendTime, $isUnread = false)
+        $subscriptionId, $contents, $id, $sendTime, $isUnread = true)
     {
         $this->id             = $id;
         $this->chanId         = $chanId;
