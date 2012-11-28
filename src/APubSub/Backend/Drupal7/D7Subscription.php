@@ -2,6 +2,7 @@
 
 namespace APubSub\Backend\Drupal7;
 
+use APubSub\Filter;
 use APubSub\SubscriptionInterface;
 
 /**
@@ -160,7 +161,7 @@ class D7Subscription extends AbstractD7Object implements SubscriptionInterface
     /**
      * (non-PHPdoc)
      * @see \APubSub\SubscriptionInterface::fetch()
-     */
+     *
     public function fetch()
     {
         $ret = array();
@@ -180,6 +181,86 @@ class D7Subscription extends AbstractD7Object implements SubscriptionInterface
         }
 
         $ret = $this->getChannel()->getMessages($idList);
+
+        return $ret;
+    }
+     */
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriptionInterface::fetch()
+     */
+    public function fetch(
+        $limit            = Filter::NO_LIMIT,
+        $offset           = 0,
+        array $conditions = null,
+        $sortField        = Filter::FIELD_SENT,
+        $sortDirection    = Filter::SORT_DESC)
+    {
+        $ret    = array();
+        $idList = array();
+
+        /*
+         * Targeted query:
+         *
+         * SELECT q.*, m.* FROM apb_queue q mp
+         *     JOIN apb_msg m ON m.id = q.msg_id
+         *     WHERE
+         *       [CONDITIONS]
+         *     ORDER BY [FIELD] [DIRECTION];
+         */
+
+        $query = $this
+            ->context
+            ->dbConnection
+            ->select('apb_queue', 'q');
+        $query
+            ->join('apb_msg', 'm', 'm.id = q.msg_id');
+        $query
+            ->fields('m')
+            ->fields('q');
+
+        $query->range($offset, (Filter::NO_LIMIT === $limit) ? null : $limit);
+
+        if (Filter::SORT_DESC === $sortDirection) {
+            $sqlDirection = 'DESC';
+        } else {
+            $sqlDirection = 'ASC';
+        }
+
+        switch ($sortField) {
+
+            case Filter::FIELD_CHANNEL:
+                $query->orderBy('m.chan_id', $sqlDirection);
+                break;
+
+            case Filter::FIELD_SENT:
+                // Special case, always order by identifier when dealing sent
+                // timestamp, allowing us to ensure some kind of order when
+                // dealing with messages sent the same second
+                $query->orderBy('m.created', $sqlDirection);
+                $query->orderBy('m.id', $sqlDirection);
+                break;
+
+            case Filter::FIELD_SUBSCRIPTION:
+                $query->orderBy('q.sub_id', $sqlDirection);
+                break;
+
+            case Filter::FIELD_UNREAD:
+                $query->orderBy('q.unread', $sqlDirection);
+                break;
+        }
+
+        $results = $query->execute();
+
+        foreach ($results as $record) {
+            $ret[] = new DefaultMessage($this->context,
+                (string)$record->chan_id, (int)$record->sub_id,
+                unserialize($record->contents), (int)$record->id,
+                (int)$record->created, (bool)$record->unread);
+
+            $idList[] = (int)$record->id;
+        }
 
         return $ret;
     }

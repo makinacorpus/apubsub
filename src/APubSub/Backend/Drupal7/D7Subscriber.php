@@ -5,6 +5,7 @@ namespace APubSub\Backend\Drupal7;
 use APubSub\Backend\DefaultMessage;
 use APubSub\Error\SubscriptionAlreadyExistsException;
 use APubSub\Error\SubscriptionDoesNotExistException;
+use APubSub\Filter;
 use APubSub\SubscriberInterface;
 
 /**
@@ -154,20 +155,15 @@ class D7Subscriber extends AbstractD7Object implements SubscriberInterface
     }
 
     /**
-     * Get messages independently from channels
-     *
-     * This is an internal helper method: per design loading a message without
-     * a channel is not allowed. This method is error tolerant and will not fail
-     * if some messsages have been dropped
-     *
-     * @param int $limit    Number of message to fetch
-     * @param bool $reverse Set this to true if you want to fetch latest
-     *                      messages instead of oldest messages, case in which
-     *                      sorting will be switched from ID DESC to ID ASC
-     *
-     * @return array        List of DefaultMessage instances
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::fetch()
      */
-    protected function getMessages($limit = null, $reverse = false)
+    public function fetch(
+        $limit            = Filter::NO_LIMIT,
+        $offset           = 0,
+        array $conditions = null,
+        $sortField        = Filter::FIELD_SENT,
+        $sortDirection    = Filter::SORT_DESC)
     {
         $ret    = array();
         $idList = array();
@@ -195,6 +191,14 @@ class D7Subscriber extends AbstractD7Object implements SubscriberInterface
          * Note that for other DBMS' this will need to be tested, and a
          * switch/case on the dbConnection class may proove itself to be very
          * efficient if needed.
+         *
+         * Additionally, we need to apply some conditions over this query:
+         *
+         *     WHERE
+         *       [CONDITIONS]
+         *     ORDER BY [FIELD] [DIRECTION];
+         *
+         * Hopping those won't kill our queries.
          */
 
         $query = $this
@@ -210,13 +214,35 @@ class D7Subscriber extends AbstractD7Object implements SubscriberInterface
             ->fields('q')
             ->condition('mp.name', $this->id);
 
-        if (null !== $limit) {
-            $query->range(0, $limit);
-        }
-        if ($reverse) {
-            $query->orderBy('m.id', 'DESC');
+        $query->range($offset, (Filter::NO_LIMIT === $limit) ? null : $limit);
+
+        if (Filter::SORT_DESC === $sortDirection) {
+            $sqlDirection = 'DESC';
         } else {
-            $query->orderBy('m.id', 'ASC');
+            $sqlDirection = 'ASC';
+        }
+
+        switch ($sortField) {
+
+            case Filter::FIELD_CHANNEL:
+                $query->orderBy('m.chan_id', $sqlDirection);
+                break;
+
+            case Filter::FIELD_SENT:
+                // Special case, always order by identifier when dealing sent
+                // timestamp, allowing us to ensure some kind of order when
+                // dealing with messages sent the same second
+                $query->orderBy('m.created', $sqlDirection);
+                $query->orderBy('m.id', $sqlDirection);
+                break;
+
+            case Filter::FIELD_SUBSCRIPTION:
+                $query->orderBy('q.sub_id', $sqlDirection);
+                break;
+
+            case Filter::FIELD_UNREAD:
+                $query->orderBy('q.unread', $sqlDirection);
+                break;
         }
 
         // Applause.
@@ -232,15 +258,6 @@ class D7Subscriber extends AbstractD7Object implements SubscriberInterface
         }
 
         return $ret;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::fetch()
-     */
-    public function fetch()
-    {
-        return $this->getMessages();
     }
 
     /**
