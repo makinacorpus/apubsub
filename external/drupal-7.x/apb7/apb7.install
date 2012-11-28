@@ -190,6 +190,14 @@ function apb7_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'unread' => array(
+        'description' => "Has this message not been read",
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+      ),
     ),
     'primary key' => array('msg_id', 'sub_id'),
     'indexes' => array(
