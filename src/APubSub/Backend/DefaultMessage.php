@@ -26,6 +26,13 @@ class DefaultMessage implements MessageInterface
     protected $sendTime;
 
     /**
+     * Is this message unread
+     *
+     * @var bool
+     */
+    protected $unread = false;
+
+    /**
      * Message raw data
      *
      * @var mixed
@@ -40,9 +47,38 @@ class DefaultMessage implements MessageInterface
     protected $chanId;
 
     /**
+     * Subscription identifier
+     *
+     * @var string
+     */
+    protected $subscriptionId;
+
+    /**
      * @var \APubSub\ContextInterface
      */
     protected $context;
+
+    /**
+     * Default constructor
+     *
+     * @param ContextInterface $context Context
+     * @param string $chanId            Channel identifier
+     * @param string $subscriptionId    Subscription identifier
+     * @param mixed $contents           Message contents
+     * @param scalar $id                Message identifier
+     * @param int $sendTime             Send time UNIX timestamp
+     * @param bool $isUnread            Is this message unread
+     */
+    public function __construct(ContextInterface $context, $chanId,
+        $subscriptionId, $contents, $id, $sendTime, $isUnread = false)
+    {
+        $this->id             = $id;
+        $this->chanId         = $chanId;
+        $this->subscriptionId = $subscriptionId;
+        $this->contents       = $contents;
+        $this->sendTime       = $sendTime;
+        $this->context        = $context;
+    }
 
     /**
      * (non-PHPdoc)
@@ -54,31 +90,32 @@ class DefaultMessage implements MessageInterface
     }
 
     /**
-     * Default constructor
-     *
-     * @param ContextInterface $context Context
-     * @param string $chanId            Channel identifier
-     * @param mixed $contents           Message contents
-     * @param scalar $id                Message identifier
-     * @param int $sendTime             Send time UNIX timestamp
-     */
-    public function __construct(ContextInterface $context,
-        $chanId, $contents, $id, $sendTime)
-    {
-        $this->id = $id;
-        $this->chanId = $chanId;
-        $this->contents = $contents;
-        $this->sendTime = $sendTime;
-        $this->context = $context;
-    }
-
-    /**
      * (non-PHPdoc)
      * @see \APubSub\MessageInterface::getId()
      */
     public function getId()
     {
         return $this->id;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageInterface::isUnread()
+     */
+    public function isUnread()
+    {
+        return $this->unread;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageInterface::setReadStatus()
+     */
+    public function setUnread($toggle = false)
+    {
+        if ($this->unread !== $toggle) {
+            $this->getSubscription()->setUnread($this->id, $toggle);
+        }
     }
 
     /**
@@ -125,5 +162,23 @@ class DefaultMessage implements MessageInterface
     public function getChannel()
     {
         return $this->context->getBackend()->getChannel($this->chanId);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriptionAwareInterface::getSubscriptionId()
+     */
+    public function getSubscriptionId()
+    {
+        return $this->subscriptionId;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriptionAwareInterface::getSubscription()
+     */
+    public function getSubscription()
+    {
+        return $this->context->getBackend()->getSubscription($this->subscriptionId);
     }
 }
