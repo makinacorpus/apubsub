@@ -41,6 +41,21 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\PubSubInterface::getChannels()
+     */
+    public function getChannels(array $idList)
+    {
+        $ret = array();
+
+        foreach ($idList as $chanId) {
+            $ret[] = $this->getChannel($chanId);
+        }
+
+        return $ret;
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::createChannel()
      */
     public function createChannel($id, $ignoreErrors = false)
@@ -100,6 +115,7 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
         $this->context->subscriptions = array_filter($this->context->subscriptions);
 
         unset($this->context->channels[$id]);
+        unset($this->context->channelMessages[$id]);
     }
 
     /**
@@ -148,6 +164,7 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
         $this->getSubscription($id);
 
         unset($this->context->subscriptions[$id]);
+        unset($this->context->subscriptionMessages[$id]);
     }
 
     /**

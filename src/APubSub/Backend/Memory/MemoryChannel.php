@@ -63,17 +63,11 @@ class MemoryChannel extends AbstractMemoryObject implements ChannelInterface
      */
     public function getMessage($id)
     {
-        if (!isset($this->context->messages[$id])) {
+        if (!isset($this->context->channelMessages[$this->id][$id])) {
             throw new MessageDoesNotExistException();
         }
 
-        $message = $this->context->messages[$id];
-
-        if ($message->getChannel()->getId() !== $this->id) {
-            throw new MessageDoesNotExistException();
-        }
-
-        return $message;
+        return $this->context->channelMessages[$this->id][$id];
     }
 
     /**
@@ -101,21 +95,24 @@ class MemoryChannel extends AbstractMemoryObject implements ChannelInterface
             $sendTime = time();
         }
 
-        $id = $this->context->getNextMessageIdentifier();
-
-        $message = new MemoryMessage($this->context, $this->id, $contents, $id, $sendTime);
+        $msgId = $this->context->getNextMessageIdentifier();
 
         $subscriptionIdList = array();
-        foreach ($this->context->subscriptions as $subscription) {
+        foreach ($this->context->subscriptions as $subscriptionId => $subscription) {
             if ($subscription->getChannel()->getId() === $this->id &&
                 $subscription->isActive())
             {
-                $subscriptionIdList[] = $subscription->getId();
+                $message = new MemoryMessage($this->context, $this->id,
+                    $subscriptionId, $contents, $msgId, $sendTime);
+
+                $this->context->subscriptionMessages[$subscriptionId][$msgId] = $message;
             }
         }
 
-        $message->setSubscriptionIds($subscriptionIdList);
-        $this->context->addMessage($message);
+        $message = new MemoryMessage($this->context,
+            $this->id, null, $contents, $msgId, $sendTime);
+
+        $this->context->channelMessages[$this->id][$msgId] = $message;
 
         return $message;
     }

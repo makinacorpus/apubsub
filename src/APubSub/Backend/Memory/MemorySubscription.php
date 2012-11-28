@@ -169,7 +169,11 @@ class MemorySubscription extends AbstractMemoryObject implements
      */
     public function fetch()
     {
-        return $this->context->getMessageListFor(array($this->id));
+        if (isset($this->context->subscriptionMessages[$this->id])) {
+            return $this->context->subscriptionMessages[$this->id];
+        } else {
+            return array();
+        }
     }
 
     /**
@@ -199,5 +203,16 @@ class MemorySubscription extends AbstractMemoryObject implements
     public function flush()
     {
         $this->context->getMessageListFor(array($this->id));
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriptionInterface::setUnread()
+     */
+    public function setUnread($messageId, $toggle = false)
+    {
+        if (isset($this->context->subscriptionMessages[$this->id])) {
+            $this->context->subscriptionMessages[$this->id]->setUnread($toggle);
+        }
     }
 }

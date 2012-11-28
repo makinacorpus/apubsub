@@ -97,48 +97,22 @@ class MemorySubscriber extends AbstractMemoryObject implements
     }
 
     /**
-     * Fetch oldest messages in queue all active subscriptions included
-     *
-     * @param int $limit Number of messages to fetch
-     *
-     * @return array     List of MessageInterface instances ordered by ascending
-     *                   creation timestamp
-     */
-    public function fetchHead($limit)
-    {
-        return $this->context->getMessageListFor($idList, $limit, false);
-    }
-
-    /**
-     * Fetch latest messages in queue all active subscriptions included
-     *
-     * @param int $limit Number of messages to fetch
-     *
-     * @return array     List of MessageInterface instances ordered by
-     *                   descending creation timestamp
-     */
-    public function fetchTail($limit)
-    {
-        $idList = array();
-        foreach ($this->subscriptions as $subscription) {
-            $idList[] = $subscription->getId();
-        }
-
-        return $this->context->getMessageListFor($idList, $limit, true);
-    }
-
-    /**
      * (non-PHPdoc)
      * @see \APubSub\SubscriberInterface::fetch()
      */
     public function fetch()
     {
-        $idList = array();
-        foreach ($this->subscriptions as $subscription) {
-            $idList[] = $subscription->getId();
+        $ret = array();
+
+        foreach ($this->getSubscriptions() as $subscription) {
+            $ret = array_merge($subscription->fetch(), $ret);
         }
 
-        return $this->context->getMessageListFor($idList);
+        uasort($ret, function ($m1, $m2) {
+            return $m1->getId() - $m2->getId();
+        });
+
+        return $ret;
     }
 
     /**
