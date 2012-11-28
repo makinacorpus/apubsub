@@ -5,9 +5,12 @@ namespace APubSub;
 use APubSub\ObjectInterface;
 
 /**
- * Interface for all messages
+ * Represent a specific message tied to a subscription
  */
-interface MessageInterface extends ObjectInterface, ChannelAwareInterface
+interface MessageInterface extends
+    ObjectInterface,
+    ChannelAwareInterface,
+    SubscriptionAwareInterface
 {
     /**
      * Get internal message identifier
@@ -16,6 +19,20 @@ interface MessageInterface extends ObjectInterface, ChannelAwareInterface
      *                implementation
      */
     public function getId();
+
+    /**
+     * Is this message unread
+     *
+     * @return bool
+     */
+    public function isUnread();
+
+    /**
+     * Set unread status for the current subscription
+     *
+     * @param bool $toggle New read status false for read, true for unread
+     */
+    public function setUnread($toggle = true);
 
     /**
      * Get send UNIX timestamp

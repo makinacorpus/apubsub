@@ -60,26 +60,6 @@ interface SubscriberInterface extends ObjectInterface
     public function subscribe($channelId);
 
     /**
-     * Fetch oldest messages in queue all active subscriptions included
-     *
-     * @param int $limit Number of messages to fetch
-     *
-     * @return array     List of MessageInterface instances ordered by ascending
-     *                   creation timestamp
-     */
-    public function fetchHead($limit);
-
-    /**
-     * Fetch latest messages in queue all active subscriptions included
-     *
-     * @param int $limit Number of messages to fetch
-     *
-     * @return array     List of MessageInterface instances ordered by ascending
-     *                   creation timestamp
-     */
-    public function fetchTail($limit);
-
-    /**
      * Fetch all messages in queue all active subscriptions included
      *
      * @return array List of MessageInterface instances ordered by ascending

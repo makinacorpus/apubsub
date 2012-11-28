@@ -80,23 +80,6 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
         // FIXME: Test subscriptions identifiers? Order is not respected
     }
 
-    public function testQueueIsConsumedOnFetch()
-    {
-        $subscriber = $this->backend->getSubscriber('baz');
-        $subscription = $subscriber->subscribe('foo');
-
-        $this->channel->send(1);
-        $this->channel->send(2);
-        $this->channel->send(3);
-
-        $messages = $subscriber->fetch();
-        $this->assertNotEmpty($messages);
-
-        $newSubscription = $this->backend->getSubscription($subscription->getId());
-        $messages = $newSubscription->fetch();
-        $this->assertEmpty($messages);
-    }
-
     public function testFetchOrder()
     {
         $subscriber = $this->backend->getSubscriber('baz');

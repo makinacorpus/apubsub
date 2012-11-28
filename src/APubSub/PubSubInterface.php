@@ -64,8 +64,8 @@ interface PubSubInterface extends ObjectInterface
      * @return array|Traversable   List of created channel instances
      *
      * @throws \APubSub\Error\ChannelAlreadyExistsException
-     *                          If a channel already exists and errors are not
-     *                          ignored
+     *                             If a channel already exists and errors are
+     *                             not ignored
      */
     public function createChannels($idList, $ignoreErrors = false);
 

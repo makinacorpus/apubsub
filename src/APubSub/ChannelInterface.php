@@ -17,6 +17,10 @@ interface ChannelInterface extends ObjectInterface
     /**
      * Get message by identifier
      *
+     * When you fetch a message using the channel as entry point, this message
+     * won't have any subscription tied to it, you cannot use most of the
+     * message interface methods
+     *
      * @param scalar $id                 Message identifier whose type depends
      *                                   on the channel implementation
      *

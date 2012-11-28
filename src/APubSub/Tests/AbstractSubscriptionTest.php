@@ -78,17 +78,19 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
             $this->assertSame(24, $message->getContents());
         }
 
+        // Ensures that message have been kept
         $messages = $subscription->fetch();
-        $this->assertEmpty($messages);
+        $this->assertNotEmpty($messages);
         $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
-        $this->assertCount(0, $messages);
+        $this->assertCount(1, $messages);
 
+        // Ensures we still have only one message after send
         $subscription->deactivate();
         $channel->send(12);
         $messages = $subscription->fetch();
-        $this->assertEmpty($messages);
+        $this->assertNotEmpty($messages);
         $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
-        $this->assertCount(0, $messages);
+        $this->assertCount(1, $messages);
     }
 
     function testMultipleFetch()

@@ -76,4 +76,14 @@ interface SubscriptionInterface extends ObjectInterface, ChannelAwareInterface
      * Delete everyting in this subscription queue
      */
     public function flush();
+
+    /**
+     * Set the unread status of a specific message
+     *
+     * Method is silent if message does not exist in this subscription queue
+     *
+     * @param scalar $messageId Message identifier
+     * @param bool $toggle      True for unread, false for read
+     */
+    public function setUnread($messageId, $toggle = false);
 }
