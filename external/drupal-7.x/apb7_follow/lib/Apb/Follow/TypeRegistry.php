@@ -9,7 +9,7 @@ class TypeRegistry
     /**
      * Hook name fired by this implementation
      */
-    const HOOK = 'apb7_follow_type_info';
+    const DRUPAL_HOOK_NAME = 'apb7_follow_type_info';
 
     /**
      * Stored known formatters
@@ -54,7 +54,9 @@ class TypeRegistry
      */
     protected function buildData()
     {
-        $this->data = module_invoke_all(self::HOOK);
+        $this->data = module_invoke_all(static::DRUPAL_HOOK_NAME);
+
+        drupal_alter(static::DRUPAL_HOOK_NAME, $this->data);
     }
 
     final public function refreshData()

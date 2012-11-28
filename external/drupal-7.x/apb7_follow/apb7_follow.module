@@ -73,6 +73,22 @@ function apb7_follow_permission() {
 }
 
 /**
+ * Implements hook_menu().
+ */
+function apb7_follow_menu() {
+  $items = array();
+/*
+  $items['user/%user/subscriptions'] = array(
+    'title' => "Notifications",
+    'page callback' => '',
+    'page arguments' => '',
+    
+  );
+ */
+  return $items;
+}
+
+/**
  * Implements hook_block_info().
  */
 function apb7_follow_block_info() {
@@ -91,39 +107,41 @@ function apb7_follow_block_info() {
 
 /**
  * Implements hook_image_default_styles().
+ *
+ * Defines styles for notification images (being displayed at various places
+ * of the site). For example, 32x32 variant will be displayed in current
+ * notifications block list, while the 64x64 variant will mostly be used
+ * in page listings.
  */
 function apb7_follow_image_default_styles() {
-  $styles = array();
-
-  $styles['icon-64'] = array(
-    'effects' => array(
-      array(
-        'name' => 'image_scale_and_crop',
-        'data' => array(
-          'width' => 64,
-          'height' => 64,
-          'upscale' => 1,
+  return array(
+    'icon-32' => array(
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => 32,
+            'height' => 32,
+            'upscale' => 1,
+          ),
+          'weight' => 0,
         ),
-        'weight' => 0,
+      ),
+    ),
+    'icon-64' => array(
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => 64,
+            'height' => 64,
+            'upscale' => 1,
+          ),
+          'weight' => 0,
+        ),
       ),
     ),
   );
-
-  $styles['icon-32'] = array(
-    'effects' => array(
-      array(
-        'name' => 'image_scale_and_crop',
-        'data' => array(
-          'width' => 32,
-          'height' => 32,
-          'upscale' => 1,
-        ),
-        'weight' => 0,
-      ),
-    ),
-  );
-
-  return $styles;
 }
 
 /**

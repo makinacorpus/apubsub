@@ -81,20 +81,17 @@ class UserNotificationType implements NotificationTypeInterface
             isset($account->picture) &&
             !empty($account->picture))
         {
-            // WTF...
-            list(, $path) = explode('://', $account->picture->uri, 2);
-
-            return image_style_url('icon-32', $path);
+            return $account->picture->uri;
         }
 
         // This is FALLBAAAAACK!
         switch ($notification->get('a')) {
 
             case 'login':
-                return drupal_get_path('module', 'apb7_follow') . '/images/symbolic/comment-32.png';
+                return 'comment';
 
             case 'logout':
-                return drupal_get_path('module', 'apb7_follow') . '/images/symbolic/offline-32.png';
+                return 'offline';
 
             default:
                 return null;

@@ -98,13 +98,13 @@ class EntityNotificationType implements NotificationTypeInterface
         switch ($notification->get('a')) {
 
             case 'insert':
-                return drupal_get_path('module', 'apb7_follow') . '/images/symbolic/insert-32.png';
+                return 'insert';
 
             case 'update':
-                return drupal_get_path('module', 'apb7_follow') . '/images/symbolic/update-32.png';
+                return 'update';
 
             case 'delete':
-                return drupal_get_path('module', 'apb7_follow') . '/images/symbolic/delete-32.png';
+                return 'delete';
 
             default:
                 return null;
