@@ -20,13 +20,6 @@ class D7Context implements ContextInterface
     public $cache;
 
     /**
-     * Is this backend configured for keeping messages
-     *
-     * @var bool
-     */
-    public $keepMessages = false;
-
-    /**
      * Queue global limit (0 = no limit)
      *
      * @var int
@@ -97,10 +90,6 @@ class D7Context implements ContextInterface
         foreach ($options as $key => $value) {
             switch ($key) {
 
-                case 'keep_messages':
-                    $this->keepMessages = (bool)$value;
-                    break;
-
                 case 'queue_global_limit':
                     $this->queueGlobalLimit = (int)$value;
                     break;
@@ -129,7 +118,6 @@ class D7Context implements ContextInterface
     public function getOptions()
     {
         return array(
-            'keep_messages'        => $this->keepMessages,
             'queue_global_limit'   => $this->queueGlobalLimit,
             'message_max_lifetime' => $this->messageMaxLifetime,
             'delay_checks'         => $this->delayChecks,

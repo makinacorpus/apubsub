@@ -7,8 +7,7 @@ use APubSub\SubscriptionInterface;
 /**
  * Drupal 7 simple subscription implementation
  */
-class D7SimpleSubscription extends AbstractD7Object implements
-    SubscriptionInterface
+class D7Subscription extends AbstractD7Object implements SubscriptionInterface
 {
     /**
      * Message identifier
@@ -182,15 +181,6 @@ class D7SimpleSubscription extends AbstractD7Object implements
 
         $ret = $this->getChannel()->getMessages($idList);
 
-        // Delete using sub_id index instead would allow newly queued message
-        // during our own processing to be deleted: can't do this. Hence the
-        // WHERE IN condition on $idList 
-        $cx
-            ->delete('apb_queue')
-            ->condition('sub_id', $this->id)
-            ->condition('msg_id', $idList, 'IN')
-            ->execute();
-
         return $ret;
     }
 
@@ -245,5 +235,24 @@ class D7SimpleSubscription extends AbstractD7Object implements
             ->delete('apb_queue')
             ->condition('sub_id', $this->id)
             ->execute();
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriptionInterface::setUnread()
+     */
+    public function setUnread($messageId, $toggle = false)
+    {
+        $cx
+            ->query("
+                UPDATE {apb_queue}
+                SET unread = :unread
+                WHERE msg_id = :msgid
+                  AND sub_id = :subid
+            ", array(
+                ':unread' => (int)$toggle,
+                ':msgid'  => (int)$messageId,
+                ':subid'  => $this->id,
+            ));
     }
 }

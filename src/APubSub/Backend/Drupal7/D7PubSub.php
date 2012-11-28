@@ -55,8 +55,8 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             throw new ChannelDoesNotExistException();
         }
 
-        $channel = new D7SimpleChannel($this->context,
-            $record->name, (int)$record->id, (int)$record->created);
+        $channel = new D7Channel($this->context, $record->name,
+            (int)$record->id, (int)$record->created);
 
         $this->context->cache->addChannel($channel);
 
@@ -101,7 +101,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         }
 
         foreach ($recordList as $record) {
-            $channel = new D7SimpleChannel($this->context,
+            $channel = new D7Channel($this->context,
                 $record->name, (int)$record->id, (int)$record->created);
 
             $ret[$record->name] = $channel;
@@ -155,7 +155,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
         }
 
         foreach ($recordList as $record) {
-            $channel = new D7SimpleChannel($this->context,
+            $channel = new D7Channel($this->context,
                 $record->name, (int)$record->id, (int)$record->created);
 
             $ret[$record->name] = $channel;
@@ -173,7 +173,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      *
      * @param int $id                           Channel database identifier
      *
-     * @return \APubSub\Backend\Drupal7\D7SimpleChannel
+     * @return \APubSub\Backend\Drupal7\D7Channel
      *                                          Loaded instance
      *
      * @throws \APubSub\Error\ChannelDoesNotExistException
@@ -196,7 +196,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             throw new ChannelDoesNotExistException();
         }
 
-        $channel = new D7SimpleChannel($this->context, $record->name, (int)$record->id, (int)$record->created);
+        $channel = new D7Channel($this->context, $record->name, (int)$record->id, (int)$record->created);
 
         $this->context->cache->addChannel($channel);
 
@@ -208,7 +208,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      *
      * @param int $idList                       Channel database identifiers
      *
-     * @return \APubSub\Backend\Drupal7\D7SimpleChannel
+     * @return \APubSub\Backend\Drupal7\D7Channel
      *                                          Loaded instance
      *
      * @throws \APubSub\Error\ChannelDoesNotExistException
@@ -250,7 +250,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
         foreach ($recordList as $record) {
             $id = (int)$record->id;
-            $channel = new D7SimpleChannel($this->context, $record->name, $id, (int)$record->created);;
+            $channel = new D7Channel($this->context, $record->name, $id, (int)$record->created);;
 
             $ret[$id] = $channel;
 
@@ -299,7 +299,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
                     ->execute();
 
                 $dbId = (int)$cx->lastInsertId();
-                $channel = new D7SimpleChannel($this->context, $id, $dbId, $created);
+                $channel = new D7Channel($this->context, $id, $dbId, $created);
 
                 // In case of success, populate internal static cache
                 $this->context->cache->addChannel($channel);
@@ -474,7 +474,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
             throw new SubscriptionDoesNotExistException();
         }
 
-        $subscription = new D7SimpleSubscription($this->context,
+        $subscription = new D7Subscription($this->context,
             (int)$record->chan_id, (int)$record->id,
             (int)$record->created, (int)$record->activated,
             (int)$record->deactivated, (bool)$record->status);
@@ -523,7 +523,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
 
         foreach ($recordList as $record) {
             $id = (int)$record->id;
-            $subscription = new D7SimpleSubscription($this->context,
+            $subscription = new D7Subscription($this->context,
                 (int)$record->chan_id, $id,
                 (int)$record->created, (int)$record->activated,
                 (int)$record->deactivated, (bool)$record->status);
@@ -613,7 +613,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
     public function getSubscriber($id)
     {
         // In this implementation all writes will be delayed on real operations
-        return new D7SimpleSubscriber($this->context, $id);
+        return new D7Subscriber($this->context, $id);
     }
 
     /**
@@ -654,18 +654,16 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
     public function cleanUpMessageQueue()
     {
         // Drop all messages for inactive subscriptions
-        if (!$this->context->keepMessages) {
-            $min = $this
-                ->context
-                ->dbConnection
-                ->query("
-                      DELETE FROM {apb_queue}
-                          WHERE sub_id IN (
-                              SELECT id FROM {apb_sub}
-                                  WHERE status = 0
-                          )
-                      ");
-        }
+        $min = $this
+            ->context
+            ->dbConnection
+            ->query("
+                  DELETE FROM {apb_queue}
+                      WHERE sub_id IN (
+                          SELECT id FROM {apb_sub}
+                              WHERE status = 0
+                      )
+                  ");
 
         // Limit queue size if configured for
         if ($this->context->queueGlobalLimit) {

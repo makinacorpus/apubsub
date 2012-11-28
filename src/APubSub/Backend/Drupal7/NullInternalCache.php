@@ -12,7 +12,7 @@ class NullInternalCache
     {
     }
 
-    public function addChannel(D7SimpleChannel $channel)
+    public function addChannel(D7Channel $channel)
     {
     }
 
@@ -20,7 +20,7 @@ class NullInternalCache
     {
     }
 
-    public function addSubscription(D7SimpleSubscription $subscription)
+    public function addSubscription(D7Subscription $subscription)
     {
     }
 

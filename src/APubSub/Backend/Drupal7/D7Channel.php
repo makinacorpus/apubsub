@@ -14,7 +14,7 @@ use APubSub\Error\UncapableException;
  * not supposed to be read multiple times, they should never be, and multiple
  * queries on the same message must remain uncommon
  */
-class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
+class D7Channel extends AbstractD7Object implements ChannelInterface
 {
     /**
      * Channel identifier
@@ -100,7 +100,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
             throw new MessageDoesNotExistException();
         }
 
-        return new DefaultMessage($this->context, $this->id,
+        return new DefaultMessage($this->context, $this->id, null,
             unserialize($record->contents), $id, (int)$record->created);
     }
 
@@ -128,7 +128,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
 
         foreach ($records as $record) {
             $ret[] = new DefaultMessage($this->context,
-                $this->id, unserialize($record->contents),
+                $this->id, null, unserialize($record->contents),
                 (int)$record->id, (int)$record->created);
         }
 
@@ -165,7 +165,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
             $cx
                 ->query("
                     INSERT INTO {apb_queue}
-                        SELECT :msgId AS msg_id, s.id AS sub_id
+                        SELECT :msgId AS msg_id, s.id AS sub_id, 1 AS unread
                             FROM {apb_sub} s
                             WHERE s.chan_id = :chanId
                             AND s.status = 1
@@ -187,7 +187,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
         }
 
         return new DefaultMessage($this->context,
-            $this->id, $contents, $id, $sendTime);
+            $this->id, null, $contents, $id, $sendTime);
     }
 
     /**
@@ -214,7 +214,7 @@ class D7SimpleChannel extends AbstractD7Object implements ChannelInterface
 
             $id = (int)$cx->lastInsertId();
 
-            $subscription = new D7SimpleSubscription($this->context,
+            $subscription = new D7Subscription($this->context,
                 $this->dbId, $id, $created, 0, $deactivated, false);
 
             $this->context->cache->addSubscription($subscription);

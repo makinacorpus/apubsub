@@ -40,7 +40,7 @@ class InternalCache
         }
     }
 
-    public function addChannel(D7SimpleChannel $channel)
+    public function addChannel(D7Channel $channel)
     {
         $dbId = $channel->getDatabaseId();
         $this->channelCacheByDbId[$dbId] = $channel;
@@ -65,7 +65,7 @@ class InternalCache
         }
     }
 
-    public function addSubscription(D7SimpleSubscription $subscription)
+    public function addSubscription(D7Subscription $subscription)
     {
         return $this->subscriptionCache[$subscription->getId()] = $subscription;
     }

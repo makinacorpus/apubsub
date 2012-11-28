@@ -10,7 +10,7 @@ use APubSub\SubscriberInterface;
 /**
  * Drupal 7 simple subscriber implementation
  */
-class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
+class D7Subscriber extends AbstractD7Object implements SubscriberInterface
 {
     /**
      * Identifier
@@ -134,7 +134,7 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
 
             unset($tx); // Explicit commit
 
-            $subscription = new D7SimpleSubscription(
+            $subscription = new D7Subscription(
                 $this->context, $channel->getDatabaseId(),
                 $id, $created, $activated, 0, false);
 
@@ -160,9 +160,6 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
      * a channel is not allowed. This method is error tolerant and will not fail
      * if some messsages have been dropped
      *
-     * This method will do 2 SQL queries, one for fetch messages, and the other
-     * one for removing those messages from the list.
-     *
      * @param int $limit    Number of message to fetch
      * @param bool $reverse Set this to true if you want to fetch latest
      *                      messages instead of oldest messages, case in which
@@ -180,7 +177,7 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
          * subqueries, different JOIN order, different indexes: this one
          * is the one that will give you the best performances with MySQL.
          *
-         * SELECT m.id, m.* FROM apb_sub_map mp
+         * SELECT q.*, m.* FROM apb_sub_map mp
          *     JOIN apb_queue q ON q.sub_id = mp.sub_id
          *     JOIN apb_msg m ON m.id = q.msg_id
          *     WHERE mp.name = 'user:9991'
@@ -210,6 +207,7 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
             ->join('apb_msg', 'm', 'm.id = q.msg_id');
         $query
             ->fields('m')
+            ->fields('q')
             ->condition('mp.name', $this->id);
 
         if (null !== $limit) {
@@ -226,41 +224,14 @@ class D7SimpleSubscriber extends AbstractD7Object implements SubscriberInterface
 
         foreach ($results as $record) {
             $ret[] = new DefaultMessage($this->context,
-                (string)$record->chan_id, unserialize($record->contents),
-                (int)$record->id, (int)$record->created);
+                (string)$record->chan_id, (int)$record->sub_id,
+                unserialize($record->contents), (int)$record->id,
+                (int)$record->created, (bool)$record->unread);
 
             $idList[] = (int)$record->id;
         }
 
-        if (!empty($idList)) {
-            // Queue removal: very important step
-            $this
-                ->context
-                ->dbConnection
-                ->delete('apb_queue')
-                ->condition('sub_id', $this->idList, 'IN')
-                ->execute();
-        }
-
         return $ret;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::fetchHead()
-     */
-    public function fetchHead($limit)
-    {
-        return $this->getMessages($limit);
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::fetchTail()
-     */
-    public function fetchTail($limit)
-    {
-        return $this->getMessages($limit, true);
     }
 
     /**
