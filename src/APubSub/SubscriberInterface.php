@@ -62,13 +62,8 @@ interface SubscriberInterface extends ObjectInterface
     /**
      * Fetch current message queue
      *
-     * @param number $limit      Message count to fetch
-     * @param number $offset     Start offset
      * @param array $conditions  Array of key value pairs conditions, only the
      *                           = operator is supported right now
-     * @param string $sortField  Sort field: all CursorInterface::FIELD_*
-     *                           constants will be supported by all backends
-     * @param int $sortDirection Sort direction
      *
      * @return CursorInterface   Iterable object of messages
      */

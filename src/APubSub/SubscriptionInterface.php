@@ -56,22 +56,12 @@ interface SubscriptionInterface extends ObjectInterface, ChannelAwareInterface
     /**
      * Fetch current message queue
      *
-     * @param number $limit      Message count to fetch
-     * @param number $offset     Start offset
      * @param array $conditions  Array of key value pairs conditions, only the
      *                           = operator is supported right now
-     * @param string $sortField  Sort field: all CursorInterface::FIELD_*
-     *                           constants will be supported by all backends
-     * @param int $sortDirection Sort direction
      *
-     * @return array            Array of messages
+     * @return CursorInterface   Iterable object of messages
      */
-    public function fetch(
-        $limit            = CursorInterface::LIMIT_NONE,
-        $offset           = 0,
-        array $conditions = null,
-        $sortField        = CursorInterface::FIELD_MSG_SENT,
-        $sortDirection    = CursorInterface::SORT_DESC);
+    public function fetch(array $conditions = null);
 
     /**
      * Deactivate this subscription, if it is already deactivated it will

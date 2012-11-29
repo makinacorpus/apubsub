@@ -108,7 +108,9 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
         $ret = array();
 
         foreach ($this->getSubscriptions() as $subscription) {
-            $ret = array_merge($subscription->fetch(), $ret);
+            foreach ($subscription->fetch() as $message) {
+                $ret[] = $message;
+            }
         }
 
         if ($conditions) {

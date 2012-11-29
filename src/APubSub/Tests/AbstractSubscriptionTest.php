@@ -2,6 +2,8 @@
 
 namespace APubSub\Tests;
 
+use APubSub\CursorInterface;
+
 abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
 {
     /**
@@ -119,5 +121,38 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
 
         $messages = $sub3->fetch();
         $this->assertCount(1, $messages, "Sub 3 message count is 1");
+    }
+
+    public function testFetchCursorOrder()
+    {
+        $subscriber = $this->backend->getSubscriber('baz');
+        $chan1      = $this->channel;
+        $chan2      = $this->backend->createChannel('bar');
+        $sub1       = $subscriber->subscribe('foo');
+        $sub2       = $subscriber->subscribe('bar');
+
+        $chan1->send(1);
+        $chan2->send(2);
+        $chan1->send(3);
+        $chan2->send(4);
+        $chan1->send(5);
+        $chan2->send(6);
+
+        $i = 0;
+        $cursor = $sub2->fetch();
+        foreach ($cursor as $message) {
+            $i += 2;
+            $this->assertSame($i, $message->getContents());
+        }
+        $this->assertEquals($i, 3 * 2);
+
+        $i = 8;
+        $cursor = $sub2->fetch();
+        $cursor->setLimit(CursorInterface::LIMIT_NONE);
+        $cursor->addSort(CursorInterface::FIELD_MSG_SENT, CursorInterface::SORT_DESC);
+        foreach ($cursor as $message) {
+            $i -= 2;
+            $this->assertSame($i, $message->getContents());
+        }
     }
 }

@@ -3,6 +3,7 @@
 namespace APubSub\Backend\Memory;
 
 use APubSub\Backend\AbstractObject;
+use APubSub\Backend\ArrayCursor;
 use APubSub\CursorInterface;
 use APubSub\SubscriptionInterface;
 
@@ -11,50 +12,6 @@ use APubSub\SubscriptionInterface;
  */
 class MemorySubscription extends AbstractObject implements SubscriptionInterface
 {
-    /**
-     * Sort helper for messages
-     *
-     * @param MemoryMessage $a   Too lazy to comment
-     * @param MemoryMessage $b   Too lazy to comment
-     * @param string $sortField  Too lazy to comment
-     * @param int $sortDirection Too lazy to comment
-     *
-     * @return int               Too lazy to comment
-     */
-    public static function sortMessages(MemoryMessage $a, MemoryMessage $b, $sortField, $sortDirection)
-    {
-        $value = 0;
-
-        switch ($sortField) {
-
-            case CursorInterface::FIELD_CHAN_ID:
-                $value = strcmp($a->getChannelId(), $b->getChannelId());
-                break;
-
-            case CursorInterface::FIELD_MSG_SENT:
-                $value = $a->getSendTimestamp() - $b->getSendTimestamp();
-                break;
-
-            case CursorInterface::FIELD_SUB_ID:
-                $value = $a->getSubscriptionId() - $b->getSubscriptionId();
-                break;
-
-            case CursorInterface::FIELD_MSG_UNREAD:
-                $value = ((int)$a->isUnread()) - ((int)$b->isUnread());
-                break;
-        }
-
-        if (0 === $value) {
-            $value = $a->getId() - $b->getId();
-        }
-
-        if (CursorInterface::SORT_DESC === $sortDirection) {
-            $value = 0 - $value;
-        }
-
-        return $value;
-    }
-
     /**
      * Sort helper for messages
      *
@@ -253,12 +210,7 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
      * (non-PHPdoc)
      * @see \APubSub\SubscriptionInterface::fetch()
      */
-    public function fetch(
-        $limit            = CursorInterface::LIMIT_NONE,
-        $offset           = 0,
-        array $conditions = null,
-        $sortField        = CursorInterface::FIELD_MSG_SENT,
-        $sortDirection    = CursorInterface::SORT_DESC)
+    public function fetch(array $conditions = null)
     {
         if (!isset($this->context->subscriptionMessages[$this->id])) {
             return array();
@@ -266,22 +218,15 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
 
         $ret = $this->context->subscriptionMessages[$this->id];
 
-        uasort($ret, function ($a, $b) use ($sortField, $sortDirection) {
-            return MemorySubscription::sortMessages(
-                $a, $b, $sortField, $sortDirection);
-        });
-
         if ($conditions) {
             $ret = array_filter($ret, function ($a) use ($conditions) {
                 return MemorySubscription::filterMessages($a, $conditions);
             });
         }
 
-        if ($limit) {
-            $ret = array_slice($ret, $offset, $limit);
-        }
+        $sorter = new MemoryMessageSorter();
 
-        return $ret;
+        return new ArrayCursor($this->context, $ret, $sorter->getAvailableSorts(), $sorter);
     }
 
     /**
