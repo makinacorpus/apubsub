@@ -4,6 +4,7 @@ namespace APubSub\Backend\Drupal7;
 
 use APubSub\Backend\AbstractObject;
 use APubSub\Backend\DefaultMessage;
+use APubSub\Backend\Drupal7\Cursor\D7MessageCursor;
 use APubSub\CursorInterface;
 use APubSub\SubscriptionInterface;
 
@@ -163,45 +164,9 @@ class D7Subscription extends AbstractObject implements SubscriptionInterface
     /**
      * (non-PHPdoc)
      * @see \APubSub\SubscriptionInterface::fetch()
-     *
-    public function fetch()
-    {
-        $ret = array();
-        $cx  = $this->context->dbConnection;
-
-        $idList = $cx
-            // Don't care about sort hopefully the items will be naturally
-            // ordered by insertion time even thought this is not guaranteed
-            // by any SQL standard
-            ->query("SELECT msg_id FROM {apb_queue} WHERE sub_id = :id", array(
-                ':id' => $this->id,
-            ))
-            ->fetchCol();
-
-        if (empty($idList)) {
-            return $ret;
-        }
-
-        $ret = $this->getChannel()->getMessages($idList);
-
-        return $ret;
-    }
      */
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::fetch()
-     */
-    public function fetch(
-        $limit            = CursorInterface::LIMIT_NONE,
-        $offset           = 0,
-        array $conditions = null,
-        $sortField        = CursorInterface::FIELD_MSG_SENT,
-        $sortDirection    = CursorInterface::SORT_DESC)
+    public function fetch(array $conditions = null)
     {
-        $ret    = array();
-        $idList = array();
-
         /*
          * Targeted query:
          *
@@ -224,52 +189,8 @@ class D7Subscription extends AbstractObject implements SubscriptionInterface
             ->fields('q')
             ->condition('q.sub_id', $this->id);
 
-        // F**ing Drupal cannot use OFFSET without LIMIT
-        if (CursorInterface::LIMIT_NONE !== $limit) {
-            $query->range($offset, $limit);
-        }
-
-        if (CursorInterface::LIMIT_NONE === $sortDirection) {
-            $sqlDirection = 'DESC';
-        } else {
-            $sqlDirection = 'ASC';
-        }
-
-        switch ($sortField) {
-
-            case CursorInterface::FIELD_CHAN_ID:
-                $query->orderBy('m.chan_id', $sqlDirection);
-                break;
-
-            case CursorInterface::FIELD_MSG_SENT:
-                // Special case, always order by identifier when dealing sent
-                // timestamp, allowing us to ensure some kind of order when
-                // dealing with messages sent the same second
-                $query->orderBy('m.created', $sqlDirection);
-                $query->orderBy('m.id', $sqlDirection);
-                break;
-
-            case CursorInterface::FIELD_SUB_ID:
-                $query->orderBy('q.sub_id', $sqlDirection);
-                break;
-
-            case CursorInterface::FIELD_MSG_UNREAD:
-                $query->orderBy('q.unread', $sqlDirection);
-                break;
-        }
-
-        $results = $query->execute();
-
-        foreach ($results as $record) {
-            $ret[] = new DefaultMessage($this->context,
-                (string)$record->chan_id, (int)$record->sub_id,
-                unserialize($record->contents), (int)$record->id,
-                (int)$record->created, (bool)$record->unread);
-
-            $idList[] = (int)$record->id;
-        }
-
-        return $ret;
+        // FIXME: Apply conditions.
+        return new D7MessageCursor($this->context, $query);
     }
 
     /**

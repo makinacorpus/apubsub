@@ -32,6 +32,11 @@ abstract class AbstractD7Cursor extends AbstractCursor implements
     private $query;
 
     /**
+     * @var int
+     */
+    private $count;
+
+    /**
      * Get initial query (no limit, no offset, no sort):
      *   - The id field must be the first in the SELECT clause
      *   - All needed tables and JOIN statements must be set
