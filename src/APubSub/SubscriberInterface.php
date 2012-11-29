@@ -66,18 +66,18 @@ interface SubscriberInterface extends ObjectInterface
      * @param number $offset     Start offset
      * @param array $conditions  Array of key value pairs conditions, only the
      *                           = operator is supported right now
-     * @param string $sortField  Sort field: all Filter::FIELD_* constants will
-     *                           be supported by all backends
+     * @param string $sortField  Sort field: all CursorInterface::FIELD_*
+     *                           constants will be supported by all backends
      * @param int $sortDirection Sort direction
      *
      * @return array             Array of messages
      */
     public function fetch(
-        $limit            = Filter::NO_LIMIT,
+        $limit            = CursorInterface::LIMIT_NONE,
         $offset           = 0,
         array $conditions = null,
-        $sortField        = Filter::FIELD_SENT,
-        $sortDirection    = Filter::SORT_DESC);
+        $sortField        = CursorInterface::FIELD_MSG_SENT,
+        $sortDirection    = CursorInterface::SORT_DESC);
 
     /**
      * Delete everyting in all of this subscriber's subscription queues

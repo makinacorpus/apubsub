@@ -18,34 +18,63 @@ namespace APubSub;
 interface CursorInterface extends ObjectInterface, \Traversable, \Countable
 {
     /**
+     * No limit
+     */
+    const LIMIT_NONE            = 0;
+
+    /**
      * Sort order ascending
      */
-    const SORT_ASC            = 1;
+    const SORT_ASC              = 1;
 
     /**
      * Sort order descending
      */
-    const SORT_DESC           = -1;
+    const SORT_DESC             = -1;
 
     /**
-     * Sort field id
+     * Whatever object you are querying identifier
      */
-    const FIELD_ID            = 0x0001;
+    const FIELD_SELF_ID         = 1;
 
     /**
-     * Sort field name
+     * Channel id
      */
-    const FIELD_NAME          = 0x0002;
+    const FIELD_CHAN_ID         = 10;
 
     /**
-     * Sort field created UNIX timestamp
+     * Message identifier
      */
-    const FIELD_CREATED       = 0x0004;
+    const FIELD_MSG_ID          = 20;
 
     /**
-     * Sort field subscription status (activated or deactivated)
+     * Message sent
      */
-    const FIELD_SUB_STATUS    = 0x0008;
+    const FIELD_MSG_SENT        = 21;
+
+    /**
+     * Message read/unread status
+     *
+     * For sort unread > read
+     */
+    const FIELD_MSG_UNREAD      = 22;
+
+    /**
+     * Subscriber name
+     */
+    const FIELD_SUBER_NAME      = 30;
+
+    /**
+     * Subscription identifier
+     */
+    const FIELD_SUB_ID          = 31;
+
+    /**
+     * Subscription status
+     *
+     * For sort enabled > disabled
+     */
+    const FIELD_SUB_STATUS      = 32;
 
     /**
      * Return a list of available sort bit flags
@@ -61,7 +90,7 @@ interface CursorInterface extends ObjectInterface, \Traversable, \Countable
      * @param int $order Sort order for this field
      */
     public function addSort(
-        $sort  = CursorInterface::FIELD_ID,
+        $sort  = CursorInterface::FIELD_SELF_ID,
         $order = CursorInterface::SORT_ASC);
 
     /**

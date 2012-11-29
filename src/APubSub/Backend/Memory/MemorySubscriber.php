@@ -5,7 +5,7 @@ namespace APubSub\Backend\Memory;
 use APubSub\Backend\AbstractObject;
 use APubSub\Error\SubscriptionAlreadyExistsException;
 use APubSub\Error\SubscriptionDoesNotExistException;
-use APubSub\Filter;
+use APubSub\CursorInterface;
 use APubSub\SubscriberInterface;
 
 /**
@@ -122,11 +122,11 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
      * @see \APubSub\SubscriberInterface::fetch()
      */
     public function fetch(
-        $limit            = Filter::NO_LIMIT,
+        $limit            = CursorInterface::LIMIT_NONE,
         $offset           = 0,
         array $conditions = null,
-        $sortField        = Filter::FIELD_SENT,
-        $sortDirection    = Filter::SORT_DESC)
+        $sortField        = CursorInterface::FIELD_MSG_SENT,
+        $sortDirection    = CursorInterface::SORT_DESC)
     {
         $ret = array();
 

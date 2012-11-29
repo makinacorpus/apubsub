@@ -6,7 +6,7 @@ use APubSub\Backend\AbstractObject;
 use APubSub\Backend\DefaultMessage;
 use APubSub\Error\SubscriptionAlreadyExistsException;
 use APubSub\Error\SubscriptionDoesNotExistException;
-use APubSub\Filter;
+use APubSub\CursorInterface;
 use APubSub\SubscriberInterface;
 
 /**
@@ -160,11 +160,11 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
      * @see \APubSub\SubscriberInterface::fetch()
      */
     public function fetch(
-        $limit            = Filter::NO_LIMIT,
+        $limit            = CursorInterface::LIMIT_NONE,
         $offset           = 0,
         array $conditions = null,
-        $sortField        = Filter::FIELD_SENT,
-        $sortDirection    = Filter::SORT_DESC)
+        $sortField        = CursorInterface::FIELD_MSG_SENT,
+        $sortDirection    = CursorInterface::SORT_DESC)
     {
         $ret    = array();
         $idList = array();
@@ -216,11 +216,11 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
             ->condition('mp.name', $this->id);
 
         // F**ing Drupal cannot use OFFSET without LIMIT
-        if (Filter::NO_LIMIT !== $limit) {
+        if (CursorInterface::LIMIT_NONE !== $limit) {
             $query->range($offset, $limit);
         }
 
-        if (Filter::SORT_DESC === $sortDirection) {
+        if (CursorInterface::SORT_DESC === $sortDirection) {
             $sqlDirection = 'DESC';
         } else {
             $sqlDirection = 'ASC';
@@ -228,11 +228,11 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
 
         switch ($sortField) {
 
-            case Filter::FIELD_CHANNEL:
+            case CursorInterface::FIELD_CHAN_ID:
                 $query->orderBy('m.chan_id', $sqlDirection);
                 break;
 
-            case Filter::FIELD_SENT:
+            case CursorInterface::FIELD_MSG_SENT:
                 // Special case, always order by identifier when dealing sent
                 // timestamp, allowing us to ensure some kind of order when
                 // dealing with messages sent the same second
@@ -240,11 +240,11 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
                 $query->orderBy('m.id', $sqlDirection);
                 break;
 
-            case Filter::FIELD_SUBSCRIPTION:
+            case CursorInterface::FIELD_SUB_ID:
                 $query->orderBy('q.sub_id', $sqlDirection);
                 break;
 
-            case Filter::FIELD_UNREAD:
+            case CursorInterface::FIELD_MSG_UNREAD:
                 $query->orderBy('q.unread', $sqlDirection);
                 break;
         }

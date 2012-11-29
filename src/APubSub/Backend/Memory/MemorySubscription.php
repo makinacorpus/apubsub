@@ -3,7 +3,7 @@
 namespace APubSub\Backend\Memory;
 
 use APubSub\Backend\AbstractObject;
-use APubSub\Filter;
+use APubSub\CursorInterface;
 use APubSub\SubscriptionInterface;
 
 /**
@@ -27,19 +27,19 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
 
         switch ($sortField) {
 
-            case Filter::FIELD_CHANNEL:
+            case CursorInterface::FIELD_CHAN_ID:
                 $value = strcmp($a->getChannelId(), $b->getChannelId());
                 break;
 
-            case Filter::FIELD_SENT:
+            case CursorInterface::FIELD_MSG_SENT:
                 $value = $a->getSendTimestamp() - $b->getSendTimestamp();
                 break;
 
-            case Filter::FIELD_SUBSCRIPTION:
+            case CursorInterface::FIELD_SUB_ID:
                 $value = $a->getSubscriptionId() - $b->getSubscriptionId();
                 break;
 
-            case Filter::FIELD_UNREAD:
+            case CursorInterface::FIELD_MSG_UNREAD:
                 $value = ((int)$a->isUnread()) - ((int)$b->isUnread());
                 break;
         }
@@ -48,7 +48,7 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
             $value = $a->getId() - $b->getId();
         }
 
-        if (Filter::SORT_DESC === $sortDirection) {
+        if (CursorInterface::SORT_DESC === $sortDirection) {
             $value = 0 - $value;
         }
 
@@ -71,19 +71,19 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
 
             switch ($key) {
 
-                case Filter::FIELD_CHANNEL:
+                case CursorInterface::FIELD_CHAN_ID:
                     $value = $a->getChannelId();
                     break;
 
-                case Filter::FIELD_SENT:
+                case CursorInterface::FIELD_MSG_SENT:
                     $value = $a->getSendTimestamp();
                     break;
 
-                case Filter::FIELD_SUBSCRIPTION:
+                case CursorInterface::FIELD_SUB_ID:
                     $value = $a->getSubscriptionId();
                     break;
 
-                case Filter::FIELD_UNREAD:
+                case CursorInterface::FIELD_MSG_ID:
                     $value = $a->isUnread();
                     break;
             }
@@ -254,11 +254,11 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
      * @see \APubSub\SubscriptionInterface::fetch()
      */
     public function fetch(
-        $limit            = Filter::NO_LIMIT,
+        $limit            = CursorInterface::LIMIT_NONE,
         $offset           = 0,
         array $conditions = null,
-        $sortField        = Filter::FIELD_SENT,
-        $sortDirection    = Filter::SORT_DESC)
+        $sortField        = CursorInterface::FIELD_MSG_SENT,
+        $sortDirection    = CursorInterface::SORT_DESC)
     {
         if (!isset($this->context->subscriptionMessages[$this->id])) {
             return array();
