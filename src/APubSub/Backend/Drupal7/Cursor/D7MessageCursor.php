@@ -103,7 +103,9 @@ class D7MessageCursor extends AbstractCursor implements
             $this->result = array();
             $limit        = $this->getLimit();
 
-            $this->query->range($this->getOffset(), $limit);
+            if (CursorInterface::LIMIT_NONE !== $limit) {
+                $this->query->range($this->getOffset(), $limit);
+            }
 
             if ($sorts = $this->getSorts()) {
                 foreach ($sorts as $sort => $order) {
@@ -112,8 +114,19 @@ class D7MessageCursor extends AbstractCursor implements
                         ($order === CursorInterface::SORT_ASC ? 'asc' : 'desc'));
                 }
             } else {
-                // Messages need a default ordering for fetching
-                $this->query->orderBy('m.created', 'asc');
+                // Messages need a default ordering for fetching. If time for
+                // more than one message is the same, ordering by message
+                // identifier as second choice will lower unpredictable
+                // behavior chances to happen (still possible thought since
+                // serial fields don't guarantee order, even thought in real
+                // life they do until very high values)
+                $this
+                    ->query
+                    ->orderBy('m.created', 'asc')
+                        // FIXME: Need to duplicate created field into queue table
+                        // for sorting: this will avoid filesort and ensure a const
+                        // index in this query
+                    ->orderBy('q.sub_id', 'asc');
             }
 
             $result = $this->query->execute();
@@ -124,7 +137,7 @@ class D7MessageCursor extends AbstractCursor implements
                     unserialize($record->contents), (int)$record->id,
                     (int)$record->created, (bool)$record->unread);
             }
-
+//echo "\n", $this->query, "\n\n";
             // We don't need this anymore
             unset($this->query);
         }

@@ -92,9 +92,11 @@ abstract class AbstractD7Cursor extends AbstractCursor implements
     {
         if (null === $this->result) {
             $limit = $this->getLimit();
-
             $query = $this->getQuery();
-            $query->range($this->getOffset(), $limit);
+
+            if (CursorInterface::LIMIT_NONE !== $limit) {
+                $this->query->range($this->getOffset(), $limit);
+            }
 
             foreach ($this->getSorts() as $sort => $order) {
                 $query->orderBy(
