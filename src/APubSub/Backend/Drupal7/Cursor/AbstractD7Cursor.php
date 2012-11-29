@@ -66,16 +66,32 @@ abstract class AbstractD7Cursor extends AbstractCursor implements
     protected abstract function getSortColumn($sort);
 
     /**
+     * Get query
+     *
+     * @return \SelectQueryInterface Drupal select query
+     */
+    final protected function getQuery()
+    {
+        if (null === $this->query) {
+            $this->query = $this->createdQuery();
+        }
+
+        return $this->query;
+    }
+
+    /**
      * (non-PHPdoc)
      * @see \IteratorAggregate::getIterator()
      */
     final public function getIterator()
     {
         if (null === $this->result) {
-            $query = $this->getQuery();
-            $query->range($this->offset, $this->limit);
+            $limit = $this->getLimit();
 
-            foreach ($this->sorts as $sort => $order) {
+            $query = $this->getQuery();
+            $query->range($this->getOffset(), $limit);
+
+            foreach ($this->getSorts() as $sort => $order) {
                 $query->orderBy(
                     $this->getSortColumn($sort),
                     ($order === CursorInterface::SORT_ASC ? 'asc' : 'desc'));
@@ -83,7 +99,7 @@ abstract class AbstractD7Cursor extends AbstractCursor implements
 
             $result = $query->execute();
 
-            if (!$this->limit || (self::LOAD_MULTIPLE_THREESHOLD < $this->limit)) {
+            if (!$limit || (self::LOAD_MULTIPLE_THREESHOLD < $limit)) {
                 $this->result = new ApplyIteratorIterator($result, function ($object) {
                     return $this->loadObject($object->id);
                 });

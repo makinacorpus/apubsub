@@ -65,6 +65,17 @@ abstract class AbstractCursor extends AbstractObject implements
     }
 
     /**
+     * Get set sorts
+     *
+     * @return array Sort fields keys are field name while values are order
+     *               direction
+     */
+    final public function getSorts()
+    {
+        return $this->sorts;
+    }
+
+    /**
      * (non-PHPdoc)
      * @see \APubSub\CursorInterface::setLimit()
      */
