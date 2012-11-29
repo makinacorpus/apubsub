@@ -81,7 +81,7 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
         // FIXME: Test subscriptions identifiers? Order is not respected
     }
 
-    public function testFetchOrder()
+    public function testFetchCursorOrder()
     {
         $subscriber = $this->backend->getSubscriber('baz');
 
