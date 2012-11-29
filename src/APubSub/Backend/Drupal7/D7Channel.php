@@ -2,6 +2,7 @@
 
 namespace APubSub\Backend\Drupal7;
 
+use APubSub\Backend\AbstractObject;
 use APubSub\Backend\DefaultMessage;
 use APubSub\ChannelInterface;
 use APubSub\Error\MessageDoesNotExistException;
@@ -14,7 +15,7 @@ use APubSub\Error\UncapableException;
  * not supposed to be read multiple times, they should never be, and multiple
  * queries on the same message must remain uncommon
  */
-class D7Channel extends AbstractD7Object implements ChannelInterface
+class D7Channel extends AbstractObject implements ChannelInterface
 {
     /**
      * Channel identifier

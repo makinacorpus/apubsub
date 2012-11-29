@@ -2,6 +2,7 @@
 
 namespace APubSub\Backend\Memory;
 
+use APubSub\Backend\AbstractObject;
 use APubSub\Error\SubscriptionAlreadyExistsException;
 use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\Filter;
@@ -10,8 +11,7 @@ use APubSub\SubscriberInterface;
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class MemorySubscriber extends AbstractMemoryObject implements
-    SubscriberInterface
+class MemorySubscriber extends AbstractObject implements SubscriberInterface
 {
     /**
      * User set identifier

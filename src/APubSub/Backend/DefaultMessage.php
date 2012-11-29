@@ -78,6 +78,7 @@ class DefaultMessage implements MessageInterface
         $this->contents       = $contents;
         $this->sendTime       = $sendTime;
         $this->context        = $context;
+        $this->unread         = $isUnread;
     }
 
     /**

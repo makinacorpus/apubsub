@@ -1,22 +1,24 @@
 <?php
 
-namespace APubSub\Backend\Drupal7\Helper;
+namespace APubSub\Backend\Drupal7\Cursor;
 
-use APubSub\Helper\ListInterface;
+use APubSub\CursorInterface;
 
 /**
- * Drupal 7 implementation of subscription list helper
+ * Drupal 7 implementation of subscription cursor
  */
-class D7SubscriberList extends AbstractD7List
+class D7SubscriptionCursor extends AbstractD7Cursor
 {
     /**
      * (non-PHPdoc)
-     * @see \APubSub\Helper\ListInterface::getAvailableSorts()
+     * @see \APubSub\CursorInterface::getAvailableSorts()
      */
     public function getAvailableSorts()
     {
         return array(
-            ListInterface::SORT_FIELD_ID,
+            CursorInterface::FIELD_ID,
+            CursorInterface::FIELD_CREATED,
+            CursorInterface::FIELD_SUB_STATUS,
         );
     }
 
@@ -29,9 +31,8 @@ class D7SubscriberList extends AbstractD7List
         return $this
             ->context
             ->dbConnection
-            ->select('apb_sub_map', 'mp')
-            ->fields('mp', array('name'))
-            ->groupBy('mp.name');
+            ->select('apb_sub', 's')
+            ->fields('s', array('id'));
     }
 
     /**
@@ -40,7 +41,7 @@ class D7SubscriberList extends AbstractD7List
      */
     protected function loadObject($id)
     {
-        return $this->context->backend->getSubscriber($id);
+        return $this->getContext()->getBackend()->getSubscription($id);
     }
 
     /**
@@ -49,13 +50,7 @@ class D7SubscriberList extends AbstractD7List
      */
     protected function loadObjects($idList)
     {
-        $ret = array();
-
-        foreach ($idList as $id) {
-            $ret[] = $this->context->backend->getSubscriber($id);
-        }
-
-        return $ret;
+        return $this->getContext()->getBackend()->getSubscriptions($idList);
     }
 
     /**
@@ -66,8 +61,14 @@ class D7SubscriberList extends AbstractD7List
     {
         switch ($sort)
         {
-            case ListInterface::SORT_FIELD_ID:
-                return 'mp.name';
+            case CursorInterface::FIELD_ID:
+                return 's.id';
+
+            case CursorInterface::FIELD_CREATED:
+                return 's.created';
+
+            case CursorInterface::FIELD_SUB_STATUS:
+                return 's.status';
 
             default:
                 throw new \InvalidArgumentException("Unsupported sort field");

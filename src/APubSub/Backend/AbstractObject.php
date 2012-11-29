@@ -1,25 +1,25 @@
 <?php
 
-namespace APubSub\Backend\Drupal7;
+namespace APubSub\Backend;
 
 use APubSub\ObjectInterface;
 
 /**
- * Base implementation for Drupal 7 objects
+ * Base implementation for objects suitable for most implementations
  */
-abstract class AbstractD7Object implements ObjectInterface
+abstract class AbstractObject implements ObjectInterface
 {
     /**
-     * @var \APubSub\Backend\Drupal7\D7Context
+     * @var \APubSub\ContextInterface
      */
     protected $context;
 
     /**
      * Get database connection
      *
-     * @return \APubSub\Backend\Drupal7\D7Context Context
-    */
-    public function getContext()
+     * @return \APubSub\ContextInterface Context
+     */
+    final public function getContext()
     {
         if (null === $this->context) {
             throw new \LogicException("Context is not set");

@@ -2,14 +2,14 @@
 
 namespace APubSub\Backend\Memory;
 
+use APubSub\Backend\AbstractObject;
 use APubSub\Filter;
 use APubSub\SubscriptionInterface;
 
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class MemorySubscription extends AbstractMemoryObject implements
-    SubscriptionInterface
+class MemorySubscription extends AbstractObject implements SubscriptionInterface
 {
     /**
      * Sort helper for messages

@@ -105,7 +105,7 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         $id = $message->getId();
 
         $messages = $subscriber->fetch();
-        $this->assertFalse(empty($messages));
+        $this->assertNotEmpty($messages);
         $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
 
         foreach ($messages as $fetched) {

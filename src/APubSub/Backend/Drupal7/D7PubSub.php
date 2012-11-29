@@ -2,9 +2,10 @@
 
 namespace APubSub\Backend\Drupal7;
 
-use APubSub\Backend\Drupal7\Helper\D7ChannelList;
-use APubSub\Backend\Drupal7\Helper\D7SubscriberList;
-use APubSub\Backend\Drupal7\Helper\D7SubscriptionList;
+use APubSub\Backend\AbstractObject;
+use APubSub\Backend\Drupal7\Cursor\D7ChannelCursor;
+use APubSub\Backend\Drupal7\Cursor\D7SubscriberCursor;
+use APubSub\Backend\Drupal7\Cursor\D7SubscriptionCursor;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
@@ -13,7 +14,7 @@ use APubSub\PubSubInterface;
 /**
  * Drupal 7 backend implementation
  */
-class D7PubSub extends AbstractD7Object implements PubSubInterface
+class D7PubSub extends AbstractObject implements PubSubInterface
 {
     /**
      * Default constructor
@@ -446,7 +447,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function getChannelListHelper()
     {
-        return new D7ChannelList($this->context);
+        return new D7ChannelCursor($this->context);
     }
 
     /**
@@ -603,7 +604,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function getSubscriptionListHelper()
     {
-        return new D7SubscriptionList($this->context);
+        return new D7SubscriptionCursor($this->context);
     }
 
     /**
@@ -622,7 +623,7 @@ class D7PubSub extends AbstractD7Object implements PubSubInterface
      */
     public function getSubscriberListHelper()
     {
-        return new D7SubscriberList($this->context);
+        return new D7SubscriberCursor($this->context);
     }
 
     /**

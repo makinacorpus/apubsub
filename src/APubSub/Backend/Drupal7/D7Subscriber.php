@@ -2,6 +2,7 @@
 
 namespace APubSub\Backend\Drupal7;
 
+use APubSub\Backend\AbstractObject;
 use APubSub\Backend\DefaultMessage;
 use APubSub\Error\SubscriptionAlreadyExistsException;
 use APubSub\Error\SubscriptionDoesNotExistException;
@@ -11,7 +12,7 @@ use APubSub\SubscriberInterface;
 /**
  * Drupal 7 simple subscriber implementation
  */
-class D7Subscriber extends AbstractD7Object implements SubscriberInterface
+class D7Subscriber extends AbstractObject implements SubscriberInterface
 {
     /**
      * Identifier
@@ -214,7 +215,10 @@ class D7Subscriber extends AbstractD7Object implements SubscriberInterface
             ->fields('q')
             ->condition('mp.name', $this->id);
 
-        $query->range($offset, (Filter::NO_LIMIT === $limit) ? null : $limit);
+        // F**ing Drupal cannot use OFFSET without LIMIT
+        if (Filter::NO_LIMIT !== $limit) {
+            $query->range($offset, $limit);
+        }
 
         if (Filter::SORT_DESC === $sortDirection) {
             $sqlDirection = 'DESC';

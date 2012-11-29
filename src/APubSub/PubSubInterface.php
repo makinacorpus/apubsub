@@ -82,7 +82,7 @@ interface PubSubInterface extends ObjectInterface
     /**
      * Get channel list helper if this backend implements it
      *
-     * @return \APubSub\Helper\ListInterface     List object
+     * @return \APubSub\CursorInterface          Cursor
      *
      * @throws \APubSub\Error\UncapableException If backend cannot list
      */
@@ -139,7 +139,7 @@ interface PubSubInterface extends ObjectInterface
     /**
      * Get subscription list helper if this backend implements it
      *
-     * @return \APubSub\Helper\ListInterface     List object
+     * @return \APubSub\Helper\CursorInterface   Cursor
      *
      * @throws \APubSub\Error\UncapableException If backend cannot list
      */
@@ -158,7 +158,7 @@ interface PubSubInterface extends ObjectInterface
     /**
      * Get subscriber list helper if this backend implements it
      *
-     * @return \APubSub\Helper\ListInterface     List object
+     * @return \APubSub\CursorInterface          Cursor
      *
      * @throws \APubSub\Error\UncapableException If backend cannot list
      */

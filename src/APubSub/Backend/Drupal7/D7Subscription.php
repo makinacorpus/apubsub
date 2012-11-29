@@ -2,13 +2,15 @@
 
 namespace APubSub\Backend\Drupal7;
 
+use APubSub\Backend\AbstractObject;
+use APubSub\Backend\DefaultMessage;
 use APubSub\Filter;
 use APubSub\SubscriptionInterface;
 
 /**
  * Drupal 7 simple subscription implementation
  */
-class D7Subscription extends AbstractD7Object implements SubscriptionInterface
+class D7Subscription extends AbstractObject implements SubscriptionInterface
 {
     /**
      * Message identifier
@@ -206,7 +208,8 @@ class D7Subscription extends AbstractD7Object implements SubscriptionInterface
          * SELECT q.*, m.* FROM apb_queue q mp
          *     JOIN apb_msg m ON m.id = q.msg_id
          *     WHERE
-         *       [CONDITIONS]
+         *       q.sub_id = :subid
+         *       [CONDITION [...]]
          *     ORDER BY [FIELD] [DIRECTION];
          */
 
@@ -218,9 +221,13 @@ class D7Subscription extends AbstractD7Object implements SubscriptionInterface
             ->join('apb_msg', 'm', 'm.id = q.msg_id');
         $query
             ->fields('m')
-            ->fields('q');
+            ->fields('q')
+            ->condition('q.sub_id', $this->id);
 
-        $query->range($offset, (Filter::NO_LIMIT === $limit) ? null : $limit);
+        // F**ing Drupal cannot use OFFSET without LIMIT
+        if (Filter::NO_LIMIT !== $limit) {
+            $query->range($offset, $limit);
+        }
 
         if (Filter::SORT_DESC === $sortDirection) {
             $sqlDirection = 'DESC';
@@ -312,7 +319,9 @@ class D7Subscription extends AbstractD7Object implements SubscriptionInterface
     public function flush()
     {
         // Even de-activated, ensure a flush
-        $cx
+        $this
+            ->context
+            ->dbConnection
             ->delete('apb_queue')
             ->condition('sub_id', $this->id)
             ->execute();
@@ -324,7 +333,9 @@ class D7Subscription extends AbstractD7Object implements SubscriptionInterface
      */
     public function setUnread($messageId, $toggle = false)
     {
-        $cx
+        $this
+            ->context
+            ->dbConnection
             ->query("
                 UPDATE {apb_queue}
                 SET unread = :unread

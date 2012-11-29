@@ -2,7 +2,8 @@
 
 namespace APubSub\Backend\Memory;
 
-use APubSub\Backend\Memory\Helper\ArrayList;
+use APubSub\Backend\AbstractObject;
+use APubSub\Backend\ArrayCursor;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
@@ -11,7 +12,7 @@ use APubSub\PubSubInterface;
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
+class MemoryPubSub extends AbstractObject implements PubSubInterface
 {
     public function __construct()
     {
@@ -124,7 +125,7 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
      */
     public function getChannelListHelper()
     {
-        return new ArrayList($this->context->channels);
+        return new ArrayCursor($this->context, $this->context->channels);
     }
 
     /**
@@ -184,7 +185,7 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
      */
     public function getSubscriptionListHelper()
     {
-        return new ArrayList($this->context->subscriptions);
+        return new ArrayCursor($this->context, $this->context->subscriptions);
     }
 
     /**
@@ -206,7 +207,7 @@ class MemoryPubSub extends AbstractMemoryObject implements PubSubInterface
      */
     public function getSubscriberListHelper()
     {
-        return new ArrayList($this->context->subscribers);
+        return new ArrayCursor($this->context, $this->context->subscribers);
     }
 
     /**

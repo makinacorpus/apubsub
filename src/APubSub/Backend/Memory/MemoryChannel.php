@@ -2,6 +2,7 @@
 
 namespace APubSub\Backend\Memory;
 
+use APubSub\Backend\AbstractObject;
 use APubSub\ChannelInterface;
 use APubSub\Error\MessageDoesNotExistException;
 use APubSub\Error\UncapableException;
@@ -10,7 +11,7 @@ use APubSub\MessageInterface;
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class MemoryChannel extends AbstractMemoryObject implements ChannelInterface
+class MemoryChannel extends AbstractObject implements ChannelInterface
 {
     /**
      * Channel identifier

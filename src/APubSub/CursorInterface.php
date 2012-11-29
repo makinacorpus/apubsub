@@ -1,9 +1,9 @@
 <?php
 
-namespace APubSub\Helper;
+namespace APubSub;
 
 /**
- * List helper.
+ * Cursor.
  *
  * Any object implementing this interface has one and only goal: list objects
  * handled by a specific backend. Backends may not implement lists, since they
@@ -15,37 +15,37 @@ namespace APubSub\Helper;
  * items stored and not the limited given result set: this number can be
  * approximative and will be used for paging
  */
-interface ListInterface extends \Traversable, \Countable
+interface CursorInterface extends ObjectInterface, \Traversable, \Countable
 {
     /**
      * Sort order ascending
      */
-    const SORT_ORDER_ASC           = 1;
+    const SORT_ASC            = 1;
 
     /**
      * Sort order descending
      */
-    const SORT_ORDER_DESC          = -1;
+    const SORT_DESC           = -1;
 
     /**
      * Sort field id
      */
-    const SORT_FIELD_ID            = 0x0001;
+    const FIELD_ID            = 0x0001;
 
     /**
      * Sort field name
      */
-    const SORT_FIELD_NAME          = 0x0002;
+    const FIELD_NAME          = 0x0002;
 
     /**
      * Sort field created UNIX timestamp
      */
-    const SORT_FIELD_CREATED       = 0x0004;
+    const FIELD_CREATED       = 0x0004;
 
     /**
      * Sort field subscription status (activated or deactivated)
      */
-    const SORT_FIELD_SUB_STATUS    = 0x0008;
+    const FIELD_SUB_STATUS    = 0x0008;
 
     /**
      * Return a list of available sort bit flags
@@ -61,8 +61,8 @@ interface ListInterface extends \Traversable, \Countable
      * @param int $order Sort order for this field
      */
     public function addSort(
-        $sort = ListInterface::SORT_FIELD_ID,
-        $order = ListInterface::SORT_ORDER_ASC);
+        $sort  = CursorInterface::FIELD_ID,
+        $order = CursorInterface::SORT_ASC);
 
     /**
      * Set number of items to fetch
