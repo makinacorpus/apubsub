@@ -89,21 +89,27 @@ interface CursorInterface extends ObjectInterface, \Traversable, \Countable
      * @param int $sort  Sort field
      * @param int $order Sort order for this field
      */
-    public function addSort(
-        $sort  = CursorInterface::FIELD_SELF_ID,
-        $order = CursorInterface::SORT_ASC);
+    public function addSort($sort, $order = CursorInterface::SORT_ASC);
 
     /**
      * Set number of items to fetch
      *
-     * @param int $limit
+     * @param int $limit Limit
      */
     public function setLimit($limit);
 
     /**
      * Set starting offset
      *
-     * @param int $offset
+     * @param int $offset Offset
      */
     public function setOffset($offset);
+
+    /**
+     * Alias of bot setLimit() and setOffset()
+     *
+     * @param int $limit  Limit
+     * @param int $offset Offset
+     */
+    public function setRange($limit, $offset);
 }

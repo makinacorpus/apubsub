@@ -25,7 +25,7 @@ abstract class AbstractCursor extends AbstractObject implements
     /**
      * @var int
      */
-    private $limit = 20;
+    private $limit = CursorInterface::LIMIT_NONE;
 
     /**
      * @var int
@@ -51,10 +51,12 @@ abstract class AbstractCursor extends AbstractObject implements
      * (non-PHPdoc)
      * @see \APubSub\CursorInterface::addSort()
      */
-    final public function addSort(
-        $sort      = CursorInterface::FIELD_ID,
-        $direction = CursorInterface::SORT_ASC)
+    final public function addSort($sort, $direction = CursorInterface::SORT_ASC)
     {
+        if ($this->run) {
+            throw new \LogicException("Query has already been run");
+        }
+
         $allowed = $this->getAvailableSorts();
 
         if (!in_array($sort, $allowed)) {
@@ -108,6 +110,20 @@ abstract class AbstractCursor extends AbstractObject implements
             throw new \LogicException("Query has already been run");
         }
 
+        $this->offset = $offset;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\CursorInterface::setOffset()
+     */
+    final public function setRange($limit, $offset)
+    {
+        if ($this->run) {
+            throw new \LogicException("Query has already been run");
+        }
+
+        $this->limit  = $limit;
         $this->offset = $offset;
     }
 

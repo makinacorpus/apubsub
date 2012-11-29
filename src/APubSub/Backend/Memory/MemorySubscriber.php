@@ -11,6 +11,8 @@ use APubSub\SubscriberInterface;
 /**
  * Array based implementation for unit testing: do not use in production
  */
+use APubSub\Backend\ArrayCursor;
+
 class MemorySubscriber extends AbstractObject implements SubscriberInterface
 {
     /**
@@ -100,44 +102,14 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
     /**
      * (non-PHPdoc)
      * @see \APubSub\SubscriberInterface::fetch()
-     *
-    public function fetch()
+     */
+    public function fetch(array $conditions = null)
     {
         $ret = array();
 
         foreach ($this->getSubscriptions() as $subscription) {
             $ret = array_merge($subscription->fetch(), $ret);
         }
-
-        uasort($ret, function ($m1, $m2) {
-            return $m1->getId() - $m2->getId();
-        });
-
-        return $ret;
-    }
-     */
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::fetch()
-     */
-    public function fetch(
-        $limit            = CursorInterface::LIMIT_NONE,
-        $offset           = 0,
-        array $conditions = null,
-        $sortField        = CursorInterface::FIELD_MSG_SENT,
-        $sortDirection    = CursorInterface::SORT_DESC)
-    {
-        $ret = array();
-
-        foreach ($this->getSubscriptions() as $subscription) {
-            $ret = array_merge($subscription->fetch(), $ret);
-        }
-
-        uasort($ret, function ($a, $b) use ($sortField, $sortDirection) {
-            return MemorySubscription::sortMessages(
-                $a, $b, $sortField, $sortDirection);
-        });
 
         if ($conditions) {
             $ret = array_filter($ret, function ($a) use ($conditions) {
@@ -145,11 +117,9 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
             });
         }
 
-        if ($limit) {
-            $ret = array_slice($ret, $offset, $limit);
-        }
+        $sorter = new MemoryMessageSorter();
 
-        return $ret;
+        return new ArrayCursor($this->context, $ret, $sorter->getAvailableSorts(), $sorter);
     }
 
     /**

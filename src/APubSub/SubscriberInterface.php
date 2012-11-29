@@ -70,14 +70,9 @@ interface SubscriberInterface extends ObjectInterface
      *                           constants will be supported by all backends
      * @param int $sortDirection Sort direction
      *
-     * @return array             Array of messages
+     * @return CursorInterface   Iterable object of messages
      */
-    public function fetch(
-        $limit            = CursorInterface::LIMIT_NONE,
-        $offset           = 0,
-        array $conditions = null,
-        $sortField        = CursorInterface::FIELD_MSG_SENT,
-        $sortDirection    = CursorInterface::SORT_DESC);
+    public function fetch(array $conditions = null);
 
     /**
      * Delete everyting in all of this subscriber's subscription queues

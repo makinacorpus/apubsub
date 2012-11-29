@@ -103,32 +103,34 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
         $chan2->send(8);
         $chan1->send(9);
 
-        $i = 10;
-        $messages = $subscriber->fetch();
-        foreach ($messages as $message) {
-            $this->assertSame(--$i, $message->getContents());
-        }
-
         $i = 0;
-        $messages = $subscriber->fetch(
-            CursorInterface::LIMIT_NONE, 0, null,
-            CursorInterface::FIELD_MSG_SENT, CursorInterface::SORT_ASC);
-        foreach ($messages as $message) {
+        $cursor = $subscriber->fetch();
+        foreach ($cursor as $message) {
             $this->assertSame(++$i, $message->getContents());
         }
 
         $i = 10;
-        $messages = $subscriber->fetch(3, 0);
-        foreach ($messages as $message) {
+        $cursor = $subscriber->fetch();
+        $cursor->setLimit(CursorInterface::LIMIT_NONE);
+        $cursor->addSort(CursorInterface::FIELD_MSG_SENT, CursorInterface::SORT_DESC);
+        foreach ($cursor as $message) {
             $this->assertSame(--$i, $message->getContents());
         }
-        $this->assertEquals(3, 10 - $i);
 
-        $i = 7;
-        $messages = $subscriber->fetch(3, 3);
-        foreach ($messages as $message) {
-          $this->assertSame(--$i, $message->getContents());
+        $i = 0;
+        $cursor = $subscriber->fetch();
+        $cursor->setRange(3, 0);
+        foreach ($cursor as $message) {
+            $this->assertSame(++$i, $message->getContents());
         }
-        $this->assertEquals(3, 7 - $i);
+        $this->assertEquals(3, $i);
+
+        $i = 3;
+        $cursor = $subscriber->fetch();
+        $cursor->setRange(3, 3);
+        foreach ($cursor as $message) {
+          $this->assertSame(++$i, $message->getContents());
+        }
+        $this->assertEquals(3, $i - 3);
     }
 }
