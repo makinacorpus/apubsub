@@ -405,7 +405,7 @@ function _apb7_testing_volume_batch_setup($storage, &$context) {
 
   // Number of chan per iteration, this is also the number of subscriptions
   // since a chan is also a user
-  $chanLimit   = 20;
+  $chanLimit   = 30;
   $subscribers = array();
   // First channel id for this iteration
   $startAt     = $sandbox['progress'] + 1;
