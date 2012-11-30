@@ -64,6 +64,8 @@ abstract class AbstractCursor extends AbstractObject implements
         }
 
         $this->sorts[$sort] = $direction;
+
+        return $this;
     }
 
     /**
@@ -88,6 +90,8 @@ abstract class AbstractCursor extends AbstractObject implements
         }
 
         $this->limit = $limit;
+
+        return $this;
     }
 
     /**
@@ -111,6 +115,8 @@ abstract class AbstractCursor extends AbstractObject implements
         }
 
         $this->offset = $offset;
+
+        return $this;
     }
 
     /**
@@ -125,6 +131,8 @@ abstract class AbstractCursor extends AbstractObject implements
 
         $this->limit  = $limit;
         $this->offset = $offset;
+
+        return $this;
     }
 
     /**

@@ -2,7 +2,9 @@
 
 namespace Apb\Follow;
 
-interface NotificationTypeInterface extends IconSetAwareInterface
+use StockIcon\IconThemeAware;
+
+interface NotificationTypeInterface
 {
     /**
      * Get notification URI

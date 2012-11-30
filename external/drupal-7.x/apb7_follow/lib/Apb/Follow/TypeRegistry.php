@@ -104,7 +104,7 @@ class TypeRegistry
      * Get instance
      *
      * @param string $type                           Type identifier
-
+     *
      * @return \Apb\Follow\NotificationTypeInterface Type instance
      */
     final public function getInstance($type)

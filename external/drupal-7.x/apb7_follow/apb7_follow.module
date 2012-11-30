@@ -13,13 +13,14 @@
  * either directly in a cache bin, either in a persistent database table.
  */
 
-use ApbX\LocalCache\LRUMessageQueue;
-
+use APubSub\CursorInterface;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
+use APubSub\MessageInterface;
 
-use Apb\Follow\TypeRegistry;
 use Apb\Follow\Notification;
+use Apb\Follow\TypeRegistry;
+
 
 // This module exists for sample purposes: register a PSR-0 autoloader
 // for our own library.
@@ -292,59 +293,6 @@ function apb7_follow_account_link_form_submit($form, &$form_state) {
 }
 
 /**
- * Fetch notification list for the given user
- *
- * This method demonstrate how to instanciate and make a local cached queue
- * persistent easily. The default QueueMessage class implementation will
- * always set its owner queue state to modified when its read status is changed
- * hance the persistence done at shutdown time. This also means that concurent
- * accesses may see stalled entries if run in parallel: in our case this doesn't
- * matter because we are not dealing with data that needs consistency.
- *
- * @param object $account
- *   User account.
- *
- * @return \ApbX\LocalCache\MessageQueueInterface
- *   Message queue.
- */
-function apb7_follow_notification_list($account) {
-
-  static $cache = array();
-
-  if (isset($cache[$account->uid])) {
-    return $cache[$account->uid];
-  }
-
-  $key        = apb7_follow_user_key($account->uid, APB_TYPE_USER);
-  $limit      = 20;
-  $current    = cache_get($key);
-  $subscriber = apb7_backend_get()->getSubscriber($key);
-  $messages   = $subscriber->fetch();
-
-  if (!$current) {
-    $current = new LRUMessageQueue($limit, '\Apb\Follow\Notification');
-  } else {
-    $current = $current->data;
-    // In case of configuration change, ensure queue maximum limit at load
-    $current->setMaximumQueueSize($limit);
-  }
-
-  if (!empty($messages)) {
-    $current->prependAll($message);
-  }
-
-  // Save the new list if modified at shutdown, if some notifications end up
-  // marked as read, this will save them too in one shot.
-  drupal_register_shutdown_function(function () use ($key, $current) {
-    if ($current->isModified()) {
-      cache_set($key, $current);
-    }
-  });
-
-  return $cache[$account->uid] = $current;
-}
-
-/**
  * Render the notifications for the given user account.
  *
  * This method demonstrate how to use a custom implementation of QueueMessage
@@ -357,8 +305,11 @@ function apb7_follow_notification_list($account) {
 function apb7_follow_notification_render($account) {
   $build = array();
 
-  $list     = apb7_follow_notification_list($account);
-  $registry = apb7_follow_type_registry_get();
+  $key        = apb7_follow_user_key($account->uid, APB_TYPE_USER);
+  $subscriber = apb7_backend_get()->getSubscriber($key);  $registry = apb7_follow_type_registry_get();
+
+  $unreadCount = 0;
+  $totalCount  = 0;
 
   $build['#attached']['css'][drupal_get_path('module', 'apb7_follow') . '/apb7_follow.css'] = array();
   $build['#attached']['js'][drupal_get_path('module', 'apb7_follow') . '/apb7_follow.js'] = array();
@@ -366,39 +317,46 @@ function apb7_follow_notification_render($account) {
   $build['content']['#prefix'] = '<div id="notifications">';
   $build['content']['#suffix'] = '</div>';
 
-  // Build header
-  $top = '<div class="top">';
-  if ($unreadCount = $list->countUnread()) {
-    $unreadCountTitle = format_plural($unreadCount, "@count unread message", "@count unread messages");
-    $top .= '<div class="unread number" title="' . $unreadCountTitle . '">' . $unreadCount . '</div>';
-  }
-  $count = count($list);
-  $countTitle = format_plural($count, "@count message", "@count messages");
-  $top .= '<div class="total number" title="' . $countTitle . '">' . $count . '</div></div>';
+  // Prepare header so that 'top' key will be first in the array.
+  $build['content']['top'] = array();
 
-  $build['content']['top']['#markup'] = $top;
+  $cursor = $subscriber
+      ->fetch()
+      ->addSort(
+          CursorInterface::FIELD_MSG_SENT,
+          CursorInterface::SORT_DESC);
 
-  // Build list
-  if (!$list->isEmpty()) {
+  /* if (!$list->isEmpty()) { */
     $build['content']['messages']['#prefix'] = '<div class="list"><ul>';
     $build['content']['messages']['#suffix'] = '</ul></div>';
 
-    foreach ($list as $notification) {
+    foreach ($cursor as $message) {
 
-      if (!$notification instanceof Notification) {
+      if (!$message instanceof MessageInterface) {
         continue; // This should never happen, but keeping it for IDE
                   // autocompletion only.
       }
 
+      $notification = new Notification($message);
+
+      if (!$notification->isValid()) {
+          continue;
+      }
+
+      ++$totalCount;
+
       $type = $registry->getInstance($notification->getType());
 
-      $time = '<span class="time">' . format_interval(time() - $notification->getSendTimestamp()) . '</span>';
+      $time = '<span class="time">' . format_interval(time() - $message->getSendTimestamp()) . '</span>';
       $text = $type->format($notification) . '<br/>' . $time; 
 
-      if ($notification->isUnread()) {
+      if ($message->isUnread()) {
         $text = '<span class="unread">' . $text . '</span>';
 
-        $notification->setReadStatus(true);
+        ++$unreadCount;
+
+        // This should be done at the discretion of the business layer.
+        $message->setUnread(false);
       }
 
       if ($uri = $type->getUri($notification)) {
@@ -419,7 +377,18 @@ function apb7_follow_notification_render($account) {
         '#markup' => $image . $text,
       );
     }
-  }
+
+    // Build header
+    $top = '<div class="top">';
+    if ($unreadCount) {
+      $unreadCountTitle = format_plural($unreadCount, "@count unread message", "@count unread messages");
+      $top .= '<div class="unread number" title="' . $unreadCountTitle . '">' . $unreadCount . '</div>';
+    }
+    $countTitle = format_plural($totalCount, "@count message", "@count messages");
+    $top .= '<div class="total number" title="' . $countTitle . '">' . $totalCount . '</div></div>';
+
+    $build['content']['top']['#markup'] = $top;
+  /* } */
 
   return $build;
 }

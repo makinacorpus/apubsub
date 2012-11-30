@@ -86,30 +86,38 @@ interface CursorInterface extends ObjectInterface, \Traversable, \Countable
     /**
      * Add a sort field
      *
-     * @param int $sort  Sort field
-     * @param int $order Sort order for this field
+     * @param int $sort                 Sort field
+     * @param int $order                Sort order for this field
+     *
+     * @return \APubSub\CursorInterface Self reference for chaining
      */
     public function addSort($sort, $order = CursorInterface::SORT_ASC);
 
     /**
      * Set number of items to fetch
      *
-     * @param int $limit Limit
+     * @param int $limit                Limit
+     *
+     * @return \APubSub\CursorInterface Self reference for chaining
      */
     public function setLimit($limit);
 
     /**
      * Set starting offset
      *
-     * @param int $offset Offset
+     * @param int $offset               Offset
+     *
+     * @return \APubSub\CursorInterface Self reference for chaining
      */
     public function setOffset($offset);
 
     /**
      * Alias of bot setLimit() and setOffset()
      *
-     * @param int $limit  Limit
-     * @param int $offset Offset
+     * @param int $limit                Limit
+     * @param int $offset               Offset
+     *
+     * @return \APubSub\CursorInterface Self reference for chaining
      */
     public function setRange($limit, $offset);
 }
