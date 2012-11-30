@@ -293,6 +293,55 @@ function apb7_follow_account_link_form_submit($form, &$form_state) {
 }
 
 /**
+ * Render a single image.
+ *
+ * @param string $uri
+ * @param int $size
+ *
+ * @return string|array
+ *   drupal_render() friendly structure.
+ */
+function apb7_follow_image_render($uri, $size = 32) {
+
+  $scheme = null;
+  $path   = null;
+  $size   = (int)$size;
+
+  if (FALSE !== strpos($uri, '://')) {
+    list($scheme, $path) = explode('://', $uri);
+  }
+
+  if (null === $scheme || 'icon' === $scheme) {
+    if (!function_exists('stockicon_get')) {
+      return;
+    }
+    if ($uri = stockicon_get()->renderIcon($path, $size . 'x' . $size)) {
+      return '<div class="image">' . theme('image', array('path' => $uri)) . '</div>';
+    }
+  } else {
+    // We support only a few styles for user images. Please use stock icon
+    // whenever you can.
+    switch ($size) {
+
+      case 32:
+        $style = 'icon-32';
+        break;
+
+      case 64:
+        $style = 'icon-64';
+        break;
+
+      default:
+        return;
+    }
+
+    if ($uri = image_style_url($style, $uri)) {
+      return '<div class="image">' . theme('image', array('path' => $uri)) . '</div>';
+    }
+  }
+}
+
+/**
  * Render the notifications for the given user account.
  *
  * This method demonstrate how to use a custom implementation of QueueMessage
@@ -366,7 +415,8 @@ function apb7_follow_notification_render($account) {
       }
 
       if ($uri = $type->getImageURI($notification)) {
-          $image = '<div class="image">' . theme('image', array('path' => $uri)) . '</div>';
+          // @todo Switch to render array
+          $image = apb7_follow_image_render($uri);
       } else {
           $image = '';
       }

@@ -88,10 +88,10 @@ class UserNotificationType implements NotificationTypeInterface
         switch ($notification->get('a')) {
 
             case 'login':
-                return 'comment';
+                return 'icon://comment';
 
             case 'logout':
-                return 'offline';
+                return 'icon://offline';
 
             default:
                 return null;
