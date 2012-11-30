@@ -61,34 +61,59 @@ class D7MessageCursor extends AbstractCursor implements
     }
 
     /**
-     * Get sort column in the select query 
-     *
-     * @param int $sort Sort field
+     * The queue table suffers from timestamp imprecision and message id serial
+     * non predictability: we therefore need to apply multiple sorts at once in
+     * most cases, which are specific to this table
      */
-    protected function getSortColumn($sort)
+    protected function applySorts()
     {
-        switch ($sort)
-        {
-            case CursorInterface::FIELD_CHAN_ID:
-                return 'm.chan_id';
+        if (!$sorts = $this->getSorts()) {
+            // Messages need a default ordering for fetching. If time for
+            // more than one message is the same, ordering by message
+            // identifier as second choice will lower unpredictable
+            // behavior chances to happen (still possible thought since
+            // serial fields don't guarantee order, even thought in real
+            // life they do until very high values)
+            $this
+                ->query
+                ->orderBy('q.created', 'ASC')
+                ->orderBy('q.msg_id', 'ASC');
+        }
 
-            case CursorInterface::FIELD_MSG_ID:
-                return 'q.msg_id';
+        foreach ($this->getSorts() as $sort => $order) {
 
-            case CursorInterface::FIELD_MSG_SENT:
-                return 'm.created';
+            if ($order === CursorInterface::SORT_DESC) {
+                $direction = 'DESC';
+            } else {
+                $direction = 'ASC';
+            }
 
-            case CursorInterface::FIELD_MSG_UNREAD:
-                return 'q.unread';
+            switch ($sort)
+            {
+                case CursorInterface::FIELD_CHAN_ID:
+                    $this->query->orderBy('m.chan_id', $direction);
+                    break;
 
-            case CursorInterface::FIELD_SELF_ID:
-                return 'q.msg_id';
+                case CursorInterface::FIELD_SELF_ID:
+                case CursorInterface::FIELD_MSG_ID:
+                case CursorInterface::FIELD_MSG_SENT:
+                    $this
+                        ->query
+                        ->orderBy('q.created', $direction)
+                        ->orderBy('q.msg_id', $direction);
+                    break;
 
-            case CursorInterface::FIELD_SUB_ID:
-                return 'q.sub_id';
+                case CursorInterface::FIELD_MSG_UNREAD:
+                    $this->query->orderBy('q.msg_id', $direction);
+                    break;
 
-            default:
-                throw new \InvalidArgumentException("Unsupported sort field");
+                case CursorInterface::FIELD_SUB_ID:
+                    $this->query->orderBy('q.sub_id', $direction);
+                    break;
+
+                default:
+                    throw new \InvalidArgumentException("Unsupported sort field");
+            }
         }
     }
 
@@ -107,27 +132,7 @@ class D7MessageCursor extends AbstractCursor implements
                 $this->query->range($this->getOffset(), $limit);
             }
 
-            if ($sorts = $this->getSorts()) {
-                foreach ($sorts as $sort => $order) {
-                    $this->query->orderBy(
-                        $this->getSortColumn($sort),
-                        ($order === CursorInterface::SORT_ASC ? 'asc' : 'desc'));
-                }
-            } else {
-                // Messages need a default ordering for fetching. If time for
-                // more than one message is the same, ordering by message
-                // identifier as second choice will lower unpredictable
-                // behavior chances to happen (still possible thought since
-                // serial fields don't guarantee order, even thought in real
-                // life they do until very high values)
-                $this
-                    ->query
-                    ->orderBy('m.created', 'asc')
-                        // FIXME: Need to duplicate created field into queue table
-                        // for sorting: this will avoid filesort and ensure a const
-                        // index in this query
-                    ->orderBy('q.sub_id', 'asc');
-            }
+            $this->applySorts();
 
             $result = $this->query->execute();
 
@@ -137,7 +142,7 @@ class D7MessageCursor extends AbstractCursor implements
                     unserialize($record->contents), (int)$record->id,
                     (int)$record->created, (bool)$record->unread);
             }
-//echo "\n", $this->query, "\n\n";
+
             // We don't need this anymore
             unset($this->query);
         }

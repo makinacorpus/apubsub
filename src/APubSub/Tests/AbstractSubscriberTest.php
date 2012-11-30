@@ -114,7 +114,7 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
         $cursor->setLimit(CursorInterface::LIMIT_NONE);
         $cursor->addSort(CursorInterface::FIELD_MSG_SENT, CursorInterface::SORT_DESC);
         foreach ($cursor as $message) {
-            $this->assertSame(--$i, $message->getContents());
+          $this->assertSame(--$i, $message->getContents());
         }
 
         $i = 0;

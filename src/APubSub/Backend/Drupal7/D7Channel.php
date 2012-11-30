@@ -166,13 +166,18 @@ class D7Channel extends AbstractObject implements ChannelInterface
             $cx
                 ->query("
                     INSERT INTO {apb_queue}
-                        SELECT :msgId AS msg_id, s.id AS sub_id, 1 AS unread
-                            FROM {apb_sub} s
-                            WHERE s.chan_id = :chanId
-                            AND s.status = 1
+                        SELECT
+                            :msgId AS msg_id,
+                            s.id AS sub_id,
+                            1 AS unread,
+                            :created AS created
+                        FROM {apb_sub} s
+                        WHERE s.chan_id = :chanId
+                        AND s.status = 1
                     ", array(
                         'msgId' => $id,
                         'chanId' => $this->dbId,
+                        ':created' => $sendTime,
                     ));
 
             unset($tx); // Excplicit commit

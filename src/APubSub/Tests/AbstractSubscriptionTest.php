@@ -67,7 +67,9 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         $channel->send(42);
 
         $messages = $subscription->fetch();
-        $this->assertEmpty($messages);
+        foreach ($messages as $message) {
+            $this->fail("This cursor should be empty");
+        }
 
         $subscription->activate();
         $channel->send(24);

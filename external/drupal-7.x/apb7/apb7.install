@@ -190,6 +190,11 @@ function apb7_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'created' => array(
+        'description' => "Creation UNIX timestamp denormalization for performances",
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
       'unread' => array(
         'description' => "Has this message not been read",
         'type' => 'int',
@@ -205,6 +210,10 @@ function apb7_schema() {
       // try to JOIN with this field, without this index, MySQL will always do
       // a full scan.
       'apb_queue_sub_id_idx' => array('sub_id'),
+      // This will allow to use MySQL CONST index for ordering when fetching
+      // queues, thus making the whole API being significantly faster on SELECT
+      // operations. INSERT operations should be benched thought.
+      'apb_queue_msg_id_created_idx' => array('msg_id', 'created'),
     ),
     'foreign keys' => array(
       'apb_queue_msg_id_fk' => array(
