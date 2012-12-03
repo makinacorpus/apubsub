@@ -98,13 +98,13 @@ class EntityNotificationType implements NotificationTypeInterface
         switch ($notification->get('a')) {
 
             case 'insert':
-                return 'icon://insert';
+                return 'icon://filenew';
 
             case 'update':
-                return 'icon://update';
+                return 'icon://document';
 
             case 'delete':
-                return 'icon://delete';
+                return 'icon://edit-delete';
 
             default:
                 return null;

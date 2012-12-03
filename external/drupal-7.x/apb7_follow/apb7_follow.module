@@ -306,6 +306,7 @@ function apb7_follow_image_render($uri, $size = 32) {
   $scheme = null;
   $path   = null;
   $size   = (int)$size;
+  $build  = array('#prefix' => '<div class="image">', '#suffix' => '</div>');
 
   if (FALSE !== strpos($uri, '://')) {
     list($scheme, $path) = explode('://', $uri);
@@ -316,7 +317,7 @@ function apb7_follow_image_render($uri, $size = 32) {
       return;
     }
     if ($uri = stockicon_get()->renderIcon($path, $size . 'x' . $size)) {
-      return '<div class="image">' . theme('image', array('path' => $uri)) . '</div>';
+      $build['#markup'] = theme('image', array('path' => $uri));
     }
   } else {
     // We support only a few styles for user images. Please use stock icon
@@ -336,9 +337,11 @@ function apb7_follow_image_render($uri, $size = 32) {
     }
 
     if ($uri = image_style_url($style, $uri)) {
-      return '<div class="image">' . theme('image', array('path' => $uri)) . '</div>';
+      $build['#markup'] = theme('image', array('path' => $uri));
     }
   }
+
+  return $build;
 }
 
 /**
@@ -424,7 +427,12 @@ function apb7_follow_notification_render($account) {
       $build['content']['messages'][] = array(
         '#prefix' => '<li>',
         '#suffix' => '</li>',
-        '#markup' => $image . $text,
+        0 => array(
+          0 => $image,
+          1 => array(
+            '#markup' => $text,
+          ),
+        ),
       );
     }
 
