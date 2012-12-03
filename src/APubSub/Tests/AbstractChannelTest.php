@@ -2,6 +2,7 @@
 
 namespace APubSub\Tests;
 
+use APubSub\CursorInterface;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\MessageDoesNotExistException;
@@ -143,5 +144,56 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         } catch (SubscriptionDoesNotExistException $e) {
             $this->assertTrue(true, "Caught a SubscriptionDoesNotExistException");
         }
+    }
+
+    public function testDeleteMessages()
+    {
+        $channel = $this->backend->createChannel('some_channel');
+
+        // One left untouched, the other will delete a message
+        $sub1    = $channel->subscribe();
+        $sub2    = $channel->subscribe();
+
+        // And also test with subscriber for coverage purpose
+        $suber   = $this->backend->getSubscriber('foo');
+        $suber->subscribe('some_channel');
+        $sub3    = $suber->getSubscriptionFor('some_channel');
+
+        $sub1->activate();
+        $sub2->activate();
+        $sub3->activate();
+
+        $channel->send(42);
+        $channel->send(13);
+        $channel->send(11);
+        $messageId = null;
+
+        $cursor = $sub1->fetch();
+        $cursor->addSort(CursorInterface::FIELD_MSG_SENT, CursorInterface::SORT_ASC);
+        $this->assertCount(3, $cursor, "Sub 1 has 3 messages");
+        foreach ($cursor as $message) {
+            // There should be only one
+            $this->assertSame(42, $message->getContents(), "First message value is 42");
+            $messageId = $message->getId();
+            break;
+        }
+
+        $sub2->deleteMessage($messageId);
+
+        $cursor = $sub2->fetch();
+        $this->assertCount(2, $cursor, "Sub 2 has 2 messages after delete");
+        $cursor = $sub1->fetch();
+        $this->assertCount(3, $cursor, "Sub 1 is still full");
+        $cursor = $suber->fetch();
+        $this->assertCount(3, $cursor, "Sub 3 is still full");
+
+        $channel->deleteMessage($messageId);
+
+        $cursor = $sub1->fetch();
+        $this->assertCount(2, $cursor, "Sub 1 has now 2 messages");
+        $cursor = $sub2->fetch();
+        $this->assertCount(2, $cursor, "Sub 2 still has 2 messages");
+        $cursor = $suber->fetch();
+        $this->assertCount(2, $cursor, "Sub 3 has now 2 messages");
     }
 }

@@ -268,4 +268,26 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
             $this->context->subscriptionMessages[$this->id]->setUnread($toggle);
         }
     }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::deleteMessage()
+     */
+    public function deleteMessage($id)
+    {
+        $this->deleteMessages(array($id));
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::deleteMessages()
+     */
+    public function deleteMessages(array $idList)
+    {
+        if (isset($this->context->subscriptionMessages[$this->id])) {
+            foreach ($idList as $id) {
+                unset($this->context->subscriptionMessages[$this->id][$id]);
+            }
+        }
+    }
 }

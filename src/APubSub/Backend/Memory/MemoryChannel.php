@@ -141,4 +141,31 @@ class MemoryChannel extends AbstractObject implements ChannelInterface
         // FIXME: Easy to implement.
         throw new UncapableException();
     }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::deleteMessage()
+     */
+    public function deleteMessage($id)
+    {
+        $this->deleteMessages(array($id));
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::deleteMessages()
+     */
+    public function deleteMessages(array $idList)
+    {
+        if (isset($this->context->channelMessages[$this->id])) {
+            foreach ($idList as $id) {
+                unset($this->context->channelMessages[$this->id][$id]);
+            }
+        }
+
+        // Also remove in subscriptions
+        foreach ($this->context->subscriptions as $subscription) {
+            $subscription->deleteMessages($idList);
+        }
+    }
 }

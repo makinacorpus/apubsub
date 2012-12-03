@@ -29,5 +29,5 @@ interface MessageContainerInterface
      *
      * @param array $idList List of message identifiers
      */
-    public function deleteMessages($idList);
+    public function deleteMessages(array $idList);
 }

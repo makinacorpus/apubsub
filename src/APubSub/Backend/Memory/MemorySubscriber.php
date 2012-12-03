@@ -134,4 +134,25 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
             $subscription->flush();
         }
     }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::deleteMessage()
+     */
+    public function deleteMessage($id)
+    {
+        $this->deleteMessages(array($id));
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::deleteMessages()
+     */
+    public function deleteMessages(array $idList)
+    {
+        // Also remove in subscriptions
+        foreach ($this->getSubscriptions() as $subscription) {
+            $subscription->deleteMessages($idList);
+        }
+    }
 }

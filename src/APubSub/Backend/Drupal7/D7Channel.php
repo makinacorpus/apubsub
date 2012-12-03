@@ -242,4 +242,42 @@ class D7Channel extends AbstractObject implements ChannelInterface
     {
         throw new UncapableException();
     }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::deleteMessage()
+     */
+    public function deleteMessage($id)
+    {
+        $this->deleteMessages(array($id));
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::deleteMessages()
+     */
+    public function deleteMessages(array $idList)
+    {
+        $cx = $this->context->dbConnection;
+        $tx = $cx->startTransaction();
+
+        try {
+            $cx
+                ->delete('apb_queue')
+                ->condition('msg_id', $idList, 'IN')
+                ->execute();
+
+            $cx
+                ->delete('apb_msg')
+                ->condition('id', $idList, 'IN')
+                ->execute();
+
+            unset($tx); // Excplicit commit
+
+        } catch (\Exception $e) {
+            $tx->rollback();
+
+            throw $e;
+        }
+    }
 }

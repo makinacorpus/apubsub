@@ -268,4 +268,28 @@ class D7Subscription extends AbstractObject implements SubscriptionInterface
                 ':subid'  => $this->id,
             ));
     }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::deleteMessage()
+     */
+    public function deleteMessage($id)
+    {
+        $this->deleteMessages(array($id));
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::deleteMessages()
+     */
+    public function deleteMessages(array $idList)
+    {
+        $this
+            ->context
+            ->dbConnection
+            ->delete('apb_queue')
+            ->condition('sub_id', $this->id)
+            ->condition('msg_id', $idList, 'IN')
+            ->execute();
+    }
 }
