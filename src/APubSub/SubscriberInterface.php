@@ -12,7 +12,9 @@ namespace APubSub;
  * Subscriber identifiers are given by the business layer using this API and
  * will be ensured to be unique when creating it
  */
-interface SubscriberInterface extends ObjectInterface
+interface SubscriberInterface extends
+    ObjectInterface,
+    MessageContainerInterface
 {
     /**
      * Get identifier

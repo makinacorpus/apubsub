@@ -5,7 +5,9 @@ namespace APubSub;
 /**
  * Interface for all channels.
  */
-interface ChannelInterface extends ObjectInterface
+interface ChannelInterface extends
+    ObjectInterface,
+    MessageContainerInterface
 {
     /**
      * Get channel identifier
@@ -13,33 +15,6 @@ interface ChannelInterface extends ObjectInterface
      * @return string Channel identifier
      */
     public function getId();
-
-    /**
-     * Get message by identifier
-     *
-     * When you fetch a message using the channel as entry point, this message
-     * won't have any subscription tied to it, you cannot use most of the
-     * message interface methods
-     *
-     * @param scalar $id                 Message identifier whose type depends
-     *                                   on the channel implementation
-     *
-     * @return \APubSub\MessageInterface The message
-     *
-     * @throws \APubSub\Error\MessageDoesNotExistException
-     *                                  If message does not exist
-     */
-    public function getMessage($id);
-
-    /**
-     * Get list of message by identifier
-     *
-     * @param array $idList List of message id
-     *
-     * @throws \APubSub\Error\MessageDoesNotExistException
-     *                      If one or more message(s) does not exist
-     */
-    public function getMessages($idList);
 
     /**
      * Get creation time as a UNIX timestamp

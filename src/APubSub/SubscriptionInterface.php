@@ -5,7 +5,10 @@ namespace APubSub;
 /**
  * Defines a single subscription
  */
-interface SubscriptionInterface extends ObjectInterface, ChannelAwareInterface
+interface SubscriptionInterface extends
+    ObjectInterface,
+    ChannelAwareInterface,
+    MessageContainerInterface
 {
     /**
      * Get subscriber identifier
