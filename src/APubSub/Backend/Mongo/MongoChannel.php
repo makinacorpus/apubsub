@@ -143,62 +143,54 @@ class MongoChannel extends AbstractObject implements ChannelInterface
      */
     public function send($contents, $sendTime = null)
     {
-        throw new \Exception("Not implemented yet");
+        $chanId  = new \MongoId($this->dbId);
+        $created = $sendTime ? $sendTime : time();
+        $msgId   = new \MongoId();
 
-        /*
-        $cx = $this->context->dbConnection;
-        $tx = $cx->startTransaction();
-        $id = null;
+        //
+        // @todo Most unperformant method EVER
+        //
+        // MongoDB cant do aggregated insert, and bulk insert does not seem
+        // to be advised to do as soon as you have more than one server, so
+        // we are fucked here.
+        //
+        // Real @todo:
+        //  - check subscription count and put a subscription threshold for
+        //    mass sending
+        //  - if we are above this threshold, write somewhere that we need
+        //    to send this message (in a queue) and process queues during
+        //  - the backend garbageCollection() call
+        //  - make this threshold configurable so we can easily test it
+        //
+        $cursor = $this
+            ->context
+            ->subCollection
+            ->find(array(
+                'chan_id' => $chanId,
+            ));
 
-        if (null === $sendTime) {
-            $sendTime = time();
-        }
-
-        try {
-            $cx
-                ->insert('apb_msg')
-                ->fields(array(
-                    'chan_id' => $this->dbId,
-                    'created' => $sendTime,
-                    'contents' => serialize($contents),
-                ))
-                ->execute();
-
-            $id = (int)$cx->lastInsertId();
-
-            // Send message to all subscribers
-            $cx
-                ->query("
-                    INSERT INTO {apb_queue}
-                        SELECT
-                            :msgId AS msg_id,
-                            s.id AS sub_id,
-                            1 AS unread,
-                            :created AS created
-                        FROM {apb_sub} s
-                        WHERE s.chan_id = :chanId
-                        AND s.status = 1
-                    ", array(
-                        'msgId' => $id,
-                        'chanId' => $this->dbId,
-                        ':created' => $sendTime,
-                    ));
-
-            unset($tx); // Excplicit commit
-
-            if (!$this->context->delayChecks) {
-                $this->context->backend->cleanUpMessageQueue();
-                $this->context->backend->cleanUpMessageLifeTime();
-            }
-        } catch (\Exception $e) {
-            $tx->rollback();
-
-            throw $e;
+        // I sincerely hope that Mongo won't attempt to fetch all at once and
+        // will load them sequentially instead, else we'll be damned!
+        foreach ($cursor as $record) {
+            $this
+                ->context
+                ->queueCollection
+                ->insert(
+                    array(
+                        'msg_id'    => $msgId,
+                        'sub_id'    => new \MongoId((int)$record['_id']),
+                        'chan_id'   => $chanId,
+                        'chan_name' => $this->id,
+                        'created'   => $created,
+                        'contents'  => new \MongoBinData(serialize($contents)),
+                    ), array(
+                        'safe' => false,
+                    )
+                );
         }
 
         return new DefaultMessage($this->context,
-            $this->id, null, $contents, $id, $sendTime);
-         */
+            $this->id, (string)$msgId, $contents, 'whatwhat', $created);
     }
 
     /**
@@ -207,40 +199,34 @@ class MongoChannel extends AbstractObject implements ChannelInterface
      */
     public function subscribe()
     {
-        throw new \Exception("Not implemented yet");
+        $created = time();
+        $subId   = new \MongoId();
 
-        /*
-        $deactivated = time();
-        $created     = $deactivated;
-        $cx          = $this->context->dbConnection;
-        $tx          = $cx->startTransaction();
+        $this
+            ->context
+            ->subCollection
+            ->insert(
+                array(
+                    '_id'         => $subId,
+                    'chan_id'     => new \MongoId($this->dbId),
+                    'status'      => false,
+                    'chan_name'   => $this->id,
+                    'subscriber'  => null,
+                    'deactivated' => $created,
+                    'activated'   => 0,
+                    'created'     => $created,
+                ),
+                array(
+                    'safe' => true,
+                )
+            );
 
-        try {
-            $cx
-                ->insert('apb_sub')
-                ->fields(array(
-                    'chan_id' => $this->dbId,
-                    'status' => 0,
-                    'created' => $created,
-                    'deactivated' => $deactivated,
-                ))
-                ->execute();
+        $subscription = new MongoSubscription($this->context,
+            (string)$subId, $this->dbId, $this->id, $created, 0, $created, false);
 
-            $id = (int)$cx->lastInsertId();
+        $this->context->cache->addSubscription($subscription);
 
-            $subscription = new MongoSubscription($this->context,
-                $this->dbId, $id, $created, 0, $deactivated, false);
-
-            $this->context->cache->addSubscription($subscription);
-
-            return $subscription;
-
-        } catch (\Exception $e) {
-            $tx->rollback();
-
-            throw $e;
-        }
-         */
+        return $subscription;
     }
 
     /**
@@ -267,30 +253,20 @@ class MongoChannel extends AbstractObject implements ChannelInterface
      */
     public function deleteMessages(array $idList)
     {
-        throw new \Exception("Not implemented yet");
+        $chanId = new \MongoId($this->dbId);
 
-        /*
-        $cx = $this->context->dbConnection;
-        $tx = $cx->startTransaction();
-
-        try {
-            $cx
-                ->delete('apb_queue')
-                ->condition('msg_id', $idList, 'IN')
-                ->execute();
-
-            $cx
-                ->delete('apb_msg')
-                ->condition('id', $idList, 'IN')
-                ->execute();
-
-            unset($tx); // Excplicit commit
-
-        } catch (\Exception $e) {
-            $tx->rollback();
-
-            throw $e;
+        foreach ($idList as $key => $id) {
+            $idList[$key] = new \MongoId($id);
         }
-         */
+
+        $this
+            ->context
+            ->queueCollection
+            ->remove(array(
+                'chan_id' => $chanId,
+                'msg_id' => array(
+                    '$in' => $idList,
+                ),
+            ));
     }
 }

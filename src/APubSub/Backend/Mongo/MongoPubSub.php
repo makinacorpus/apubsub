@@ -35,6 +35,7 @@ use APubSub\PubSubInterface;
  *   - subscriber  : string (null)
  *   - deactivated : int (null)
  *   - activated   : int (null)
+ *   - created     : int (null)
  *
  * Queue documents will contain:
  *   - msg_id    : \MongoId
