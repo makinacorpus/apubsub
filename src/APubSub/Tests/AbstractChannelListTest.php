@@ -1,8 +1,6 @@
 <?php
 
-namespace APubSub\Tests\Helper;
-
-use APubSub\Tests\AbstractBackendBasedTest;
+namespace APubSub\Tests;
 
 abstract class AbstractChannelListTest extends AbstractBackendBasedTest
 {

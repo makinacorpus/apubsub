@@ -1,10 +1,10 @@
 <?php
 
-namespace APubSub\Tests\Backend\Drupal7;
+namespace APubSub\Tests\Backend;
 
 use APubSub\Backend\Drupal7\D7PubSub;
 use APubSub\Tests\Backend\Drupal\DrupalHelper;
-use APubSub\Tests\Helper\AbstractChannelListTest;
+use APubSub\Tests\AbstractChannelListTest;
 
 class ChannelListTest extends AbstractChannelListTest
 {
