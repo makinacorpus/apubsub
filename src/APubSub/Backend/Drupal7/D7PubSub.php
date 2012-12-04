@@ -205,65 +205,6 @@ class D7PubSub extends AbstractObject implements PubSubInterface
     }
 
     /**
-     * Internal helper for pure performances purpose
-     *
-     * @param int $idList                       Channel database identifiers
-     *
-     * @return \APubSub\Backend\Drupal7\D7Channel
-     *                                          Loaded instance
-     *
-     * @throws \APubSub\Error\ChannelDoesNotExistException
-     *                                          If channel does not exist in
-     *                                          database
-     */
-    public function getChannelsByDatabaseIds($idList)
-    {
-        $ret = array();
-        $missingIdList = array();
-
-        // First populate cache from what we have
-        foreach ($idList as $id) {
-            if ($channel = $this->context->cache->getChannelByDatabaseId($id)) {
-                $ret[$id] = $channel;
-            } else {
-                $missingIdList[] = $id;
-            }
-        }
-
-        // Short-circuiting thus avoiding useless SQL queries
-        if (empty($missingIdList)) {
-            return $ret;
-        }
-
-        $recordList = $this
-            ->context
-            ->dbConnection
-            ->select('apb_chan', 'c')
-            ->fields('c')
-            ->condition('id', $missingIdList, 'IN')
-            ->execute()
-            // Fetch all is mandatory, else we cannot count
-            ->fetchAll();
-
-        if (count($recordList) !== count($missingIdList)) {
-            throw new ChannelDoesNotExistException();
-        }
-
-        foreach ($recordList as $record) {
-            $id = (int)$record->id;
-            $channel = new D7Channel($this->context, $record->name, $id, (int)$record->created);;
-
-            $ret[$id] = $channel;
-
-            $this->context->cache->addChannel($channel);
-        }
-
-        array_multisort($idList, $ret);
-
-        return $ret;
-    }
-
-    /**
      * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::createChannel()
      */
