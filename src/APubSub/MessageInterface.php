@@ -49,9 +49,9 @@ interface MessageInterface extends
     public function getReadTimestamp();
 
     /**
-     * Get notification type
+     * Get message type
      *
-     * @return string Notification type or null if none set
+     * @return string Message type or null if none set
      */
     public function getType();
 

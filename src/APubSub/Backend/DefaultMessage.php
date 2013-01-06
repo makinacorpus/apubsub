@@ -40,7 +40,7 @@ class DefaultMessage implements MessageInterface
     protected $readTimestamp;
 
     /**
-     * Notification type
+     * Message type
      *
      * @return string
      */
@@ -81,7 +81,7 @@ class DefaultMessage implements MessageInterface
      * @param mixed $contents           Message contents
      * @param scalar $id                Message identifier
      * @param int $sendTime             Send time UNIX timestamp
-     * @param string $type              Notification type
+     * @param string $type              Message type
      * @param bool $isUnread            Is this message unread
      * @param int $readTimestamp        Read timestamp
      */
