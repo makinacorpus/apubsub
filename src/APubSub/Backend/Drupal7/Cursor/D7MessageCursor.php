@@ -55,6 +55,8 @@ class D7MessageCursor extends AbstractCursor implements
             CursorInterface::FIELD_CHAN_ID,
             CursorInterface::FIELD_MSG_ID,
             CursorInterface::FIELD_MSG_SENT,
+            CursorInterface::FIELD_MSG_TYPE,
+            CursorInterface::FIELD_MSG_READ_TS,
             CursorInterface::FIELD_MSG_UNREAD,
             CursorInterface::FIELD_SUB_ID,
         );
@@ -101,6 +103,14 @@ class D7MessageCursor extends AbstractCursor implements
                         ->query
                         ->orderBy('q.created', $direction)
                         ->orderBy('q.msg_id', $direction);
+                    break;
+
+                case CursorInterface::FIELD_MSG_TYPE:
+                    $this->query->orderBy('m.type', $direction);
+                    break;
+
+                case CursorInterface::FIELD_MSG_READ_TS:
+                    $this->query->orderBy('m.read_timestamp', $direction);
                     break;
 
                 case CursorInterface::FIELD_MSG_UNREAD:
