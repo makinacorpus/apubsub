@@ -54,9 +54,48 @@ class TypeRegistry
      */
     protected function buildData()
     {
-        $this->data = module_invoke_all(static::DRUPAL_HOOK_NAME);
+        $this->data = array();
 
-        drupal_alter(static::DRUPAL_HOOK_NAME, $this->data);
+        // Fetch module-driven definitions.
+        foreach (module_implements($hook) as $module) {
+            foreach (module_invoke($module, $hook) as $key => $class) {
+
+                // Avoid duplicates and wild overrides.
+                if (isset($types[$key])) {
+                    watchdog('apb_follow', "Module @module overrides the @key notification type, dropping", array(
+                        '@module' => $module,
+                        '@key'    => $key,
+                    ), WATCHDOG_WARNING);
+
+                    continue;
+                }
+
+                if (!class_exists($class)) {
+                    watchdog('apb_follow', "Module @module provides @key notification type using unknown class @class, dropping", array(
+                        '@module' => $module,
+                        '@key'    => $key,
+                        '@class'  => $class,
+                    ), WATCHDOG_WARNING);
+
+                    continue;
+                }
+
+                if (!is_a($class, '\Apb\Follow\NotitificationTypeInterface')) {
+                    watchdog('apb_follow', "Module @module provides @key type using class @class which does not implements \Apb\Follow\NotitificationTypeInterface, dropping", array(
+                        '@module' => $module,
+                        '@key'    => $key,
+                        '@class'  => $class,
+                    ), WATCHDOG_WARNING);
+
+                    continue;
+                }
+            }
+
+            $this->data[$type] = $class;
+        }
+
+        // Allow other modules to alter definition (aKa "The Drupal Way").
+        drupal_alter('apb_follow_type', $this->data);
     }
 
     final public function refreshData()
@@ -85,13 +124,6 @@ class TypeRegistry
                 throw new \LogicException(sprintf(
                     "Class '%s' does not exist", $data));
             }
-
-            /*
-            if (!is_subclass_of($data, '\Apb\Follow\NotificationTypeInterface')) {
-                throw new \LogicException(sprintf("Class '%s' is not an '%s'",
-                    $data, '\Apb\Follow\NotificationTypeInterface'));
-            }
-             */
 
             return new $data();
         }

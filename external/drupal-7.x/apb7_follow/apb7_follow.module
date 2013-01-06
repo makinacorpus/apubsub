@@ -21,7 +21,6 @@ use APubSub\MessageInterface;
 use Apb\Follow\Notification;
 use Apb\Follow\TypeRegistry;
 
-
 // This module exists for sample purposes: register a PSR-0 autoloader
 // for our own library.
 spl_autoload_register(function ($className) {
