@@ -89,6 +89,22 @@ function apb7_follow_menu() {
 }
 
 /**
+ * Implements hook_theme().
+ */
+function apb7_follow_theme() {
+  return array(
+    'notifications_block' => array(
+      'render element' => 'data',
+      'template'       => 'notifications-block',
+    ),
+    'notifications_page' => array(
+      'render element' => 'data',
+      'template'       => 'notifications-page',
+    ),
+  );
+}
+
+/**
  * Implements hook_block_info().
  */
 function apb7_follow_block_info() {
@@ -219,7 +235,7 @@ function apb7_follow_block_view($delta = '') {
 
     case 'notifications':
       return array(
-        'content' => apb7_follow_notification_render($user),
+        'content' => apb7_follow_notification_render_block($user),
       );
   }
 }
@@ -305,7 +321,7 @@ function apb7_follow_image_render($uri, $size = 32) {
   $scheme = null;
   $path   = null;
   $size   = (int)$size;
-  $build  = array('#prefix' => '<div class="image">', '#suffix' => '</div>');
+  $build  = array();
 
   if (FALSE !== strpos($uri, '://')) {
     list($scheme, $path) = explode('://', $uri);
@@ -353,99 +369,98 @@ function apb7_follow_image_render($uri, $size = 32) {
  * @param object $account
  *   Subscriber account.
  */
-function apb7_follow_notification_render($account) {
-  $build = array();
+function apb7_follow_notification_render_block($account) {
 
-  $key        = apb7_follow_user_key($account->uid, APB_TYPE_USER);
-  $subscriber = apb7_backend_get()->getSubscriber($key);  $registry = apb7_follow_type_registry_get();
+  $build            = array('#theme' => 'notifications_block');
+
+  $key              = apb7_follow_user_key($account->uid, APB_TYPE_USER);
+  $subscriber       = apb7_backend_get()->getSubscriber($key); 
+  $registry         = apb7_follow_type_registry_get();
 
   $unreadCount = 0;
   $totalCount  = 0;
-
-  $build['#attached']['css'][drupal_get_path('module', 'apb7_follow') . '/apb7_follow.css'] = array();
-  $build['#attached']['js'][drupal_get_path('module', 'apb7_follow') . '/apb7_follow.js'] = array();
-
-  $build['content']['#prefix'] = '<div id="notifications">';
-  $build['content']['#suffix'] = '</div>';
-
-  // Prepare header so that 'top' key will be first in the array.
-  $build['content']['top'] = array();
+  $unreadTitle = null;
+  $totalTitle  = null;
 
   $cursor = $subscriber
-      ->fetch()
-      ->addSort(
-          CursorInterface::FIELD_MSG_SENT,
-          CursorInterface::SORT_DESC);
+    ->fetch()
+    ->addSort(
+      CursorInterface::FIELD_MSG_SENT,
+      CursorInterface::SORT_DESC);
 
-  /* if (!$list->isEmpty()) { */
-    $build['content']['messages']['#prefix'] = '<div class="list"><ul>';
-    $build['content']['messages']['#suffix'] = '</ul></div>';
+  foreach ($cursor as $message) {
 
-    foreach ($cursor as $message) {
+    $notification = new Notification($message);
 
-      if (!$message instanceof MessageInterface) {
-        continue; // This should never happen, but keeping it for IDE
-                  // autocompletion only.
-      }
-
-      $notification = new Notification($message);
-
-      if (!$notification->isValid()) {
-          continue;
-      }
-
-      ++$totalCount;
-
-      $type = $registry->getInstance($notification->getType());
-
-      $time = '<span class="time">' . format_interval(time() - $message->getSendTimestamp()) . '</span>';
-      $text = $type->format($notification) . '<br/>' . $time; 
-
-      if ($message->isUnread()) {
-        $text = '<span class="unread">' . $text . '</span>';
-
-        ++$unreadCount;
-
-        // This should be done at the discretion of the business layer.
-        $message->setUnread(false);
-      }
-
-      if ($uri = $type->getUri($notification)) {
-        $text = l($text, $uri, array(
-          'html' => TRUE,
-        ));
-      }
-
-      if ($uri = $type->getImageURI($notification)) {
-          // @todo Switch to render array
-          $image = apb7_follow_image_render($uri);
-      } else {
-          $image = '';
-      }
-
-      $build['content']['messages'][] = array(
-        '#prefix' => '<li>',
-        '#suffix' => '</li>',
-        0 => array(
-          0 => $image,
-          1 => array(
-            '#markup' => $text,
-          ),
-        ),
-      );
+    if (!$notification->isValid()) {
+        continue;
     }
 
-    // Build header
-    $top = '<div class="top">';
-    if ($unreadCount) {
-      $unreadCountTitle = format_plural($unreadCount, "@count unread message", "@count unread messages");
-      $top .= '<div class="unread number" title="' . $unreadCountTitle . '">' . $unreadCount . '</div>';
-    }
-    $countTitle = format_plural($totalCount, "@count message", "@count messages");
-    $top .= '<div class="total number" title="' . $countTitle . '">' . $totalCount . '</div></div>';
+    ++$totalCount;
 
-    $build['content']['top']['#markup'] = $top;
-  /* } */
+    $type = $registry->getInstance($notification->getType());
+
+    if ($message->isUnread()) {
+      ++$unreadCount;
+
+      // This should be done at the discretion of the business layer.
+      // FIXME $message->setUnread(false);
+    }
+
+    $text = $type->format($notification);
+
+    if ($uri = $type->getUri($notification)) {
+      $text = l($text, $uri, array('html' => TRUE));
+    }
+
+    if ($uri = $type->getImageURI($notification)) {
+      // @todo Switch to render array
+      $image = apb7_follow_image_render($uri);
+    } else {
+      $image = '';
+    }
+
+    $build['#list'][] = array(
+      'image'  => $image,
+      'time'   => $message->getSendTimestamp(),
+      'text'   => $type->format($notification),
+      'unread' => $message->isUnread(),
+    );
+  }
+
+  // Build header
+  if ($unreadCount) {
+    $unreadTitle = format_plural($unreadCount, "@count unread message", "@count unread messages");
+  } else {
+    $unreadTitle = '';
+  }
+  $totalTitle = format_plural($totalCount, "@count message", "@count messages");
+
+  $build['#unread_count'] = $unreadCount;
+  $build['#unread_title'] = $unreadTitle;
+  $build['#total_count']  = $totalCount;
+  $build['#total_title']  = $totalTitle;
+  $build['#real_total']   = $cursor->getTotalCount();
 
   return $build;
+}
+
+/**
+ * Implements template_preprocess_HOOK().
+ */
+function template_preprocess_notifications_block(&$variables) {
+
+  drupal_add_css(drupal_get_path('module', 'apb7_follow') . '/apb7_follow.css');
+  drupal_add_js(drupal_get_path('module', 'apb7_follow') . '/apb7_follow.js');
+
+  $data = $variables['data'];
+
+  $variables += array(
+    'unread_count' => $data['#unread_count'],
+    'unread_title' => $data['#unread_title'],
+    'total_count'  => $data['#total_count'],
+    'total_title'  => $data['#total_title'],
+    'real_total'   => $data['#real_total'],
+    'list'         => $data['#list'],
+  );
 }

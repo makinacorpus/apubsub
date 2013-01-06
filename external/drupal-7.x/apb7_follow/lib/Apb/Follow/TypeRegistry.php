@@ -56,6 +56,8 @@ class TypeRegistry
     {
         $this->data = array();
 
+        $hook = self::DRUPAL_HOOK_NAME;
+
         // Fetch module-driven definitions.
         foreach (module_implements($hook) as $module) {
             foreach (module_invoke($module, $hook) as $key => $class) {
@@ -80,6 +82,7 @@ class TypeRegistry
                     continue;
                 }
 
+                /*
                 if (!is_a($class, '\Apb\Follow\NotitificationTypeInterface')) {
                     watchdog('apb_follow', "Module @module provides @key type using class @class which does not implements \Apb\Follow\NotitificationTypeInterface, dropping", array(
                         '@module' => $module,
@@ -89,9 +92,10 @@ class TypeRegistry
 
                     continue;
                 }
-            }
+                 */
 
-            $this->data[$type] = $class;
+                $this->data[$key] = $class;
+            }
         }
 
         // Allow other modules to alter definition (aKa "The Drupal Way").
