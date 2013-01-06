@@ -141,6 +141,13 @@ class DefaultMessage implements MessageInterface
     public function setUnread($toggle = false)
     {
         if ($this->unread !== $toggle) {
+
+            if ($toggle) {
+                $this->readTimestamp = null;
+            } else {
+                $this->readTimestamp = time();
+            }
+
             $this->getSubscription()->setUnread($this->id, $toggle);
         }
     }
