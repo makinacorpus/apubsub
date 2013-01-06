@@ -1,7 +1,16 @@
 Async PubSub
 ============
 
-Provides an asynchronous PubSub like generic API.
+Provides an asynchronous PubSub like generic API. It allows to send typed
+messages into communication channels, which will deliver those messages into
+subscriptions inboxes. Each subscription can mark or unmark its messages as
+read or unread, fetch them by filtering using basic properties.
+
+It aims to be fast and capable of handling very high message volumetry.
+
+It is fully written using interfaces and allows to write any storage backend.
+It is shipped with a fully working Drupal 7 backend and an in-memory reference
+implementation. A MongoDB backend is being developped and is not ready yet.
 
 Getting started
 ===============
