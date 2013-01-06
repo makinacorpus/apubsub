@@ -103,8 +103,14 @@ class MemoryChannel extends AbstractObject implements ChannelInterface
             if ($subscription->getChannel()->getId() === $this->id &&
                 $subscription->isActive())
             {
-                $message = new MemoryMessage($this->context, $this->id,
-                    $subscriptionId, $contents, $msgId, $sendTime);
+                $message = new MemoryMessage(
+                    $this->context,
+                    $this->id,
+                    $subscriptionId,
+                    $contents,
+                    $msgId,
+                    $sendTime,
+                    $type);
 
                 $this->context->subscriptionMessages[$subscriptionId][$msgId] = $message;
             }
