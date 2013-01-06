@@ -8,11 +8,11 @@ use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\CursorInterface;
 use APubSub\SubscriberInterface;
 
+use APubSub\Backend\ArrayCursor;
+
 /**
  * Array based implementation for unit testing: do not use in production
  */
-use APubSub\Backend\ArrayCursor;
-
 class MemorySubscriber extends AbstractObject implements SubscriberInterface
 {
     /**
