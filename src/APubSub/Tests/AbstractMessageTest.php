@@ -10,7 +10,7 @@ abstract class AbstractMessageTest extends AbstractBackendBasedTest
         $subscriber = $this->backend->getSubscriber("bar");
         $subscriber->subscribe("foo");
 
-        $channel->send("Hello, World!");
+        $channel->send("Hello, World!", "message");
 
         // Test we can fetch the message
         $messages = $subscriber->fetch();
@@ -18,6 +18,8 @@ abstract class AbstractMessageTest extends AbstractBackendBasedTest
 
             $id = $message->getId();
             $this->assertTrue($message->isUnread());
+            $this->assertSame("message", $message->getType());
+            $this->assertNull($message->getReadTimestamp());
             $message->setUnread(false);
 
             break; // There should be only one
@@ -31,6 +33,9 @@ abstract class AbstractMessageTest extends AbstractBackendBasedTest
 
             // Assert message is now unread
             $this->assertFalse($message->isUnread());
+
+            // Assert message has now a read timestamp
+            $this->assertNotNull($message->getReadTimestamp());
 
             break;
         }
