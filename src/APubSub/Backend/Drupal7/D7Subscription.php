@@ -258,13 +258,14 @@ class D7Subscription extends AbstractObject implements SubscriptionInterface
             ->dbConnection
             ->query("
                 UPDATE {apb_queue}
-                SET unread = :unread
+                SET unread = :unread, read_timestamp = :time
                 WHERE msg_id = :msgid
                   AND sub_id = :subid
             ", array(
                 ':unread' => (int)$toggle,
                 ':msgid'  => (int)$messageId,
                 ':subid'  => $this->id,
+                ':time'   => $toggle ? null : time(),
             ));
     }
 

@@ -138,6 +138,13 @@ class D7MessageCursor extends AbstractCursor implements
             $result = $this->query->execute();
 
             foreach ($result as $record) {
+
+                if ($record->read_timestamp) {
+                    $readTime = (int)$record->read_timestamp;
+                } else {
+                    $readTime = null;
+                }
+
                 $this->result[] = new DefaultMessage(
                     $this->context,
                     (string)$record->chan_id,
@@ -147,7 +154,7 @@ class D7MessageCursor extends AbstractCursor implements
                     (int)$record->created,
                     $context->typeHelper->getType($record->type_id),
                     (bool)$record->unread,
-                    (int)$record->read_timestamp);
+                    $readTime);
             }
 
             // We don't need this anymore
