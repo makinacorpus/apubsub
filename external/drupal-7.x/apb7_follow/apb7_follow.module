@@ -407,12 +407,6 @@ function apb7_follow_notification_render_block($account) {
       // FIXME $message->setUnread(false);
     }
 
-    $text = $type->format($notification);
-
-    if ($uri = $type->getUri($notification)) {
-      $text = l($text, $uri, array('html' => TRUE));
-    }
-
     if ($uri = $type->getImageURI($notification)) {
       // @todo Switch to render array
       $image = apb7_follow_image_render($uri);
@@ -462,5 +456,7 @@ function template_preprocess_notifications_block(&$variables) {
     'total_title'  => $data['#total_title'],
     'real_total'   => $data['#real_total'],
     'list'         => $data['#list'],
+    'all_link'     => l(t("See all"), '', array('attributes' => array('class' => 'all-link'))),
+    'pref_link'    => l(t("Preferences"), '', array('attributes' => array('class' => 'pref-link'))),
   );
 }

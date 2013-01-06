@@ -7,14 +7,8 @@ use StockIcon\IconThemeAware;
 interface NotificationTypeInterface
 {
     /**
-     * Get notification URI
-     *
-     * @param Notification $notification Notification for which to get the URI
-     */
-    public function getUri(Notification $notification);
-
-    /**
-     * Format notification as text, must not contain any link
+     * Format notification as HTML code, if any link has to be set, set it
+     * into this text
      *
      * @param Notification $notification Notification to format
      *

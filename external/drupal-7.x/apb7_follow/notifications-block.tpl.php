@@ -12,17 +12,19 @@
   <div class="list">
     <ul>
       <li>
-        <?php echo t("Notifications"); ?>
-        <?php if ($total_count): ?>
-        (<?php echo t("<strong>@a</strong> of @b", array(
-          '@a' => $total_count,
-          '@b' => $real_total,
-        )); ?>)
-        <?php endif; ?>
+        <div class="text">
+          <?php echo t("Notifications"); ?>
+          <?php if ($total_count): ?>
+          (<?php echo t("<strong>@a</strong> of @b", array(
+            '@a' => $total_count,
+            '@b' => $real_total,
+          )); ?>)
+          <?php endif; ?>
+        </div>
       </li>
       <?php if (empty($list)): ?>
       <li class="empty">
-        <div class="image"></div>
+        <div class="spacer"></div>
         <?php echo t("You have no messages."); ?>
       </li>
       <?php else: ?>
@@ -31,22 +33,27 @@
         <div class="image">
           <?php echo render($item['image']); ?>
         </div>
-        <?php if ($item['unread']): ?>
-        <span class="unread">
-        <?php echo $item['text']; ?>
-        </span>
-        <?php else: ?>
-        <?php echo $item['text']; ?>
-        <?php endif; ?>
-        <br/>
-        <span class="time">
-          <?php echo format_interval(time() - $item['time']); ?>
-        </span>
+        <div class="text">
+          <?php if ($item['unread']): ?>
+          <span class="unread">
+          <?php echo $item['text']; ?>
+          </span>
+          <?php else: ?>
+          <?php echo $item['text']; ?>
+          <?php endif; ?>
+          <br/>
+          <span class="time">
+            <?php echo format_interval(time() - $item['time']); ?>
+          </span>
+        </div>
       </li>
       <?php endforeach; ?>
       <?php endif; ?>
       <li>
-        // Links
+        <div class="text">
+          <?php echo $all_link; ?>
+          <?php echo $pref_link; ?>
+        </div>
       </li>
     </ul>
   </div>

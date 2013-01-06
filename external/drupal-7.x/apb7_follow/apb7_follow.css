@@ -4,11 +4,11 @@
 }
 
 #notifications .list {
-  font-size: 90%;
+  /* font-size: 90%; */
   display: none;
   position: absolute;
-  top: 40px;
-  right: 0;
+  top: 80px;
+  right: -20px;
   background: white;
   color: #808080;
   z-index: 10;
@@ -20,6 +20,10 @@
 
 #notifications .list * {
   color: #808080;
+}
+
+#notifications .list a {
+  color: #0071B3;
 }
 
 #notifications .list ul {
@@ -39,7 +43,12 @@
 }
 
 #notifications .list .unread {
-  font-weight: bold;
+  /* font-weight: bold; */
+}
+
+#notifications .list .pref-link {
+  float: right;
+  margin-right: 40px;
 }
 
 #notifications .top {
@@ -48,9 +57,12 @@
   cursor: pointer;
 }
 
-#notifications .image {
+#notifications .list li .text {
+    margin-left: 52px;
+}
+
+#notifications .list .image {
   float: left;
-  padding-right: 1.7em;
 }
 
 #notifications .top div {

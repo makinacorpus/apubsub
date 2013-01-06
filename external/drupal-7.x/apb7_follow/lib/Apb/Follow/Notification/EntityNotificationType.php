@@ -9,34 +9,6 @@ class EntityNotificationType implements NotificationTypeInterface
 {
     /**
      * (non-PHPdoc)
-     * @see \Apb\Follow\NotificationTypeInterface::getUri()
-     */
-    public function getUri(Notification $notification)
-    {
-        if ('delete' === $notification->get('a')) {
-            return null;
-        }
-
-        $entityType = $notification->get('type');
-        $id         = $notification->get('id');
-        $entityInfo = entity_get_info($entityType);
-        $entities   = entity_load($entityType, array($id));
-
-        if (empty($entities)) {
-            return null;
-        }
-
-        $entity = array_shift($entities);
-
-        if (($uri = entity_uri($entityType, $entity)) && isset($uri['path'])) {
-            return $uri['path'];
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \Apb\Follow\NotificationTypeInterface::format()
      */
     public function format(Notification $notification)
@@ -69,23 +41,27 @@ class EntityNotificationType implements NotificationTypeInterface
 
         $tVariables = array(
             '%username' => strip_tags($accountTitle),
-            '%title'    => $title,
+            '!title'    => $title,
             '@type'     => $typeLabel,
         );
+
+        if (($uri = entity_uri($entityType, $entity)) && isset($uri['path'])) {
+            $tVariables['!title'] = l($tVariables['!title'], $uri['path']);
+        }
 
         switch ($notification->get('a')) {
 
             case 'insert':
-                return t("%username created the %title @type", $tVariables);
+                return t("%username created the !title @type", $tVariables);
 
             case 'update':
-                return t("%username modified the %title @type", $tVariables);
+                return t("%username modified the !title @type", $tVariables);
 
             case 'delete':
-                return t("%username deleted the %title @type", $tVariables);
+                return t("%username deleted the !title @type", $tVariables);
 
             default:
-                return t("%username did something to the %title @type", $tVariables);
+                return t("%username did something to the !title @type", $tVariables);
         }
     }
 
