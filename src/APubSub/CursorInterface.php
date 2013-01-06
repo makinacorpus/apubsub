@@ -6,8 +6,7 @@ namespace APubSub;
  * Cursor.
  *
  * Any object implementing this interface has one and only goal: list objects
- * handled by a specific backend. Backends may not implement lists, since they
- * are an optional piece of the API which is meant to built admin UI
+ * handled by a specific backend.
  *
  * Objects can or cannot set a default limit, although they always should
  *
@@ -55,9 +54,19 @@ interface CursorInterface extends ObjectInterface, \Traversable, \Countable
     /**
      * Message read/unread status
      *
-     * For sort unread > read
+     * When sorting, read < unread
      */
     const FIELD_MSG_UNREAD      = 22;
+
+    /**
+     * Message type
+     */
+    const FIELD_MSG_TYPE        = 23;
+
+    /**
+     * Read UNIX timestamp
+     */
+    const FIELD_MSG_READ_TS     = 24;
 
     /**
      * Subscriber name
