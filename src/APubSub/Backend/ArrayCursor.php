@@ -114,4 +114,13 @@ class ArrayCursor extends AbstractCursor implements
     {
         return count($this->array);
     }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\CursorInterface::getTotalCount()
+     */
+    public function getTotalCount()
+    {
+        return count($this->array);
+    }
 }

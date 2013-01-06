@@ -16,9 +16,9 @@ class D7MessageCursor extends AbstractCursor implements
     CursorInterface
 {
     /**
-     * @var array
+     * @var \ArrayIterator
      */
-    private $result;
+    private $iterator;
 
     /**
      * @var \SelectQuery
@@ -133,11 +133,11 @@ class D7MessageCursor extends AbstractCursor implements
      */
     final public function getIterator()
     {
-        if (null === $this->result) {
+        if (null === $this->iterator) {
 
-            $this->result = array();
-            $limit        = $this->getLimit();
-            $context      = $this->getContext();
+            $result  = array();
+            $limit   = $this->getLimit();
+            $context = $this->getContext();
 
             if (CursorInterface::LIMIT_NONE !== $limit) {
                 $this->query->range($this->getOffset(), $limit);
@@ -145,9 +145,7 @@ class D7MessageCursor extends AbstractCursor implements
 
             $this->applySorts();
 
-            $result = $this->query->execute();
-
-            foreach ($result as $record) {
+            foreach ($this->query->execute() as $record) {
 
                 if ($record->read_timestamp) {
                     $readTime = (int)$record->read_timestamp;
@@ -155,7 +153,7 @@ class D7MessageCursor extends AbstractCursor implements
                     $readTime = null;
                 }
 
-                $this->result[] = new DefaultMessage(
+                $result[] = new DefaultMessage(
                     $this->context,
                     (string)$record->chan_id,
                     (int)$record->sub_id,
@@ -167,18 +165,26 @@ class D7MessageCursor extends AbstractCursor implements
                     $readTime);
             }
 
-            // We don't need this anymore
-            unset($this->query);
+            $this->iterator = new \ArrayIterator($result);
         }
 
-        return new \ArrayIterator($this->result);
+        return $this->iterator;
     }
 
     /**
      * (non-PHPdoc)
      * @see \Countable::count()
      */
-    final public function count ()
+    final public function count()
+    {
+        return count($this->getIterator());
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \Countable::count()
+     */
+    final public function getTotalCount()
     {
         if (null === $this->count) {
             $query = clone $this->query;

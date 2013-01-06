@@ -85,12 +85,12 @@ abstract class AbstractD7Cursor extends AbstractCursor implements
     }
 
     /**
-     * (non-PHPdoc)
-     * @see \IteratorAggregate::getIterator()
+     * Run internal query and populate the internal result array
      */
-    final public function getIterator()
+    final protected function runQuery()
     {
         if (null === $this->result) {
+
             $limit = $this->getLimit();
             $query = $this->getQuery();
 
@@ -114,6 +114,15 @@ abstract class AbstractD7Cursor extends AbstractCursor implements
                 $this->result = $this->loadObjects($result->fetchCol());
             }
         }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \IteratorAggregate::getIterator()
+     */
+    final public function getIterator()
+    {
+        $this->runQuery();
 
         if (is_array($this->result)) {
             return new \ArrayIterator($this->result);
@@ -126,9 +135,21 @@ abstract class AbstractD7Cursor extends AbstractCursor implements
      * (non-PHPdoc)
      * @see \Countable::count()
      */
-    final public function count ()
+    final public function count()
+    {
+        $this->runQuery();
+
+        return count($this->result);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \Countable::count()
+     */
+    final public function getTotalCount()
     {
         if (null === $this->count) {
+
             $query = $this->getQuery();
             $query = clone $query;
 

@@ -9,10 +9,6 @@ namespace APubSub;
  * handled by a specific backend.
  *
  * Objects can or cannot set a default limit, although they always should
- *
- * The \Countable::count() interface method should return the total number of
- * items stored and not the limited given result set: this number can be
- * approximative and will be used for paging
  */
 interface CursorInterface extends ObjectInterface, \Traversable, \Countable
 {
@@ -129,4 +125,11 @@ interface CursorInterface extends ObjectInterface, \Traversable, \Countable
      * @return \APubSub\CursorInterface Self reference for chaining
      */
     public function setRange($limit, $offset);
+
+    /**
+     * Get total number of items without taking into account the current limit
+     *
+     * @return int
+     */
+    public function getTotalCount();
 }
