@@ -60,7 +60,8 @@ interface SubscriptionInterface extends
      * Fetch current message queue
      *
      * @param array $conditions  Array of key value pairs conditions, only the
-     *                           = operator is supported right now
+     *                           "equal" operation is supported. If value is an
+     *                           array, treat it as a "IN" operator
      *
      * @return CursorInterface   Iterable object of messages
      */
