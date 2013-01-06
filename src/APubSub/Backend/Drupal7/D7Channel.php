@@ -101,8 +101,13 @@ class D7Channel extends AbstractObject implements ChannelInterface
             throw new MessageDoesNotExistException();
         }
 
-        return new DefaultMessage($this->context, $this->id, null,
-            unserialize($record->contents), $id, (int)$record->created);
+        return new DefaultMessage(
+            $this->context,
+            $this->id,
+            null,
+            unserialize($record->contents),
+            $id,
+            (int)$record->created);
     }
 
     /**
@@ -128,9 +133,13 @@ class D7Channel extends AbstractObject implements ChannelInterface
         $ret = array();
 
         foreach ($records as $record) {
-            $ret[] = new DefaultMessage($this->context,
-                $this->id, null, unserialize($record->contents),
-                (int)$record->id, (int)$record->created);
+            $ret[] = new DefaultMessage(
+                $this->context,
+                $this->id,
+                null,
+                unserialize($record->contents),
+                (int)$record->id,
+                (int)$record->created);
         }
 
         return $ret;
@@ -140,11 +149,16 @@ class D7Channel extends AbstractObject implements ChannelInterface
      * (non-PHPdoc)
      * @see \APubSub\ChannelInterface::send()
      */
-    public function send($contents, $sendTime = null)
+    public function send($contents, $type = null, $sendTime = null)
     {
-        $cx = $this->context->dbConnection;
-        $tx = $cx->startTransaction();
-        $id = null;
+        $cx     = $this->context->dbConnection;
+        $tx     = $cx->startTransaction();
+        $id     = null;
+        $typeId = null; 
+
+        if (null !== $type) {
+            $typeId = $this->getContext()->typeHelper->getTypeId($type);
+        }
 
         if (null === $sendTime) {
             $sendTime = time();
@@ -154,9 +168,10 @@ class D7Channel extends AbstractObject implements ChannelInterface
             $cx
                 ->insert('apb_msg')
                 ->fields(array(
-                    'chan_id' => $this->dbId,
-                    'created' => $sendTime,
+                    'chan_id'  => $this->dbId,
+                    'created'  => $sendTime,
                     'contents' => serialize($contents),
+                    'type_id'  => $typeId,
                 ))
                 ->execute();
 
@@ -165,7 +180,7 @@ class D7Channel extends AbstractObject implements ChannelInterface
             // Send message to all subscribers
             $cx
                 ->query("
-                    INSERT INTO {apb_queue}
+                    INSERT INTO {apb_queue} (msg_id, sub_id, unread, created)
                         SELECT
                             :msgId AS msg_id,
                             s.id AS sub_id,
@@ -175,8 +190,8 @@ class D7Channel extends AbstractObject implements ChannelInterface
                         WHERE s.chan_id = :chanId
                         AND s.status = 1
                     ", array(
-                        'msgId' => $id,
-                        'chanId' => $this->dbId,
+                        ':msgId'   => $id,
+                        ':chanId'  => $this->dbId,
                         ':created' => $sendTime,
                     ));
 
@@ -192,8 +207,13 @@ class D7Channel extends AbstractObject implements ChannelInterface
             throw $e;
         }
 
-        return new DefaultMessage($this->context,
-            $this->id, null, $contents, $id, $sendTime);
+        return new DefaultMessage(
+            $this->context,
+            $this->id,
+            null,
+            $contents,
+            $id,
+            $sendTime);
     }
 
     /**

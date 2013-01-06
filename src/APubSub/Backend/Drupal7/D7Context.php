@@ -53,19 +53,29 @@ class D7Context implements ContextInterface
     public $backend;
 
     /**
+     * Type helper
+     *
+     * @var \APubSub\Backend\Drupal7\TypeHelper
+     */
+    public $typeHelper;
+
+    /**
      * Default constructor
      *
      * @param \DatabaseConnection $dbConnection Database connection
      * @param D7PubSub $backend                 Backend
      * @param array|Traversable $options        Options, if any
      */
-    public function __construct(\DatabaseConnection $dbConnection,
-        D7PubSub $backend, $options = null)
+    public function __construct(
+        \DatabaseConnection $dbConnection,
+        D7PubSub $backend,
+        $options = null)
     {
         $this->dbConnection = $dbConnection;
-        $this->backend = $backend;
+        $this->backend      = $backend;
 
-        $this->cache = new InternalCache();
+        $this->typeHelper   = new TypeHelper($this);
+        $this->cache        = new InternalCache();
 
         if (null !== $options) {
             $this->setOptions($options);

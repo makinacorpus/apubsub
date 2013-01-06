@@ -33,6 +33,20 @@ class DefaultMessage implements MessageInterface
     protected $unread = true;
 
     /**
+     * Read timestamp
+     *
+     * @var int
+     */
+    protected $readTimestamp;
+
+    /**
+     * Notification type
+     *
+     * @return string
+     */
+    protected $type;
+
+    /**
      * Message raw data
      *
      * @var mixed
@@ -67,18 +81,30 @@ class DefaultMessage implements MessageInterface
      * @param mixed $contents           Message contents
      * @param scalar $id                Message identifier
      * @param int $sendTime             Send time UNIX timestamp
+     * @param string $type              Notification type
      * @param bool $isUnread            Is this message unread
+     * @param int $readTimestamp        Read timestamp
      */
-    public function __construct(ContextInterface $context, $chanId,
-        $subscriptionId, $contents, $id, $sendTime, $isUnread = true)
+    public function __construct(
+        ContextInterface $context,
+        $chanId,
+        $subscriptionId,
+        $contents,
+        $id,
+        $sendTime,
+        $type          = null,
+        $isUnread      = true,
+        $readTimestamp = null)
     {
         $this->id             = $id;
         $this->chanId         = $chanId;
         $this->subscriptionId = $subscriptionId;
         $this->contents       = $contents;
         $this->sendTime       = $sendTime;
+        $this->type           = $type;
         $this->context        = $context;
         $this->unread         = $isUnread;
+        $this->readTimestamp  = $readTimestamp;
     }
 
     /**
@@ -136,6 +162,24 @@ class DefaultMessage implements MessageInterface
     public function setSendTimestamp($sendTime)
     {
         $this->sendTime = $sendTime;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageInterface::getReadTimestamp()
+     */
+    public function getReadTimestamp()
+    {
+        return $this->readTimestamp;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageInterface::getType()
+     */
+    public function getType()
+    {
+        return $this->type;
     }
 
     /**

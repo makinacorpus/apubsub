@@ -90,7 +90,7 @@ class MemoryChannel extends AbstractObject implements ChannelInterface
      * (non-PHPdoc)
      * @see \APubSub\ChannelInterface::createMessage()
      */
-    public function send($contents, $sendTime = null)
+    public function send($contents, $type = null, $sendTime = null)
     {
         if (null === $sendTime) {
             $sendTime = time();
@@ -110,8 +110,14 @@ class MemoryChannel extends AbstractObject implements ChannelInterface
             }
         }
 
-        $message = new MemoryMessage($this->context,
-            $this->id, null, $contents, $msgId, $sendTime);
+        $message = new MemoryMessage(
+            $this->context,
+            $this->id,
+            null,
+            $contents,
+            $msgId,
+            $sendTime,
+            $type);
 
         $this->context->channelMessages[$this->id][$msgId] = $message;
 

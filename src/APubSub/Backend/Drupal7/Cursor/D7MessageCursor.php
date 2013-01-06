@@ -127,6 +127,7 @@ class D7MessageCursor extends AbstractCursor implements
 
             $this->result = array();
             $limit        = $this->getLimit();
+            $context      = $this->getContext();
 
             if (CursorInterface::LIMIT_NONE !== $limit) {
                 $this->query->range($this->getOffset(), $limit);
@@ -137,10 +138,16 @@ class D7MessageCursor extends AbstractCursor implements
             $result = $this->query->execute();
 
             foreach ($result as $record) {
-                $this->result[] = new DefaultMessage($this->context,
-                    (string)$record->chan_id, (int)$record->sub_id,
-                    unserialize($record->contents), (int)$record->id,
-                    (int)$record->created, (bool)$record->unread);
+                $this->result[] = new DefaultMessage(
+                    $this->context,
+                    (string)$record->chan_id,
+                    (int)$record->sub_id,
+                    unserialize($record->contents),
+                    (int)$record->id,
+                    (int)$record->created,
+                    $context->typeHelper->getType($record->type_id),
+                    (bool)$record->unread,
+                    (int)$record->read_timestamp);
             }
 
             // We don't need this anymore

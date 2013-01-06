@@ -42,6 +42,20 @@ interface MessageInterface extends
     public function getSendTimestamp();
 
     /**
+     * Get read timestamp
+     *
+     * @return int Read UNIX timestamp or null if never been read
+     */
+    public function getReadTimestamp();
+
+    /**
+     * Get notification type
+     *
+     * @return string Notification type or null if none set
+     */
+    public function getType();
+
+    /**
      * Get message contents
      *
      * @return mixed Data set by the sender

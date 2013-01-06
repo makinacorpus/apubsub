@@ -3,7 +3,6 @@
 namespace APubSub\Backend\Drupal7;
 
 use APubSub\Backend\AbstractObject;
-use APubSub\Backend\DefaultMessage;
 use APubSub\Backend\Drupal7\Cursor\D7MessageCursor;
 use APubSub\Error\SubscriptionAlreadyExistsException;
 use APubSub\Error\SubscriptionDoesNotExistException;

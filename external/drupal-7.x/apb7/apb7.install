@@ -232,6 +232,12 @@ function apb7_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
+      'read_timestamp' => array(
+        'description' => "Read UNIX timestamp",
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => NULL,
+      ),
     ),
     'primary key' => array('msg_id', 'sub_id'),
     'indexes' => array(
