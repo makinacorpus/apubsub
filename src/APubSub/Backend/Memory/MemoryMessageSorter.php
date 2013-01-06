@@ -17,6 +17,8 @@ class MemoryMessageSorter
             CursorInterface::FIELD_MSG_ID,
             CursorInterface::FIELD_MSG_SENT,
             CursorInterface::FIELD_MSG_UNREAD,
+            CursorInterface::FIELD_MSG_TYPE,
+            CursorInterface::FIELD_MSG_READ_TS,
             CursorInterface::FIELD_SUB_ID,
         );
     }
@@ -48,6 +50,14 @@ class MemoryMessageSorter
 
                     case CursorInterface::FIELD_MSG_UNREAD:
                         $value = ((int)$a->isUnread()) - ((int)$b->isUnread());
+                        break;
+
+                    case CursorInterface::FIELD_MSG_TYPE:
+                        $value = strcmp($b->getType(), $a->getType());
+                        break;
+
+                    case CursorInterface::FIELD_MSG_READ_TS:
+                        $value = ((int)$a->getReadTimestamp()) - ((int)$b->getReadTimestamp());
                         break;
 
                     case CursorInterface::FIELD_SUB_ID:
