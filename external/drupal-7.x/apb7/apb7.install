@@ -44,6 +44,25 @@ function apb7_schema() {
     ),
   );
 
+  $schema['apb_msg_type'] = array(
+    'description' => "APubSub message types",
+    'fields' => array(
+      'id' => array(
+        'description' => "Internal int32 identifier",
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => "Message type",
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
   $schema['apb_msg'] = array(
     'description' => "APubSub messages",
     'fields' => array(
@@ -59,6 +78,12 @@ function apb7_schema() {
         'size' => 'normal',
         'unsigned' => TRUE,
         'not null' => TRUE,
+      ),
+      'type_id' => array(
+        'description' => "Message type",
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => NULL,
       ),
       'created' => array(
         'description' => "Creation/sending UNIX timestamp",
@@ -80,6 +105,10 @@ function apb7_schema() {
       'apb_msg_chan_id_fk' => array(
         'table' => 'apb_chan',
         'columns' => array('chan_id' => 'id'),
+      ),
+      'apb_msg_type_id_fk' => array(
+        'table' => 'apb_msg_type',
+        'columns' => array('type_id' => 'id'),
       ),
     ),
   );
@@ -256,5 +285,6 @@ function apb7_schema() {
     ),
     'primary key' => array('id'),
   );
+
   return $schema;
 }
