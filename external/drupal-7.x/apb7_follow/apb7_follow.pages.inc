@@ -9,10 +9,9 @@ use Apb\Notification\NotificationManager;
  */
 function apb7_notification_page_user_list($form, &$form_state, $account) {
 
-  $key         = NotificationManager::getChanId(APB_TYPE_USER, $account->uid);
   $manager     = apb7_notification_manager_get();
   $backend     = $manager->getBackend();
-  $subscriber  = $backend->getSubscriber($key);
+  $subscriber  = $manager->getSubscriberFor($account->uid);
   $displayed   = 0;
   $total       = 0;
 
@@ -32,6 +31,10 @@ function apb7_notification_page_user_list($form, &$form_state, $account) {
   $form['#theme'] = 'notifications_page';
   $form['list'] = array(
     '#type' => 'checkboxes',
+  );
+  $form['uid'] = array(
+    '#type' => 'value',
+    '#value' => $account->uid,
   );
 
   foreach ($cursor as $message) {
@@ -92,9 +95,9 @@ function apb7_notification_page_user_list($form, &$form_state, $account) {
  */
 function apb7_notification_page_user_list_submit_unread($form, &$form_state) {
 
-  $manager = apb7_notification_manager_get();
-  $backend = $manager->getBackend();
-  $count   = 0;
+  $manager    = apb7_notification_manager_get();
+  $subscriber = $manager->getSubscriberFor($form_state['values']['uid']);
+  $count      = 0;
 
   foreach ($form_state['values']['list'] as $msgid => $enabled) {
     if ($msgid == $enabled) {
@@ -111,19 +114,24 @@ function apb7_notification_page_user_list_submit_unread($form, &$form_state) {
  * User notifications page delete submit handler.
  */
 function apb7_notification_page_user_list_submit_delete($form, &$form_state) {
-  $manager = apb7_notification_manager_get();
-  $backend = $manager->getBackend();
-  $count   = 0;
+
+  $manager    = apb7_notification_manager_get();
+  $subscriber = $manager->getSubscriberFor($form_state['values']['uid']);
+  $count      = 0;
+  $list       = array();
 
   foreach ($form_state['values']['list'] as $msgid => $enabled) {
     if ($msgid == $enabled) {
       ++$count;
+      $list[] = $msgid;
     }
   }
 
+  $subscriber->deleteMessages($list);
+
   drupal_set_message(format_plural($count,
-    "@count message marked as unread",
-    "@count messages marked as unread"));
+    "@count message deleted",
+    "@count messages deleted"));
 }
 
 /**

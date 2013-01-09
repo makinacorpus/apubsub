@@ -12,19 +12,6 @@ use APubSub\PubSubInterface;
 class NotificationManager
 {
     /**
-     * Get channel identifier from input parameters
-     *
-     * @param string $type Source object type
-     * @param scalar $id   Source object identifier
-     *
-     * @return string          Channel identifier
-     */
-    public static function getChanId($type, $id)
-    {
-        return $type . ':' . $id;
-    }
-
-    /**
      * @var \APubSub\PubSubInterface
      */
     protected $backend;
@@ -42,6 +29,33 @@ class NotificationManager
     public function __construct(PubSubInterface $backend)
     {
         $this->backend = $backend;
+    }
+
+    /**
+     * Get channel identifier from input parameters
+     *
+     * @param string $type Source object type
+     * @param scalar $id   Source object identifier
+     *
+     * @return string          Channel identifier
+     */
+    public function getChanId($type, $id)
+    {
+        return $type . ':' . $id;
+    }
+
+    /**
+     * Get subscriber for object
+     *
+     * @param int $id      Object identifier
+     * @param string $type Type identifier, if none given assume
+     *                     user account
+     */
+    public function getSubscriberFor($id, $type = APB_TYPE_USER)
+    {
+        return $this
+            ->backend
+            ->getSubscriber($this->getChanId($type, $id));
     }
 
     /**
@@ -80,7 +94,7 @@ class NotificationManager
         try {
             $this
                 ->getBackend()
-                ->getChannel(self::getChanId($type, $id))
+                ->getChannel($this->getChanId($type, $id))
                 ->send(array('i' => $id, 'd' => $data), $type);
         } catch (ChannelDoesNotExistException $e) {
           // Nothing to do, no channel means no subscription

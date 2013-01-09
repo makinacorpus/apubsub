@@ -250,10 +250,9 @@ function apb7_follow_account_link_form($form, &$form_state, $targetId, $targetTy
 
   global $user;
 
-  $manager      = apb7_notification_manager_get();
-  $chanId       = NotificationManager::getChanId($targetType, $targetId);
-  $subscriberId = NotificationManager::getChanId(APB_TYPE_USER, $user->uid);
-  $subscriber   = $manager->getBackend()->getSubscriber($subscriberId);
+  $manager    = apb7_notification_manager_get();
+  $chanId     = $manager->getChanId($targetType, $targetId);
+  $subscriber = $manager->getSubscriberFor($user->uid);
 
   $form['cid'] = array(
     '#type' => 'value',
@@ -261,7 +260,7 @@ function apb7_follow_account_link_form($form, &$form_state, $targetId, $targetTy
   );
   $form['sid'] = array(
     '#type' => 'value',
-    '#value' => $subscriberId,
+    '#value' => $subscriber->getId(),
   );
 
   $form['submit'] = array(
@@ -380,10 +379,8 @@ function apb7_follow_notification_render_block($account) {
     '#list'  => array(),
   );
 
-  $key         = NotificationManager::getChanId(APB_TYPE_USER, $account->uid);
   $manager     = apb7_notification_manager_get();
-  $backend     = $manager->getBackend();
-  $subscriber  = $backend->getSubscriber($key); 
+  $subscriber  = $manager->getSubscriberFor($account->uid); 
 
   $unreadCount = 0;
   $totalCount  = 0;
