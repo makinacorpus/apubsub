@@ -64,6 +64,11 @@
   margin-left: 52px;
 }
 
+#notifications-page .list .image,
+#notifications .list .image {
+  float: left;
+}
+
 /*
  * Page only
  */
@@ -95,10 +100,6 @@
   height: 15px;
   pading: 2px;
   cursor: pointer;
-}
-
-#notifications .list .image {
-  float: left;
 }
 
 #notifications .top div {
