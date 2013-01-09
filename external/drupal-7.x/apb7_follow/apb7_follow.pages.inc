@@ -1,1 +1,158 @@
 <?php
+
+use APubSub\CursorInterface;
+
+use Apb\Notification\NotificationManager;
+
+/**
+ * User notifications page.
+ */
+function apb7_notification_page_user_list($form, &$form_state, $account) {
+
+  $key         = NotificationManager::getChanId(APB_TYPE_USER, $account->uid);
+  $manager     = apb7_notification_manager_get();
+  $backend     = $manager->getBackend();
+  $subscriber  = $backend->getSubscriber($key);
+  $displayed   = 0;
+  $total       = 0;
+
+  // FIXME: Handle pager here.
+  $offset = 0;
+
+  $cursor = $subscriber
+    ->fetch()
+    ->addSort(
+        CursorInterface::FIELD_MSG_SENT,
+        CursorInterface::SORT_DESC)
+    ->setRange(50, $offset);
+
+  $total = count($cursor);
+
+  $form['#tree'] = TRUE;
+  $form['#theme'] = 'notifications_page';
+  $form['list'] = array(
+    '#type' => 'checkboxes',
+  );
+
+  foreach ($cursor as $message) {
+    $notification = $manager->getNotification($message);
+
+    if (!$notification->isValid()) {
+      continue;
+    }
+
+    ++$displayed;
+
+    if ($uri = $notification->getImageUri()) {
+      $image = apb7_follow_image_render($uri);
+    } else {
+      $image = '';
+    }
+
+    $form['list']['#options'][$message->getId()] = array(
+      'image'  => $image,
+      'time'   => $message->getSendTimestamp(),
+      'unread' => $message->isUnread(),
+      'text'   => $notification->format(),
+    );
+  }
+
+  $form['top']['#markup'] = format_plural(
+    $total,
+    "Displaying @displayed of @count notification",
+    "Displaying @displayed of @count notifications",
+    array('@displayed' => $displayed));
+
+  $form['pager']['#markup'] = theme('pager');
+
+  $form['actions'] = array(
+    '#type'  => 'actions',
+    'unread' => array(
+      '#type'   => 'submit',
+      '#value'  => t("Mark as unread"),
+      '#submit' => array('apb7_notification_page_user_list_submit_unread'),
+    ),
+    'delete' => array(
+      '#type'  => 'submit',
+      '#value' => t("Delete"),
+      '#submit' => array('apb7_notification_page_user_list_submit_delete'),
+    ),
+    'preferences' => array(
+      '#type'  => 'link',
+      '#title' => t("Preferences"),
+      '#href'  => 'user/' . $account->uid . '/notifications/settings',
+    ),
+  );
+
+  return $form;
+}
+
+/**
+ * User notifications page mark as unread submit handler.
+ */
+function apb7_notification_page_user_list_submit_unread($form, &$form_state) {
+
+  $manager = apb7_notification_manager_get();
+  $backend = $manager->getBackend();
+  $count   = 0;
+
+  foreach ($form_state['values']['list'] as $msgid => $enabled) {
+    if ($msgid == $enabled) {
+      ++$count;
+    }
+  }
+
+  drupal_set_message(format_plural($count,
+    "@count message marked as unread",
+    "@count messages marked as unread"));
+}
+
+/**
+ * User notifications page delete submit handler.
+ */
+function apb7_notification_page_user_list_submit_delete($form, &$form_state) {
+  $manager = apb7_notification_manager_get();
+  $backend = $manager->getBackend();
+  $count   = 0;
+
+  foreach ($form_state['values']['list'] as $msgid => $enabled) {
+    if ($msgid == $enabled) {
+      ++$count;
+    }
+  }
+
+  drupal_set_message(format_plural($count,
+    "@count message marked as unread",
+    "@count messages marked as unread"));
+}
+
+/**
+ * User notifications preference page.
+ */
+function apb7_notification_page_user_settings($form, &$form_state, $account) {
+
+  return $form;
+}
+
+/**
+ * Implements template_preprocess_HOOK().
+ */
+function template_preprocess_notifications_page(&$variables) {
+
+  $form = &$variables['form'];
+
+  foreach (element_children($form['list']) as $key) {
+    // Should have already been expanded.
+    // Sad checkbox is sad.
+    $item = &$form['list'][$key]['#title'];
+    unset($form['list'][$key]['#title']);
+
+    $item['checkbox'] = drupal_render($form['list'][$key]);
+
+    $variables['list'][] = $item;
+  }
+
+  $variables['top']   = drupal_render($form['top']);
+  $variables['pager'] = drupal_render($form['pager']);
+  $variables['form']  = drupal_render_children($form);
+}

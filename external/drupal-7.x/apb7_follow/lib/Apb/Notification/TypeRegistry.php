@@ -44,7 +44,7 @@ class TypeRegistry
      *
      * @param string $debug Debug mode toggle, true to enable
      */
-    public function __construct($debug = true)
+    public function __construct($debug = false)
     {
         $this->debug = $debug;
     }
@@ -110,7 +110,7 @@ class TypeRegistry
     final private function getNullInstance()
     {
         if (null === $this->nullInstance) {
-            $this->nullInstance = new NullNotificationType();
+            $this->nullInstance = new NullFormatter();
         }
 
         return $this->nullInstance;

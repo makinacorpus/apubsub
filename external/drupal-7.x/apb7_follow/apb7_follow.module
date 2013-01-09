@@ -16,17 +16,15 @@
 use APubSub\CursorInterface;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
-use APubSub\MessageInterface;
 
-use Apb\Follow\Notification;
-use Apb\Follow\TypeRegistry;
+use Apb\Notification\NotificationManager;
 
 // This module exists for sample purposes: register a PSR-0 autoloader
 // for our own library.
 spl_autoload_register(function ($className) {
   if (false !== strpos($className, '\\')) {
     $parts = explode('\\', $className);
-    if ('Apb' === $parts[0] && 'Follow' === $parts[1]) {
+    if ('Apb' === $parts[0] && 'Notification' === $parts[1]) {
       $filename = __DIR__ . '/lib/' . implode('/', $parts) . '.php';
       if (file_exists($filename)) {
         return (bool)require_once $filename;
@@ -51,8 +49,8 @@ const APB_TYPE_ENTITY= 'e';
  */
 function apb7_follow_apb7_follow_type_info() {
   return array(
-    APB_TYPE_ENTITY => 'Apb\Follow\Notification\EntityNotificationType',
-    APB_TYPE_USER   => 'Apb\Follow\Notification\UserNotificationType',
+    APB_TYPE_ENTITY => 'Apb\Notification\Formatter\EntityFormatter',
+    APB_TYPE_USER   => 'Apb\Notification\Formatter\UserActionFormatter',
   );
 }
 
@@ -69,7 +67,18 @@ function apb7_follow_permission() {
       'title' => t("Follow other users"),
       'description' => t("Allow the user to follow other users messages"),
     ),
+    'see notifications of all users' => array(
+      'title' => t(""),
+    ),
   );
+}
+
+/**
+ * Menu access callback.
+ */
+function apb7_notification_user_access($account) {
+  global $user;
+  return $account->uid != 0 && (user_access('see notifications of all users') || ($account->uid == $user->uid && user_access('follow other users')));
 }
 
 /**
@@ -77,15 +86,42 @@ function apb7_follow_permission() {
  */
 function apb7_follow_menu() {
   $items = array();
-/*
-  $items['user/%user/subscriptions'] = array(
-    'title' => "Notifications",
-    'page callback' => '',
-    'page arguments' => '',
-    
+
+  $items['user/%user/notifications'] = array(
+    'title'            => "Notifications",
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('apb7_notification_page_user_list', 1),
+    'access callback'  => 'apb7_notification_user_access',
+    'access arguments' => array(1),
+    'type'             => MENU_CALLBACK | MENU_VISIBLE_IN_BREADCRUMB,
+    'file'             => 'apb7_follow.pages.inc',
   );
- */
+  $items['user/%user/notifications/settings'] = array(
+    'title'            => "Preferences",
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('apb7_notification_page_user_settings', 1),
+    'access callback'  => 'apb7_notification_user_access',
+    'access arguments' => array(1),
+    'type'             => MENU_CALLBACK | MENU_VISIBLE_IN_BREADCRUMB,
+    'file'             => 'apb7_follow.pages.inc',
+  );
+
   return $items;
+}
+
+/**
+ * Get notification manager.
+ *
+ * @return \Apb\Notification\NotificationManager
+ */
+function apb7_notification_manager_get() {
+  $instance = &drupal_static(__FUNCTION__);
+
+  if (NULL === $instance) {
+    $instance = new NotificationManager(apb7_backend_get());
+  }
+
+  return $instance;
 }
 
 /**
@@ -98,8 +134,9 @@ function apb7_follow_theme() {
       'template'       => 'notifications-block',
     ),
     'notifications_page' => array(
-      'render element' => 'data',
+      'render element' => 'form',
       'template'       => 'notifications-page',
+      'file'           => 'apb7_follow.pages.inc'
     ),
   );
 }
@@ -161,24 +198,6 @@ function apb7_follow_image_default_styles() {
 }
 
 /**
- * Get user key for subscriber or channel name.
- *
- * For convenience, users channel and subscriber instances will always have the
- * same name. We are not dealing with multiple channels per user here.
- *
- * @param int $id
- *   Object identifier.
- * @param string $type
- *   Object type.
- *
- * @return string
- *   key.
- */
-function apb7_follow_user_key($id, $type) {
-  return 'n:' . $type . ':' . $id;
-}
-
-/**
  * Tell if the entity type follow operation is supported.
  *
  * @param string $type
@@ -192,22 +211,6 @@ function apb7_follow_entity_type_is_supported($type) {
 }
 
 /**
- * Get formatter registry.
- *
- * @return \Apb\Follow\TypeRegistry
- *   Formatter registry.
- */
-function apb7_follow_type_registry_get() {
-  static $registry;
-
-  if (null === $registry) {
-    $registry = new TypeRegistry();
-  }
-
-  return $registry;
-}
-
-/**
  * Implements hook_block_view().
  */
 function apb7_follow_block_view($delta = '') {
@@ -216,7 +219,7 @@ function apb7_follow_block_view($delta = '') {
   switch ($delta) {
 
     case 'follow_user':
-      if ($account = menu_get_object('user')) {
+      if (($account = menu_get_object('user')) && !arg(2)) {
         return array(
           'subject' => t("Follow"),
           'content' => drupal_get_form('apb7_follow_account_link_form', $account->uid, APB_TYPE_USER),
@@ -247,10 +250,10 @@ function apb7_follow_account_link_form($form, &$form_state, $targetId, $targetTy
 
   global $user;
 
-  $chanId       = apb7_follow_user_key($targetId, $targetType);
-  $subscriberId = apb7_follow_user_key($user->uid, APB_TYPE_USER);
-  $backend      = apb7_backend_get();
-  $subscriber   = $backend->getSubscriber($subscriberId);
+  $manager      = apb7_notification_manager_get();
+  $chanId       = NotificationManager::getChanId($targetType, $targetId);
+  $subscriberId = NotificationManager::getChanId(APB_TYPE_USER, $user->uid);
+  $subscriber   = $manager->getBackend()->getSubscriber($subscriberId);
 
   $form['cid'] = array(
     '#type' => 'value',
@@ -287,7 +290,8 @@ function apb7_follow_account_link_form_submit($form, &$form_state) {
 
   $chanId       = $form_state['values']['cid'];
   $subscriberId = $form_state['values']['sid'];
-  $backend      = apb7_backend_get();
+  $manager      = apb7_notification_manager_get();
+  $backend      = $manager->getBackend();
   $subscriber   = $backend->getSubscriber($subscriberId);
 
   try {
@@ -371,11 +375,15 @@ function apb7_follow_image_render($uri, $size = 32) {
  */
 function apb7_follow_notification_render_block($account) {
 
-  $build            = array('#theme' => 'notifications_block');
+  $build = array(
+    '#theme' => 'notifications_block',
+    '#list'  => array(),
+  );
 
-  $key              = apb7_follow_user_key($account->uid, APB_TYPE_USER);
-  $subscriber       = apb7_backend_get()->getSubscriber($key); 
-  $registry         = apb7_follow_type_registry_get();
+  $key         = NotificationManager::getChanId(APB_TYPE_USER, $account->uid);
+  $manager     = apb7_notification_manager_get();
+  $backend     = $manager->getBackend();
+  $subscriber  = $backend->getSubscriber($key); 
 
   $unreadCount = 0;
   $totalCount  = 0;
@@ -390,15 +398,13 @@ function apb7_follow_notification_render_block($account) {
 
   foreach ($cursor as $message) {
 
-    $notification = new Notification($message);
+    $notification = $manager->getNotification($message);
 
     if (!$notification->isValid()) {
         continue;
     }
 
     ++$totalCount;
-
-    $type = $registry->getInstance($notification->getType());
 
     if ($message->isUnread()) {
       ++$unreadCount;
@@ -407,8 +413,7 @@ function apb7_follow_notification_render_block($account) {
       // FIXME $message->setUnread(false);
     }
 
-    if ($uri = $type->getImageURI($notification)) {
-      // @todo Switch to render array
+    if ($uri = $notification->getImageUri()) {
       $image = apb7_follow_image_render($uri);
     } else {
       $image = '';
@@ -417,7 +422,7 @@ function apb7_follow_notification_render_block($account) {
     $build['#list'][] = array(
       'image'  => $image,
       'time'   => $message->getSendTimestamp(),
-      'text'   => $type->format($notification),
+      'text'   => $notification->format(),
       'unread' => $message->isUnread(),
     );
   }
@@ -444,6 +449,8 @@ function apb7_follow_notification_render_block($account) {
  */
 function template_preprocess_notifications_block(&$variables) {
 
+  global $user;
+
   drupal_add_css(drupal_get_path('module', 'apb7_follow') . '/apb7_follow.css');
   drupal_add_js(drupal_get_path('module', 'apb7_follow') . '/apb7_follow.js');
 
@@ -456,7 +463,7 @@ function template_preprocess_notifications_block(&$variables) {
     'total_title'  => $data['#total_title'],
     'real_total'   => $data['#real_total'],
     'list'         => $data['#list'],
-    'all_link'     => l(t("See all"), '', array('attributes' => array('class' => 'all-link'))),
-    'pref_link'    => l(t("Preferences"), '', array('attributes' => array('class' => 'pref-link'))),
+    'all_link'     => l(t("See all"), 'user/' . $user->uid . '/notifications', array('attributes' => array('class' => array('all-link')))),
+    'pref_link'    => l(t("Preferences"), 'user/' . $user->uid . '/notifications/settings', array('attributes' => array('class' => array('pref-link')))),
   );
 }

@@ -1,10 +1,13 @@
 
+/*
+ * Top (block)
+ */
+
 #notification {
   position: relative;
 }
 
 #notifications .list {
-  /* font-size: 90%; */
   display: none;
   position: absolute;
   top: 80px;
@@ -18,14 +21,21 @@
   box-shadow: 2px 2px 4px #808080;
 }
 
+/*
+ * All listings
+ */
+
+#notifications-page .list *,
 #notifications .list * {
   color: #808080;
 }
 
+#notifications-page .list a,
 #notifications .list a {
   color: #0071B3;
 }
 
+#notifications-page .list ul,
 #notifications .list ul {
   list-style: none;
   list-style-position: inside;
@@ -33,18 +43,48 @@
   padding: 0;
 }
 
+#notifications-page .list li,
 #notifications .list li {
   padding: 1.3em 1.7em;
   border-bottom: 1px solid #ccc;
 }
 
+#notifications-page .list .time,
 #notifications .list .time {
   font-style: italic;
 }
 
+#notifications-page .list .unread,
 #notifications .list .unread {
   /* font-weight: bold; */
 }
+
+#notifications-page .list li .text,
+#notifications .list li .text {
+  margin-left: 52px;
+}
+
+/*
+ * Page only
+ */
+
+#notifications-page .list li .checkbox {
+  float: right;
+  margin-left: 1em;
+}
+
+#notifications-page .form-actions * {
+  float: right;
+}
+
+#notifications-page .form-actions a {
+  margin-right: 2em;
+  margin-top: 0.4em;
+}
+
+/*
+ * Block only
+ */
 
 #notifications .list .pref-link {
   float: right;
@@ -55,10 +95,6 @@
   height: 15px;
   pading: 2px;
   cursor: pointer;
-}
-
-#notifications .list li .text {
-    margin-left: 52px;
 }
 
 #notifications .list .image {

@@ -1,25 +1,9 @@
-<div id="notifications">
-  <div class="top">
-    <?php if ($unread_count): ?>
-    <div class="unread number" title="<?php echo $unread_title; ?>">
-      <?php echo $unread_count; ?>
-    </div>
-    <?php endif; ?>
-    <div class="unread number" title="<?php echo $total_title; ?>">
-      <?php echo $total_count; ?>
-    </div>
-  </div>
+<div id="notifications-page">
   <div class="list">
     <ul>
       <li>
         <div class="text">
-          <?php echo t("Notifications"); ?>
-          <?php if ($total_count): ?>
-          (<?php echo t("<strong>@a</strong> of @b", array(
-            '@a' => $total_count,
-            '@b' => $real_total,
-          )); ?>)
-          <?php endif; ?>
+          <?php echo $top; ?>
         </div>
       </li>
       <?php if (empty($list)): ?>
@@ -35,6 +19,9 @@
           <?php echo render($item['image']); ?>
         </div>
         <div class="text">
+          <div class="checkbox">
+            <?php echo $item['checkbox']; ?>
+          </div>
           <?php if ($item['unread']): ?>
           <span class="unread">
           <?php echo $item['text']; ?>
@@ -50,12 +37,8 @@
       </li>
       <?php endforeach; ?>
       <?php endif; ?>
-      <li>
-        <div class="text">
-          <?php echo $all_link; ?>
-          <?php echo $pref_link; ?>
-        </div>
-      </li>
     </ul>
+    <?php echo $pager; ?>
   </div>
+  <?php echo $form; ?>
 </div>
