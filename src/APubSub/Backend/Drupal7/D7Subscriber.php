@@ -273,11 +273,13 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
             CursorInterface::FIELD_MSG_ID => $id,
         ));
 
-        if (count($cursor)) {
+        if (!count($cursor)) {
             throw new MessageDoesNotExistException();
         }
 
-        return reset($cursor);
+        foreach ($cursor as $message) {
+            return $message;
+        }
     }
 
     /**

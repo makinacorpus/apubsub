@@ -323,7 +323,9 @@ class D7Subscription extends AbstractObject implements SubscriptionInterface
             throw new MessageDoesNotExistException();
         }
 
-        return reset($cursor);
+        foreach ($cursor as $message) {
+            return $message;
+        }
     }
 
     /**
