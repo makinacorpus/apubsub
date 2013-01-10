@@ -55,35 +55,7 @@ class MemoryChannel extends AbstractObject implements ChannelInterface
      */
     public function getCreationTime()
     {
-      return $this->created;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::getMessage()
-     */
-    public function getMessage($id)
-    {
-        if (!isset($this->context->channelMessages[$this->id][$id])) {
-            throw new MessageDoesNotExistException();
-        }
-
-        return $this->context->channelMessages[$this->id][$id];
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::getMessages()
-     */
-    public function getMessages($idList)
-    {
-        $ret = array();
-
-        foreach ($idList as $id) {
-            $ret[] = $this->getMessage($id);
-        }
-
-        return $ret;
+        return $this->created;
     }
 
     /**
@@ -179,5 +151,33 @@ class MemoryChannel extends AbstractObject implements ChannelInterface
         foreach ($this->context->subscriptions as $subscription) {
             $subscription->deleteMessages($idList);
         }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::getMessage()
+     */
+    public function getMessage($id)
+    {
+        if (!isset($this->context->channelMessages[$this->id][$id])) {
+            throw new MessageDoesNotExistException();
+        }
+
+        return $this->context->channelMessages[$this->id][$id];
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::getMessages()
+     */
+    public function getMessages(array $idList)
+    {
+        $ret = array();
+
+        foreach ($idList as $id) {
+            $ret[] = $this->getMessage($id);
+        }
+
+        return $ret;
     }
 }

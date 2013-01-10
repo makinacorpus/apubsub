@@ -5,6 +5,7 @@ namespace APubSub\Backend\Drupal7;
 use APubSub\Backend\AbstractObject;
 use APubSub\Backend\Drupal7\Cursor\D7MessageCursor;
 use APubSub\CursorInterface;
+use APubSub\Error\MessageDoesNotExistException;
 use APubSub\SubscriptionInterface;
 
 /**
@@ -188,7 +189,22 @@ class D7Subscription extends AbstractObject implements SubscriptionInterface
             ->fields('q')
             ->condition('q.sub_id', $this->id);
 
-        // FIXME: Apply conditions.
+        if (null !== $conditions) {
+            foreach ($conditions as $field => $value) {
+                switch ($field) {
+
+                    case CursorInterface::FIELD_MSG_ID:
+                        $query->condition('q.msg_id', $value);
+                        break;
+
+                    default:
+                        trigger_error(sprintf("% does not support filter %d yet",
+                            get_class($this), $field));
+                        break;
+                }
+            }
+        }
+
         return new D7MessageCursor($this->context, $query);
     }
 
@@ -291,5 +307,39 @@ class D7Subscription extends AbstractObject implements SubscriptionInterface
             ->condition('sub_id', $this->id)
             ->condition('msg_id', $idList, 'IN')
             ->execute();
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::getMessages()
+     */
+    public function getMessage($id)
+    {
+        $cursor = $this->fetch(array(
+            CursorInterface::FIELD_MSG_ID => $id,
+        ));
+
+        if (!count($cursor)) {
+            throw new MessageDoesNotExistException();
+        }
+
+        return reset($cursor);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::getMessages()
+     */
+    public function getMessages(array $idList)
+    {
+        $cursor = $this->fetch(array(
+            CursorInterface::FIELD_MSG_ID => $idList,
+        ));
+
+        if (count($cursor) !== count($idList)) {
+            throw new MessageDoesNotExistException();
+        }
+
+        return iterator_to_array($cursor);
     }
 }

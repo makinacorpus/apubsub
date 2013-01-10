@@ -4,9 +4,6 @@ namespace APubSub;
 
 /**
  * Describes a component that handles messages
- *
- * This interface does not include the fetch() and getMessage*() methods
- * because they are to behave differently over various contextes
  */
 interface MessageContainerInterface
 {
@@ -30,4 +27,30 @@ interface MessageContainerInterface
      * @param array $idList List of message identifiers
      */
     public function deleteMessages(array $idList);
+
+    /**
+     * Get a single message
+     *
+     * @param scalar $id                 Message identifier
+     *
+     * @return \APubSub\MessageInterface Loaded message
+     *
+     * @throws \APubSub\Error\MessageDoesNotExistException
+     *                                   If message does not exist in the
+     *                                   current container
+     */
+    public function getMessage($id);
+
+    /**
+     * Get a list of messages
+     *
+     * @param array $idList                List of message identifiers
+     *
+     * @return \APubSub\MessageInterface[] Loaded messages array
+     *
+     * @throws \APubSub\Error\MessageDoesNotExistException
+     *                                     If one of more messages don't exist
+     *                                     in the current container
+     */
+    public function getMessages(array $idList);
 }

@@ -3,12 +3,12 @@
 namespace APubSub\Backend\Memory;
 
 use APubSub\Backend\AbstractObject;
+use APubSub\Backend\ArrayCursor;
+use APubSub\Error\MessageDoesNotExistException;
 use APubSub\Error\SubscriptionAlreadyExistsException;
 use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\CursorInterface;
 use APubSub\SubscriberInterface;
-
-use APubSub\Backend\ArrayCursor;
 
 /**
  * Array based implementation for unit testing: do not use in production
@@ -154,5 +154,47 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
         foreach ($this->getSubscriptions() as $subscription) {
             $subscription->deleteMessages($idList);
         }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::getMessage()
+     */
+    public function getMessage($id)
+    {
+        foreach ($this->getSubscriptions() as $subscription) {
+            foreach ($subscription->fetch() as $message) {
+                if ($message->getId() === $id) {
+                    return $message;
+                }
+            }
+        }
+
+        throw new MessageDoesNotExistException();
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::getMessages()
+     */
+    public function getMessages(array $idList)
+    {
+        $ret = array();
+
+        foreach ($this->getSubscriptions() as $subscription) {
+            foreach ($subscription->fetch() as $message) {
+                if (in_array($id, $message->getId())) {
+                    return $ret[] = $message;
+                }
+            }
+        }
+
+        if (count($ret) !== count($idList)) {
+            throw new MessageDoesNotExistException();
+        }
+
+        // FIXME Re-order messages following the $idList order
+
+        return $ret;
     }
 }

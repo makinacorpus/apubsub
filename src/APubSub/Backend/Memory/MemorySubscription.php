@@ -290,4 +290,42 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
             }
         }
     }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::getMessage()
+     */
+    public function getMessage($id)
+    {
+        foreach ($this->fetch() as $message) {
+            if ($message->getId() === $id) {
+                return $message;
+            }
+        }
+
+        throw new MessageDoesNotExistException();
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::getMessages()
+     */
+    public function getMessages(array $idList)
+    {
+        $ret = array();
+
+        foreach ($this->fetch() as $message) {
+            if (in_array($id, $message->getId())) {
+                return $ret[] = $message;
+            }
+        }
+
+        if (count($ret) !== count($idList)) {
+            throw new MessageDoesNotExistException();
+        }
+
+        // FIXME Re-order messages following the $idList order
+
+        return $ret;
+    }
 }

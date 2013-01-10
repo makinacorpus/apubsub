@@ -84,69 +84,6 @@ class D7Channel extends AbstractObject implements ChannelInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::getMessage()
-     */
-    public function getMessage($id)
-    {
-        $record = $this
-            ->context
-            ->dbConnection
-            ->query("SELECT * FROM {apb_msg} WHERE id = :id AND chan_id = :chanId", array(
-                ':id' => $id,
-                ':chanId' => $this->dbId,
-            ))
-            ->fetchObject();
-
-        if (!$record) {
-            throw new MessageDoesNotExistException();
-        }
-
-        return new DefaultMessage(
-            $this->context,
-            $this->id,
-            null,
-            unserialize($record->contents),
-            $id,
-            (int)$record->created);
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::getMessages()
-     */
-    public function getMessages($idList)
-    {
-        $records = $this
-            ->context
-            ->dbConnection
-            ->select('apb_msg', 'm')
-            ->fields('m')
-            ->condition('m.id', $idList, 'IN')
-            ->execute()
-            // Fetch all is mandatory in order for the result to be countable
-            ->fetchAll();
-
-        if (count($idList) !== count($records)) {
-            throw new MessageDoesNotExistException();
-        }
-
-        $ret = array();
-
-        foreach ($records as $record) {
-            $ret[] = new DefaultMessage(
-                $this->context,
-                $this->id,
-                null,
-                unserialize($record->contents),
-                (int)$record->id,
-                (int)$record->created);
-        }
-
-        return $ret;
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\ChannelInterface::send()
      */
     public function send($contents, $type = null, $sendTime = null)
@@ -299,5 +236,68 @@ class D7Channel extends AbstractObject implements ChannelInterface
 
             throw $e;
         }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::getMessage()
+     */
+    public function getMessage($id)
+    {
+        $record = $this
+            ->context
+            ->dbConnection
+            ->query("SELECT * FROM {apb_msg} WHERE id = :id AND chan_id = :chanId", array(
+                ':id' => $id,
+                ':chanId' => $this->dbId,
+            ))
+            ->fetchObject();
+
+        if (!$record) {
+            throw new MessageDoesNotExistException();
+        }
+
+        return new DefaultMessage(
+            $this->context,
+            $this->id,
+            null,
+            unserialize($record->contents),
+            $id,
+            (int)$record->created);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::getMessages()
+     */
+    public function getMessages(array $idList)
+    {
+        $records = $this
+            ->context
+            ->dbConnection
+            ->select('apb_msg', 'm')
+            ->fields('m')
+            ->condition('m.id', $idList, 'IN')
+            ->execute()
+            // Fetch all is mandatory in order for the result to be countable
+            ->fetchAll();
+
+        if (count($idList) !== count($records)) {
+            throw new MessageDoesNotExistException();
+        }
+
+        $ret = array();
+
+        foreach ($records as $record) {
+            $ret[] = new DefaultMessage(
+                $this->context,
+                $this->id,
+                null,
+                unserialize($record->contents),
+                (int)$record->id,
+                (int)$record->created);
+        }
+
+        return $ret;
     }
 }
