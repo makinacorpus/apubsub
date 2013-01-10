@@ -1,6 +1,7 @@
 <?php
 
 use APubSub\CursorInterface;
+use APubSub\Error\MessageDoesNotExistException;
 
 use Apb\Notification\NotificationManager;
 
@@ -27,13 +28,14 @@ function apb7_notification_page_user_list($form, &$form_state, $account) {
 
   $total = count($cursor);
 
-  $form['#tree'] = TRUE;
+  $form['#tree']  = TRUE;
   $form['#theme'] = 'notifications_page';
   $form['list'] = array(
-    '#type' => 'checkboxes',
+    '#type'    => 'checkboxes',
+    '#options' => array(),
   );
   $form['uid'] = array(
-    '#type' => 'value',
+    '#type'  => 'value',
     '#value' => $account->uid,
   );
 
@@ -102,6 +104,14 @@ function apb7_notification_page_user_list_submit_unread($form, &$form_state) {
   foreach ($form_state['values']['list'] as $msgid => $enabled) {
     if ($msgid == $enabled) {
       ++$count;
+
+      try {
+        $subscriber
+          ->getMessage($msgid)
+          ->setUnread(false);
+      } catch (MessageDoesNotExistException $e) {
+        // Silent.
+      }
     }
   }
 
