@@ -17,5 +17,7 @@ function apb7_follow_ajax_user_notifications() {
     echo drupal_render($content);
   }
 
-  drupal_exit();
+  // This will force Drupal to write all its caches and ensure next
+  // hits will actually do something smart.
+  drupal_page_footer();
 }
