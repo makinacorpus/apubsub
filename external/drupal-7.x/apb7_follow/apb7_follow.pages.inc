@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * User pages.
+ */
+
 use APubSub\CursorInterface;
 use APubSub\Error\MessageDoesNotExistException;
 

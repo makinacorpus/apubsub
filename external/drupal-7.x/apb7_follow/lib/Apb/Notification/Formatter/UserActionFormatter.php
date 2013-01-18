@@ -9,29 +9,6 @@ class UserActionFormatter implements FormatterInterface
 {
     /**
      * (non-PHPdoc)
-     * @see \Apb\Follow\NotificationTypeInterface::getUri()
-     */
-    public function getUri(Notification $notification)
-    {
-        if (!($uid = $notification->getSourceId()) || !($account = user_load($uid))) {
-            return null;
-        }
-
-        if (!$account->uid) {
-            // Cannot give a URI for the anonymous user
-            return null;
-        }
-
-        // Hope this method will check for access rights too
-        if (($uri = entity_uri('user', $account)) && isset($uri['path'])) {
-            return $uri['path'];
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \Apb\Follow\NotificationTypeInterface::format()
      */
     public function format(Notification $notification)

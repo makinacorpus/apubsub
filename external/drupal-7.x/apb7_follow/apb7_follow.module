@@ -35,14 +35,34 @@ spl_autoload_register(function ($className) {
 });
 
 /**
- * Follow a user
+ * Notification type for user following.
  */
 const APB_TYPE_USER = 'u';
 
 /**
- * Follow a node
+ * Notification type for entity following.
  */
 const APB_TYPE_ENTITY= 'e';
+
+/**
+ * Enable AJAX for notification block variable name.
+ */
+const APB_VAR_ENABLE_AJAX = 'apb_follow_enable_ajax';
+
+/**
+ * Enable AJAX for notification block default value.
+ */
+const APB_DEF_ENABLE_AJAX = false;
+
+/**
+ * Enable production mode variable name.
+ */
+const APB_VAR_ENABLE_PROD = 'apb_follow_enable_prod';
+
+/**
+ * Enable production mode default value.
+ */
+const APB_DEF_ENABLE_PROD = true;
 
 /**
  * Implements hook_apb7_follow_type_info().
@@ -64,11 +84,12 @@ require_once __DIR__ . '/apb7_follow.triggers.inc';
 function apb7_follow_permission() {
   return array(
     'follow other users' => array(
-      'title' => t("Follow other users"),
-      'description' => t("Allow the user to follow other users messages"),
+      'title'       => t("Follow other users"),
+      'description' => t("Allow the user to follow other users messages."),
     ),
     'see notifications of all users' => array(
-      'title' => t(""),
+      'title'       => t("See notifications of all user profiles"),
+      'description' => t("Users with this permission can manage other user's notifications, use this for moderation only."),
     ),
   );
 }
@@ -76,8 +97,13 @@ function apb7_follow_permission() {
 /**
  * Menu access callback.
  */
-function apb7_notification_user_access($account) {
+function apb7_notification_user_access($account = null) {
   global $user;
+
+  if (!isset($account)) {
+    $account = $user;
+  }
+
   return $account->uid != 0 && (user_access('see notifications of all users') || ($account->uid == $user->uid && user_access('follow other users')));
 }
 
@@ -87,6 +113,7 @@ function apb7_notification_user_access($account) {
 function apb7_follow_menu() {
   $items = array();
 
+  // User preferences and pages.
   $items['user/%user/notifications'] = array(
     'title'            => "Notifications",
     'page callback'    => 'drupal_get_form',
@@ -104,6 +131,39 @@ function apb7_follow_menu() {
     'access arguments' => array(1),
     'type'             => MENU_CALLBACK | MENU_VISIBLE_IN_BREADCRUMB,
     'file'             => 'apb7_follow.pages.inc',
+  );
+
+  // AJAX stuff
+  $items['notifications/ajax/user'] = array(
+    'title'            => "Preferences",
+    'page callback'    => 'apb7_follow_ajax_user_notifications',
+    'access callback'  => 'apb7_notification_user_access',
+    'type'             => MENU_CALLBACK,
+    'file'             => 'apb7_follow.ajax.inc',
+  );
+
+  // Site wide administration pages.
+  $items['admin/config/people/notifications'] = array(
+    'title'            => "Notifications",
+    'description'      => "Enable or disable notifications globally and configuration the notifications behavior.",
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('apb7_follow_admin_notification_overview'),
+    'access arguments' => array('administer site configuration'),
+    'type'             => MENU_NORMAL_ITEM,
+    'file'             => 'apb7_follow.admin.inc',
+  );
+  $items['admin/config/people/notifications/overview'] = array(
+    'title'            => "Overview",
+    'type'             => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['admin/config/people/notifications/settings'] = array(
+    'title'            => "Global settings",
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('apb7_follow_admin_notification_settings'),
+    'access arguments' => array('administer site configuration'),
+    'weight'           => 100,
+    'type'             => MENU_LOCAL_TASK,
+    'file'             => 'apb7_follow.admin.inc',
   );
 
   return $items;
@@ -138,6 +198,7 @@ function apb7_follow_theme() {
       'template'       => 'notifications-page',
       'file'           => 'apb7_follow.pages.inc'
     ),
+    'notifications_loader' => array(),
   );
 }
 
@@ -147,13 +208,16 @@ function apb7_follow_theme() {
 function apb7_follow_block_info() {
   return array(
     'follow_user' => array(
-      'info' => t("Follow displayed user (profile pages)"),
+      'info'  => t("Follow displayed user (profile pages)"),
+      'cache' => DRUPAL_NO_CACHE,
     ),
     'follow_node' => array(
-      'info' => t("Follow displayed node (content pages)"),
+      'info'  => t("Follow displayed node (content pages)"),
+      'cache' => DRUPAL_NO_CACHE,
     ),
     'notifications' => array(
-      'info' => t("Current user notifications"),
+      'info'  => t("Current user notifications"),
+      'cache' => variable_get(APB_VAR_ENABLE_AJAX, APB_DEF_ENABLE_AJAX) ? DRUPAL_CACHE_GLOBAL : DRUPAL_NO_CACHE,
     ),
   );
 }
@@ -237,10 +301,41 @@ function apb7_follow_block_view($delta = '') {
       break;
 
     case 'notifications':
-      return array(
-        'content' => apb7_follow_notification_render_block($user),
+
+      $block = array(
+        'content' => array(
+          // Stupid Drupal is stupid, and will move out your div over the
+          // block if you don't wrap it inside.
+          'inside' => array(
+            '#prefix' => '<div id="notifications">',
+            '#suffix' => '</div>',
+          ),
+        ),
       );
-  }
+
+      // Should move out into a hook_library_info() maybe.
+      drupal_add_css(drupal_get_path('module', 'apb7_follow') . '/apb7_follow.css');
+
+      if (variable_get(APB_VAR_ENABLE_PROD, APB_DEF_ENABLE_PROD)) {
+        drupal_add_js(drupal_get_path('module', 'apb7_follow') . '/notifications-block.min.js');
+      } else {
+        drupal_add_js(drupal_get_path('module', 'apb7_follow') . '/notifications-block.js');
+      }
+
+      if (variable_get(APB_VAR_ENABLE_AJAX, APB_DEF_ENABLE_AJAX)) {
+        drupal_add_js(array(
+          'notifications' => array(
+            'enabled'    => TRUE,
+            'refreshUrl' => url('notifications/ajax/user'),
+          ),
+        ), 'setting');
+        $block['content']['inside']['#markup'] = theme('notifications_loader');
+      } else {
+        $block['content']['inside'] += apb7_follow_notification_render_block($user);
+      }
+
+      return $block;
+    }
 }
 
 /**
@@ -442,14 +537,24 @@ function apb7_follow_notification_render_block($account) {
 }
 
 /**
+ * Notifications loader, very simple.
+ */
+function theme_notifications_loader() {
+
+  $attributes = array(
+    'title'  => t("Loading notifications..."),
+    'style'  => "width: 15px; height: 15px; background: url(" . base_path() . 'misc/throbber.gif' . ") no-repeat 0 -18px;",
+  );
+
+  return '<div'. drupal_attributes($attributes) . '></div>';
+}
+
+/**
  * Implements template_preprocess_HOOK().
  */
 function template_preprocess_notifications_block(&$variables) {
 
   global $user;
-
-  drupal_add_css(drupal_get_path('module', 'apb7_follow') . '/apb7_follow.css');
-  drupal_add_js(drupal_get_path('module', 'apb7_follow') . '/apb7_follow.js');
 
   $data = $variables['data'];
 
