@@ -123,7 +123,6 @@ class D7Channel extends AbstractObject implements ChannelInterface
                             s.id     AS sub_id,
                             1        AS unread,
                             :created AS created
-                            :level   AS level
                         FROM {apb_sub} s
                         WHERE s.chan_id = :chanId
                         AND s.status = 1
@@ -131,7 +130,6 @@ class D7Channel extends AbstractObject implements ChannelInterface
                         ':msgId'   => $id,
                         ':chanId'  => $this->dbId,
                         ':created' => $sendTime,
-                        ':level'   => $level,
                     ));
 
             unset($tx); // Excplicit commit
