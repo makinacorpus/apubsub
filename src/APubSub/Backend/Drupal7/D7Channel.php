@@ -117,12 +117,12 @@ class D7Channel extends AbstractObject implements ChannelInterface
             // Send message to all subscribers
             $cx
                 ->query("
-                    INSERT INTO {apb_queue} (msg_id, sub_id, unread, created)
+                    INSERT INTO {apb_queue} (msg_id, sub_id, unread, created, level)
                         SELECT
                             :msgId   AS msg_id,
                             s.id     AS sub_id,
                             1        AS unread,
-                            :created AS created
+                            :created AS created,
                             :level   AS level
                         FROM {apb_sub} s
                         WHERE s.chan_id = :chanId
