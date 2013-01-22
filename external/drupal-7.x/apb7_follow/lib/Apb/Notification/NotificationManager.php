@@ -2,6 +2,7 @@
 
 namespace Apb\Notification;
 
+use APubSub\Backend\DefaultMessage;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\MessageInterface;
 use APubSub\PubSubInterface;
@@ -22,13 +23,32 @@ class NotificationManager
     protected $typeRegistry;
 
     /**
+     * @var boolean
+     */
+    protected $storeFormatted = false;
+
+    /**
+     * @var boolean
+     */
+    protected $silentMode = false;
+
+    /**
      * Default constructor
      *
      * @param PubSubInterface $backend Backend
+     * @param boolean $storeFormatted  If set to true formatted messages content
+     *                                 will be stored into messages
+     * @param boolean $silentMode      If set to true this object will never
+     *                                 predictible exceptions
      */
-    public function __construct(PubSubInterface $backend)
+    public function __construct(
+        PubSubInterface $backend,
+        $storeFormatted = false,
+        $silentMode = false)
     {
-        $this->backend = $backend;
+        $this->backend        = $backend;
+        $this->storeFormatted = $storeFormatted;
+        $this->silentMode     = $silentMode;
     }
 
     /**
@@ -92,12 +112,31 @@ class NotificationManager
     public function notify($type, $id, $data)
     {
         try {
+            $contents = array(
+                'i' => $id,
+                'd' => $data,
+            );
+
+            if ($this->storeFormatted) {
+                // Quite a hack, but efficient
+                $contents['f'] = $this
+                    ->getTypeRegistry()
+                    ->getInstance($type)
+                    ->format(new Notification($this, $contents));
+            }
+
             $this
                 ->getBackend()
                 ->getChannel($this->getChanId($type, $id))
-                ->send(array('i' => $id, 'd' => $data), $type);
+                ->send($contents, $type);
+
         } catch (ChannelDoesNotExistException $e) {
-          // Nothing to do, no channel means no subscription
+            // Nothing to do, no channel means no subscription
+        } catch (Exception $e) {
+            // Any other exception must be shutdown when in production mode
+            if (!$this->silentMode) {
+                throw $e;
+            }
         }
     }
 

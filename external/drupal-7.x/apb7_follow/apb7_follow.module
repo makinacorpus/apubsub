@@ -65,6 +65,26 @@ const APB_VAR_ENABLE_PROD = 'apb_follow_enable_prod';
 const APB_DEF_ENABLE_PROD = true;
 
 /**
+ * Backend variable name.
+ */
+const APB_VAR_BACKEND = 'apb_follow_backend';
+
+/**
+ * Backend default value.
+ */
+const APB_DEF_BACKEND = 'default';
+
+/**
+ * Store HTML inside messages variable name.
+ */
+const APB_VAR_ENABLE_FORMATTED_CONTENT = 'apb_follow_enable_formatted_content';
+
+/**
+ * Store HTML inside messages default value.
+ */
+const APB_DEF_ENABLE_FORMATTED_CONTENT = false;
+
+/**
  * Implements hook_apb7_follow_type_info().
  */
 function apb7_follow_apb7_follow_type_info() {
@@ -178,7 +198,16 @@ function apb7_notification_manager_get() {
   $instance = &drupal_static(__FUNCTION__);
 
   if (NULL === $instance) {
-    $instance = new NotificationManager(apb7_backend_get());
+    $instance = new NotificationManager(
+        apb7_backend_get(variable_get(
+            APB_VAR_BACKEND,
+            APB_DEF_BACKEND)),
+        variable_get(
+            APB_VAR_ENABLE_FORMATTED_CONTENT,
+            APB_DEF_ENABLE_FORMATTED_CONTENT),
+        variable_get(
+            APB_VAR_ENABLE_PROD,
+            APB_DEF_ENABLE_PROD));
   }
 
   return $instance;

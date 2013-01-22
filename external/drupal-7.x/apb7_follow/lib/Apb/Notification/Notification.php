@@ -48,18 +48,24 @@ class Notification
     private $messageId;
 
     /**
+     * @var string
+     */
+    private $formatted;
+
+    /**
      * Build instance from message
      *
-     * @param NotificationManager $manager Notification manager
-     * @param MessageInterface $message    Message
+     * @param NotificationManager $manager    Notification manager
+     * @param array|MessageInterface $message Message instance or contents
      */
     public function __construct(
         NotificationManager $manager,
-        MessageInterface $message)
+        $message)
     {
         $this->manager = $manager;
 
-        if (($contents = $message->getContents()) &&
+        if ($message instanceof MessageInterface &&
+            ($contents = $message->getContents()) &&
             is_array($contents) &&
             isset($contents['i']) &&
             isset($contents['d']))
@@ -69,8 +75,20 @@ class Notification
             $this->type      = $message->getType();
             $this->messageId = $message->getId();
             $this->valid     = true;
-        } else {
-            $this->data = array();
+
+            if (isset($contents['f'])) {
+                $this->formatted = $contents['f'];
+            }
+        } else if (is_array($message) &&
+            isset($message['i']) &&
+            isset($message['d']))
+        {
+            $this->data      = $message['d'];
+            $this->sourceId  = $message['i'];
+
+            if (isset($message['f'])) {
+                $this->formatted = $message['f'];
+            }
         }
     }
 
@@ -145,11 +163,15 @@ class Notification
      */
     public function format()
     {
-        return $this
-            ->manager
-            ->getTypeRegistry()
-            ->getInstance($this->type)
-            ->format($this);
+        if (isset($this->formatted)) {
+            return $this->formatted;
+        } else {
+            return $this
+                ->manager
+                ->getTypeRegistry()
+                ->getInstance($this->type)
+                ->format($this);
+        }
     }
 
     /**

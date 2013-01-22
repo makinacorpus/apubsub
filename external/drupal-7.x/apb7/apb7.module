@@ -66,17 +66,38 @@ function apb7_backend_load($name) {
  *   Configuration array.
  */
 function apb7_backend_list() {
-  static $backend_conf;
+  $backend_conf = &drupal_static(__FUNCTION__);
 
   if (null === $backend_conf) {
     $backend_conf = variable_get('apubsub_backend', array());
 
     if (!isset($backend_conf['default'])) {
       $backend_conf['default']['class'] = APB_DEFAULT_CLASS;
+      $backend_conf['default']['info'] = t("Default backend");
     }
   }
 
   return $backend_conf;
+}
+
+/**
+ * Helper for other modules, gives an options array suitable for select lists.
+ *
+ * @return array
+ *   Keys are backend identifiers and values are backend names.
+ */
+function apb7_backend_list_select_options() {
+  $ret = array();
+
+  foreach (apb7_backend_list() as $name => $info) {
+    if (isset($info['info'])) {
+      $ret[$name] = $info['info'];
+    } else {
+      $ret[$name] = $name;
+    }
+  }
+
+  return $ret;
 }
 
 /**
@@ -86,7 +107,7 @@ function apb7_backend_list() {
  *   Pub/Sub backend.
  */
 function apb7_backend_get($name = 'default') {
-  static $backends = array();
+  $backends = &drupal_static(__FUNCTION__, array());
 
   if (!isset($backends[$name])) {
     $conf = apb7_backend_list();
@@ -117,7 +138,12 @@ function apb7_backend_get($name = 'default') {
     switch ($class) {
 
       case APB_DEFAULT_CLASS: 
-        $backend = new $class(Database::getConnection());
+        if (isset($conf[$name]['target'])) {
+          $target = $conf[$name]['target'];
+        } else {
+          $target = 'default';
+        }
+        $backend = new $class(Database::getConnection($target));
         break;
 
       case '\APubSub\Backend\Predis\PredisPubSub':
