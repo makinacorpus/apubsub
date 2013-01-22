@@ -2,10 +2,10 @@
 
 namespace Apb\Notification\Formatter;
 
+use Apb\Notification\AbstractFormatter;
 use Apb\Notification\Notification;
-use Apb\Notification\FormatterInterface;
 
-class UserActionFormatter implements FormatterInterface
+class UserActionFormatter extends AbstractFormatter
 {
     /**
      * (non-PHPdoc)

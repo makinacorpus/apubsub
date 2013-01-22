@@ -5,12 +5,32 @@
  * Administration pages.
  */
 
+use Apb\Notification\FormatterInterface;
+
 /**
  * Main overview admin form.
  */
 function apb7_follow_admin_notification_overview($form, &$form_state) {
 
-  
+  $instances = apb7_notification_manager_get()->getTypeRegistry()->getAllInstances();
+
+  $options = array();
+  foreach ($instances as $type => $instance) {
+    if ($instance instanceof FormatterInterface) {
+      $options[$type]['description'] = $instance->getDescription();
+      $options[$type]['type']        = $instance->getType();
+    }
+  }
+
+  $form['types'] = array(
+    '#type'    => 'tableselect',
+    '#header'  => array(
+      'type'        => t("Type"),
+      'description' => t("Description"),
+      'status'      => t("Status"),
+    ),
+    '#options' => $options,
+  );
 
   return $form;
 }

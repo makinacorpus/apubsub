@@ -89,8 +89,14 @@ const APB_DEF_ENABLE_FORMATTED_CONTENT = false;
  */
 function apb7_follow_apb7_follow_type_info() {
   return array(
-    APB_TYPE_ENTITY => 'Apb\Notification\Formatter\EntityFormatter',
-    APB_TYPE_USER   => 'Apb\Notification\Formatter\UserActionFormatter',
+    APB_TYPE_ENTITY => array(
+      'class'       => 'Apb\Notification\Formatter\EntityFormatter',
+      'description' => t("Entities (Example)"),
+    ),
+    APB_TYPE_USER   => array(
+      'class'       => 'Apb\Notification\Formatter\UserActionFormatter',
+      'description' => t("User (Example)"),
+    ),
   );
 }
 

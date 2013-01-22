@@ -60,7 +60,7 @@ class TypeRegistry
 
         // Fetch module-driven definitions.
         foreach (module_implements($hook) as $module) {
-            foreach (module_invoke($module, $hook) as $key => $class) {
+            foreach (module_invoke($module, $hook) as $key => $info) {
 
                 // Avoid duplicates and wild overrides.
                 if (isset($types[$key])) {
@@ -72,11 +72,11 @@ class TypeRegistry
                     continue;
                 }
 
-                if (!class_exists($class)) {
+                if (!class_exists($info['class'])) {
                     watchdog('apb_follow', "Module @module provides @key notification type using unknown class @class, dropping", array(
                         '@module' => $module,
                         '@key'    => $key,
-                        '@class'  => $class,
+                        '@class'  => $info['class'],
                     ), WATCHDOG_WARNING);
 
                     continue;
@@ -94,7 +94,11 @@ class TypeRegistry
                 }
                  */
 
-                $this->data[$key] = $class;
+                if (!isset($info['description'])) {
+                    $info['description'] = $key;
+                }
+
+                $this->data[$key] = $info;
             }
         }
 
@@ -121,19 +125,28 @@ class TypeRegistry
      *
      * @param mixed $data Definition data
      */
-    protected function getInstanceFromData($data)
+    protected function getInstanceFromData($type, $data)
     {
-        if (is_string($data)) {
-            if (!class_exists($data)) {
-                throw new \LogicException(sprintf(
-                    "Class '%s' does not exist", $data));
-            }
+        $class       = null;
+        $description = null;
 
-            return new $data();
+        if (is_array($data)) {
+            $class       = $data['class'];
+            $description = $data['description'];
+        } else if (is_string($data)) {
+            $class       = $data;
+            $description = $type;
+        } else {
+            throw new \InvalidArgumentException(sprintf(
+                "Invalid data given for type '%s' does not exist", $type));
         }
 
-        throw new \LogicException(
-            "Cannot create instance from unknow input data");
+        if (!class_exists($class)) {
+            throw new \LogicException(sprintf(
+                "Class '%s' does not exist for type '%s'", $class, $type));
+        }
+
+        return new $class($type, $description);
     }
 
     /**
@@ -157,7 +170,7 @@ class TypeRegistry
                         "Unknown type '%s'", $type));
                 }
 
-                $this->instances[$type] = $this->getInstanceFromData($this->data[$type]);
+                $this->instances[$type] = $this->getInstanceFromData($type, $this->data[$type]);
 
             } catch (\Exception $e) {
                 if ($this->debug) {
@@ -181,7 +194,7 @@ class TypeRegistry
 
         foreach ($this->data as $type => $data) {
             try {
-                $ret[$type] = $this->getInstanceFromData($data);
+                $ret[$type] = $this->getInstanceFromData($type, $data);
             } catch (\Exception $e) {
                 if ($this->debug) {
                     throw $e;

@@ -6,10 +6,28 @@ use Apb\Notification\Notification;
 use Apb\Notification\FormatterInterface;
 
 /**
- * Default null implementation
+ * Null implementation
  */
 class NullFormatter implements FormatterInterface
 {
+    /**
+     * (non-PHPdoc)
+     * @see \Apb\Notification\FormatterInterface::getType()
+     */
+    public function getType()
+    {
+        return 'null';
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \Apb\Notification\FormatterInterface::getDescription()
+     */
+    public function getDescription()
+    {
+        return t("NUll");
+    }
+
     /**
      * (non-PHPdoc)
      * @see \Apb\Follow\NotificationTypeInterface::format()

@@ -8,6 +8,20 @@ namespace Apb\Notification;
 interface FormatterInterface
 {
     /**
+     * Get internal type
+     *
+     * @return string
+     */
+    public function getType();
+
+    /**
+     * Get type description
+     *
+     * @return string Human readable string
+     */
+    public function getDescription();
+
+    /**
      * Format notification as HTML code, if any link has to be set, set it
      * into this text
      *
