@@ -95,11 +95,18 @@ function apb7_schema() {
         'description' => "Contents",
         'type' => 'text',
       ),
+      'level' => array(
+        'description' => "Level which can be used for any business purpose",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
       // Needed for deletion.
       'apb_msg_id_idx' => array('chan_id'),
+      'apb_msg_level_idx' => array('level'),
     ),
     'foreign keys' => array(
       'apb_msg_chan_id_fk' => array(

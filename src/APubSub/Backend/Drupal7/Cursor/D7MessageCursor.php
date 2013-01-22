@@ -56,6 +56,7 @@ class D7MessageCursor extends AbstractCursor implements
             CursorInterface::FIELD_MSG_ID,
             CursorInterface::FIELD_MSG_SENT,
             CursorInterface::FIELD_MSG_TYPE,
+            CursorInterface::FIELD_MSG_LEVEL,
             CursorInterface::FIELD_MSG_READ_TS,
             CursorInterface::FIELD_MSG_UNREAD,
             CursorInterface::FIELD_SUB_ID,
@@ -117,6 +118,10 @@ class D7MessageCursor extends AbstractCursor implements
                     $this->query->orderBy('q.msg_id', $direction);
                     break;
 
+                case CursorInterface::FIELD_MSG_LEVEL:
+                    $this->query->orderBy('m.level', $direction);
+                    break;
+
                 case CursorInterface::FIELD_SUB_ID:
                     $this->query->orderBy('q.sub_id', $direction);
                     break;
@@ -162,7 +167,8 @@ class D7MessageCursor extends AbstractCursor implements
                     (int)$record->created,
                     $context->typeHelper->getType($record->type_id),
                     (bool)$record->unread,
-                    $readTime);
+                    $readTime,
+                    (int)$record->level);
             }
 
             $this->iterator = new \ArrayIterator($result);

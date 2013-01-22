@@ -86,7 +86,7 @@ class D7Channel extends AbstractObject implements ChannelInterface
      * (non-PHPdoc)
      * @see \APubSub\ChannelInterface::send()
      */
-    public function send($contents, $type = null, $sendTime = null)
+    public function send($contents, $type = null, $level = null, $sendTime = null)
     {
         $cx     = $this->context->dbConnection;
         $tx     = $cx->startTransaction();
@@ -119,10 +119,11 @@ class D7Channel extends AbstractObject implements ChannelInterface
                 ->query("
                     INSERT INTO {apb_queue} (msg_id, sub_id, unread, created)
                         SELECT
-                            :msgId AS msg_id,
-                            s.id AS sub_id,
-                            1 AS unread,
+                            :msgId   AS msg_id,
+                            s.id     AS sub_id,
+                            1        AS unread,
                             :created AS created
+                            :level   AS level
                         FROM {apb_sub} s
                         WHERE s.chan_id = :chanId
                         AND s.status = 1
@@ -130,6 +131,7 @@ class D7Channel extends AbstractObject implements ChannelInterface
                         ':msgId'   => $id,
                         ':chanId'  => $this->dbId,
                         ':created' => $sendTime,
+                        ':level'   => $level,
                     ));
 
             unset($tx); // Excplicit commit
@@ -150,7 +152,11 @@ class D7Channel extends AbstractObject implements ChannelInterface
             null,
             $contents,
             $id,
-            $sendTime);
+            $sendTime,
+            null,
+            true,
+            null,
+            $level);
     }
 
     /**
@@ -263,7 +269,11 @@ class D7Channel extends AbstractObject implements ChannelInterface
             null,
             unserialize($record->contents),
             $id,
-            (int)$record->created);
+            (int)$record->created,
+            null,
+            true,
+            null,
+            (int)$record->level);
     }
 
     /**
@@ -295,7 +305,11 @@ class D7Channel extends AbstractObject implements ChannelInterface
                 null,
                 unserialize($record->contents),
                 (int)$record->id,
-                (int)$record->created);
+                (int)$record->created,
+                null,
+                true,
+                null,
+                (int)$record->level);
         }
 
         return $ret;

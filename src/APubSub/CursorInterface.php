@@ -65,6 +65,11 @@ interface CursorInterface extends ObjectInterface, \Traversable, \Countable
     const FIELD_MSG_READ_TS     = 24;
 
     /**
+     * Message arbitrary level value
+     */
+    const FIELD_MSG_LEVEL       = 25;
+
+    /**
      * Subscriber name
      */
     const FIELD_SUBER_NAME      = 30;

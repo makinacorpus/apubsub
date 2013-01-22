@@ -60,6 +60,10 @@ class MemoryMessageSorter
                         $value = ((int)$a->getReadTimestamp()) - ((int)$b->getReadTimestamp());
                         break;
 
+                    case CursorInterface::FIELD_MSG_LEVEL:
+                        $value = $a->getLevel() - $b->getLevel();
+                        break;
+
                     case CursorInterface::FIELD_SUB_ID:
                         $value = $a->getSubscriptionId() - $b->getSubscriptionId();
                         break;

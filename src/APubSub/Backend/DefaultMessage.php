@@ -73,6 +73,11 @@ class DefaultMessage implements MessageInterface
     protected $context;
 
     /**
+     * @var int
+     */
+    protected $level;
+
+    /**
      * Default constructor
      *
      * @param ContextInterface $context Context
@@ -84,6 +89,7 @@ class DefaultMessage implements MessageInterface
      * @param string $type              Message type
      * @param bool $isUnread            Is this message unread
      * @param int $readTimestamp        Read timestamp
+     * @param int $level                Level
      */
     public function __construct(
         ContextInterface $context,
@@ -94,7 +100,8 @@ class DefaultMessage implements MessageInterface
         $sendTime,
         $type          = null,
         $isUnread      = true,
-        $readTimestamp = null)
+        $readTimestamp = null,
+        $level         = 0)
     {
         $this->id             = $id;
         $this->chanId         = $chanId;
@@ -105,6 +112,7 @@ class DefaultMessage implements MessageInterface
         $this->context        = $context;
         $this->unread         = $isUnread;
         $this->readTimestamp  = $readTimestamp;
+        $this->level          = $level;
     }
 
     /**
@@ -196,6 +204,15 @@ class DefaultMessage implements MessageInterface
     public function getContents()
     {
         return $this->contents;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageInterface::getLevel()
+     */
+    public function getLevel()
+    {
+        return $this->level;
     }
 
     /**

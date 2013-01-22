@@ -61,4 +61,14 @@ interface MessageInterface extends
      * @return mixed Data set by the sender
      */
     public function getContents();
+
+    /**
+     * Get message level
+     *
+     * Message level is an arbitrary integer value which can have any purpose
+     * in the upper business value. It doesn't alter the default behavior.
+     *
+     * @return int Arbitrary level set in queue
+     */
+    public function getLevel();
 }
