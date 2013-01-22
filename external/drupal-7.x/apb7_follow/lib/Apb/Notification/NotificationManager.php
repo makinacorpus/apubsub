@@ -109,7 +109,7 @@ class NotificationManager
      * @param scalar $id   Source object identifier
      * @param mixed $data  Arbitrary data to send along
      */
-    public function notify($type, $id, $data)
+    public function notify($type, $id, $data, $level = Notification::LEVEL_INFO)
     {
         try {
             $contents = array(
@@ -128,7 +128,7 @@ class NotificationManager
             $this
                 ->getBackend()
                 ->getChannel($this->getChanId($type, $id))
-                ->send($contents, $type);
+                ->send($contents, $type, $level);
 
         } catch (ChannelDoesNotExistException $e) {
             // Nothing to do, no channel means no subscription

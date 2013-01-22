@@ -12,6 +12,21 @@ use APubSub\MessageInterface;
 class Notification
 {
     /**
+     * Info
+     */
+    const LEVEL_INFO = 0;
+
+    /**
+     * Notice
+     */
+    const LEVEL_NOTICE = 1;
+
+    /**
+     * Warning
+     */
+    const LEVEL_WARNING = 10;
+
+    /**
      * @var NotificationManager
      */
     private $manager;
@@ -53,6 +68,11 @@ class Notification
     private $formatted;
 
     /**
+     * @var int
+     */
+    private $level = self::LEVEL_INFO;
+
+    /**
      * Build instance from message
      *
      * @param NotificationManager $manager    Notification manager
@@ -75,6 +95,7 @@ class Notification
             $this->type      = $message->getType();
             $this->messageId = $message->getId();
             $this->valid     = true;
+            $this->level     = $message->getLevel();
 
             if (isset($contents['f'])) {
                 $this->formatted = $contents['f'];
@@ -186,5 +207,15 @@ class Notification
             ->getTypeRegistry()
             ->getInstance($this->type)
             ->getImageURI($this);
+    }
+
+    /**
+     * Get arbitrary message level
+     *
+     * @return int Arbitrary message level
+     */
+    public function getLevel()
+    {
+        return $this->level;
     }
 }
