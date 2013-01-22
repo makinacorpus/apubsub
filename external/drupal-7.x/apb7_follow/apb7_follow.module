@@ -85,9 +85,9 @@ const APB_VAR_ENABLE_FORMATTED_CONTENT = 'apb_follow_enable_formatted_content';
 const APB_DEF_ENABLE_FORMATTED_CONTENT = false;
 
 /**
- * Implements hook_apb7_follow_type_info().
+ * Implements hook_notifications_type_info().
  */
-function apb7_follow_apb7_follow_type_info() {
+function apb7_follow_notifications_type_info() {
   return array(
     APB_TYPE_ENTITY => array(
       'class'       => 'Apb\Notification\Formatter\EntityFormatter',

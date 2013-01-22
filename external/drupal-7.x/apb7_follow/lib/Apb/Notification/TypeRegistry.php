@@ -9,7 +9,7 @@ class TypeRegistry
     /**
      * Hook name fired by this implementation
      */
-    const DRUPAL_HOOK_NAME = 'apb7_follow_type_info';
+    const DRUPAL_HOOK_NAME = 'notifications_type_info';
 
     /**
      * Stored known formatters
