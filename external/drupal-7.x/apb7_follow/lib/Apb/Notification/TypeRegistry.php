@@ -106,11 +106,19 @@ class TypeRegistry
         drupal_alter('apb_follow_type', $this->data);
     }
 
+    /**
+     * Refresh internal data and types definition
+     */
     final public function refreshData()
     {
         $this->buildData();
     }
 
+    /**
+     * Get null implementation instance singleton
+     *
+     * @return \Apb\Notification\Formatter\NullFormatter
+     */
     final private function getNullInstance()
     {
         if (null === $this->nullInstance) {
@@ -184,6 +192,14 @@ class TypeRegistry
         return $this->instances[$type];
     }
 
+    /**
+     * Get a list of all types instances
+     *
+     * Do not use this at runtime, only do it when necessary in administration
+     * screens or whatever that will not be hit often
+     *
+     * @return \Apb\Follow\NotificationTypeInterface[] All know types instances
+     */
     final public function getAllInstances()
     {
         $ret = array();
