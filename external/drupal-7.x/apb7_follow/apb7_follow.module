@@ -265,6 +265,28 @@ function apb7_follow_menu() {
 }
 
 /**
+ * Implements hook_library().
+ */
+function apb7_follow_library() {
+  $path = drupal_get_path('module', 'apb7_follow');
+  return array(
+    'notification' => array(
+      'title'   => "Notification",
+      'website' => "http://github.com/pounard/apubsub",
+      'js'      => array($path . '/notification.js'  => array()),
+      'css'     => array($path . '/notification.css' => array()),
+    ),
+  );
+}
+
+/**
+ * Implements hook_init().
+ */
+function apb7_follow_init() {
+  drupal_add_library('apb7_follow', 'notification');
+}
+
+/**
  * Get notification manager.
  *
  * @return \Apb\Notification\NotificationManager
@@ -426,15 +448,6 @@ function apb7_follow_block_view($delta = '') {
           ),
         ),
       );
-
-      // Should move out into a hook_library_info() maybe.
-      drupal_add_css(drupal_get_path('module', 'apb7_follow') . '/notification.css');
-
-      if (variable_get(APB_VAR_ENABLE_PROD, APB_DEF_ENABLE_PROD)) {
-        drupal_add_js(drupal_get_path('module', 'apb7_follow') . '/notification-block.min.js');
-      } else {
-        drupal_add_js(drupal_get_path('module', 'apb7_follow') . '/notification-block.js');
-      }
 
       if (variable_get(APB_VAR_ENABLE_AJAX, APB_DEF_ENABLE_AJAX)) {
         drupal_add_js(array(
