@@ -422,7 +422,7 @@ function apb7_follow_block_view($delta = '') {
       if (($account = menu_get_object('user')) && !arg(2)) {
         return array(
           'subject' => t("Follow"),
-          'content' => drupal_get_form('apb7_follow_account_link_form', $account->uid, APB_TYPE_USER),
+          'content' => drupal_get_form('notification_follow_form', $account->uid, APB_TYPE_USER),
         );
       }
       break;
@@ -431,7 +431,7 @@ function apb7_follow_block_view($delta = '') {
       if ($node = menu_get_object('node')) {
         return array(
           'subject' => t("Follow"),
-          'content' => drupal_get_form('apb7_follow_account_link_form', $node->nid, APB_TYPE_ENTITY),
+          'content' => drupal_get_form('notification_follow_form', $node->nid, APB_TYPE_ENTITY),
         );
       }
       break;
@@ -468,8 +468,14 @@ function apb7_follow_block_view($delta = '') {
 /**
  * Render the follow form for the given account.
  */
-function apb7_follow_account_link_form($form, &$form_state, $targetId, $targetType) {
-
+function notification_follow_form(
+  $form,
+  &$form_state,
+  $targetId,
+  $targetType,
+  $followLabel   = NULL,
+  $unfollowLabel = NULL)
+{
   global $user;
 
   $manager    = notification_manager_get();
@@ -491,9 +497,9 @@ function apb7_follow_account_link_form($form, &$form_state, $targetId, $targetTy
 
   try {
     $subscription = $subscriber->getSubscriptionFor($chanId);
-    $form['submit']['#value'] = t("Unfollow");
+    $form['submit']['#value'] = ($unfollowLabel ? $unfollowLabel : t("Unfollow"));
   } catch (SubscriptionDoesNotExistException $e) {
-    $form['submit']['#value'] = t("Follow");
+    $form['submit']['#value'] = ($followLabel ? $followLabel : t("Follow"));
   }
 
   if (!user_access('follow other users')) {
@@ -507,7 +513,7 @@ function apb7_follow_account_link_form($form, &$form_state, $targetId, $targetTy
 /**
  * Follow form submit handler.
  */
-function apb7_follow_account_link_form_submit($form, &$form_state) {
+function notification_follow_form_submit($form, &$form_state) {
 
   $chanId       = $form_state['values']['cid'];
   $subscriberId = $form_state['values']['sid'];

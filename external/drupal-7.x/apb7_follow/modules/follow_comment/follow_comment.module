@@ -41,7 +41,7 @@ function follow_comment_field_extra_fields() {
  * Implements hook_node_view_alter().
  */
 function follow_comment_node_view_alter(&$build) {
-  $build['follow_comment'] = drupal_get_form('apb7_follow_account_link_form', $build['#node']->nid, 'comment');
+  $build['follow_comment'] = drupal_get_form('notification_follow_form', $build['#node']->nid, 'comment');
 }
 
 /**
