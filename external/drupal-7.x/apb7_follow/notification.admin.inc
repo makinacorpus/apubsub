@@ -12,13 +12,20 @@ use Apb\Notification\FormatterInterface;
  */
 function apb7_follow_admin_notification_overview($form, &$form_state) {
 
-  $instances = apb7_notification_manager_get()->getTypeRegistry()->getAllInstances();
+  $manager   = notification_manager_get();
+  $instances = $manager->getTypeRegistry()->getAllInstances(true);
+
+  $label_disabled = t("Disabled");
+  $label_enabled  = '<strong>' . t("Enabled") . '</strong>';
 
   $options = array();
   foreach ($instances as $type => $instance) {
     if ($instance instanceof FormatterInterface) {
+      $type = $instance->getType();
+
       $options[$type]['description'] = $instance->getDescription();
-      $options[$type]['type']        = $instance->getType();
+      $options[$type]['type']        = $type;
+      $options[$type]['status']      = $manager->isTypeEnabled($type) ? $label_enabled : $label_disabled;
     }
   }
 
@@ -32,7 +39,79 @@ function apb7_follow_admin_notification_overview($form, &$form_state) {
     '#options' => $options,
   );
 
+  $form['actions'] = array(
+    '#type'   => 'actions',
+  );
+  $form['actions']['enable'] = array(
+    '#type'   => 'submit',
+    '#value'  => t("Enable"),
+    '#submit' => array('apb7_follow_admin_notification_overview_submit_enable'),
+  );
+  $form['actions']['disable'] = array(
+    '#type'   => 'submit',
+    '#value'  => t("Disable"),
+    '#submit' => array('apb7_follow_admin_notification_overview_submit_disable'),
+  );
+
   return $form;
+}
+
+/**
+ * Main overview admin form enable selected submit handler.
+ */
+function apb7_follow_admin_notification_overview_submit_enable($form, &$form_state) {
+
+  $types = array();
+  foreach ($form_state['values']['types'] as $type => $selected) {
+    if ($type === $selected) {
+      $types[] = $type;
+    }
+  }
+
+  if (empty($types)) {
+    drupal_set_message(t("Nothing to do"));
+    return;
+  }
+
+  $disabled = variable_get(APB_VAR_ENABLED_TYPES, array());
+  $disabled = array_diff($disabled, $types);
+
+  if (empty($disabled)) {
+    variable_set(APB_VAR_ENABLED_TYPES, NULL);
+  } else {
+    variable_set(APB_VAR_ENABLED_TYPES, array_unique($disabled));
+  }
+
+  drupal_set_message(t("Enabled selected types"));
+}
+
+/**
+ * Main overview admin form disable selected submit handler.
+ */
+function apb7_follow_admin_notification_overview_submit_disable($form, &$form_state) {
+
+  $types = array();
+  foreach ($form_state['values']['types'] as $type => $selected) {
+    if ($type === $selected) {
+      $types[] = $type;
+    }
+  }
+
+  if (empty($types)) {
+    drupal_set_message(t("Nothing to do"));
+    return;
+  }
+
+  $disabled = variable_get(APB_VAR_ENABLED_TYPES, array());
+  $disabled += $types;
+
+  if (empty($disabled)) {
+    variable_set(APB_VAR_ENABLED_TYPES, NULL);
+  } else {
+    variable_set(APB_VAR_ENABLED_TYPES, array_unique($disabled));
+  }
+
+  drupal_set_message(t("Disabled selected types"));
 }
 
 /**

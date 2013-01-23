@@ -32,6 +32,10 @@ spl_autoload_register(function ($className) {
   return false;
 });
 
+// And still for sample purposes only, all triggers have been moved into a
+// separate file for code readability purposes.
+require_once __DIR__ . '/notification.sample.inc';
+
 /**
  * Notification type for user following.
  */
@@ -93,9 +97,19 @@ const APB_VAR_USER_PAGER_LIMIT = 'apb_follow_user_pager_limit';
 const APB_DEF_USER_PAGER_LIMIT = 20;
 
 /**
- * Implements hook_notifications_type_info().
+ * Enabled types variable name.
  */
-function apb7_follow_notifications_type_info() {
+const APB_VAR_ENABLED_TYPES = 'apb_follow_enabled_types';
+
+/**
+ * Enabled types default value.
+ */
+const APB_DEF_ENABLED_TYPES = null;
+
+/**
+ * Implements hook_notification_type_info().
+ */
+function apb7_follow_notification_type_info() {
   return array(
     APB_TYPE_ENTITY => array(
       'class'       => 'Apb\Notification\Formatter\EntityFormatter',
@@ -108,9 +122,56 @@ function apb7_follow_notifications_type_info() {
   );
 }
 
-// And still for sample purposes only, all triggers have been moved into a
-// separate file for code readability purposes.
-require_once __DIR__ . '/apb7_follow.triggers.inc';
+/**
+ * Build notification type info using the Drupal Way (TM).
+ *
+ * This should never be called manually, use the manager instead.
+ *
+ * @see 
+ *
+ * @return array
+ *   Notification types info as an internal and very specific array.
+ */
+function notification_type_info_get() {
+  $ret  = array();
+
+  $hook = 'notification_type_info';
+
+  // Fetch module-driven definitions.
+  foreach (module_implements($hook) as $module) {
+    foreach (module_invoke($module, $hook) as $key => $info) {
+
+      // Avoid duplicates and wild overrides.
+      if (isset($types[$key])) {
+        watchdog('apb_follow', "Module @module overrides the @key notification type, dropping", array(
+          '@module' => $module,
+          '@key'    => $key,
+        ), WATCHDOG_WARNING);
+        continue;
+      }
+
+      if (!class_exists($info['class'])) {
+        watchdog('apb_follow', "Module @module provides @key notification type using unknown class @class, dropping", array(
+          '@module' => $module,
+          '@key'    => $key,
+          '@class'  => $info['class'],
+        ), WATCHDOG_WARNING);
+        continue;
+      }
+
+      if (!isset($info['description'])) {
+        $info['description'] = $key;
+      }
+
+      $ret[$key] = $info;
+    }
+  }
+
+  // Allow other modules to alter definition (aKa "The Drupal Way").
+  drupal_alter($hook, $ret);
+
+  return $ret;
+}
 
 /**
  * Implements hook_permission().
@@ -155,7 +216,7 @@ function apb7_follow_menu() {
     'access callback'  => 'apb7_notification_user_access',
     'access arguments' => array(1),
     'type'             => MENU_CALLBACK | MENU_VISIBLE_IN_BREADCRUMB,
-    'file'             => 'apb7_follow.pages.inc',
+    'file'             => 'notification.pages.inc',
   );
   $items['user/%user/notifications/settings'] = array(
     'title'            => "Preferences",
@@ -164,40 +225,40 @@ function apb7_follow_menu() {
     'access callback'  => 'apb7_notification_user_access',
     'access arguments' => array(1),
     'type'             => MENU_CALLBACK | MENU_VISIBLE_IN_BREADCRUMB,
-    'file'             => 'apb7_follow.pages.inc',
+    'file'             => 'notification.pages.inc',
   );
 
   // AJAX stuff
-  $items['notifications/ajax/user'] = array(
+  $items['notification/ajax/user'] = array(
     'title'            => "Preferences",
     'page callback'    => 'apb7_follow_ajax_user_notifications',
     'access callback'  => 'apb7_notification_user_access',
     'type'             => MENU_CALLBACK,
-    'file'             => 'apb7_follow.ajax.inc',
+    'file'             => 'notification.ajax.inc',
   );
 
   // Site wide administration pages.
-  $items['admin/config/people/notifications'] = array(
+  $items['admin/config/people/notification'] = array(
     'title'            => "Notifications",
     'description'      => "Enable or disable notifications globally and configuration the notifications behavior.",
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('apb7_follow_admin_notification_overview'),
     'access arguments' => array('administer site configuration'),
     'type'             => MENU_NORMAL_ITEM,
-    'file'             => 'apb7_follow.admin.inc',
+    'file'             => 'notification.admin.inc',
   );
-  $items['admin/config/people/notifications/overview'] = array(
+  $items['admin/config/people/notification/overview'] = array(
     'title'            => "Overview",
     'type'             => MENU_DEFAULT_LOCAL_TASK,
   );
-  $items['admin/config/people/notifications/settings'] = array(
+  $items['admin/config/people/notification/settings'] = array(
     'title'            => "Global settings",
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('apb7_follow_admin_notification_settings'),
     'access arguments' => array('administer site configuration'),
     'weight'           => 100,
     'type'             => MENU_LOCAL_TASK,
-    'file'             => 'apb7_follow.admin.inc',
+    'file'             => 'notification.admin.inc',
   );
 
   return $items;
@@ -208,10 +269,11 @@ function apb7_follow_menu() {
  *
  * @return \Apb\Notification\NotificationManager
  */
-function apb7_notification_manager_get() {
+function notification_manager_get() {
   $instance = &drupal_static(__FUNCTION__);
 
   if (NULL === $instance) {
+
     $instance = new NotificationManager(
         apb7_backend_get(variable_get(
             APB_VAR_BACKEND,
@@ -219,9 +281,18 @@ function apb7_notification_manager_get() {
         variable_get(
             APB_VAR_ENABLE_FORMATTED_CONTENT,
             APB_DEF_ENABLE_FORMATTED_CONTENT),
-        variable_get(
+        /*variable_get(
             APB_VAR_ENABLE_PROD,
-            APB_DEF_ENABLE_PROD));
+            APB_DEF_ENABLE_PROD)*/ true,
+        variable_get(
+            APB_VAR_ENABLED_TYPES,
+            APB_DEF_ENABLED_TYPES));
+
+    // Register all "Drupal Way (TM)" notification types.
+    $typeRegistry = $instance->getTypeRegistry();
+    foreach (notification_type_info_get() as $type => $info) {
+      $typeRegistry->registerType($type, $info['class'], $info['description']);
+    }
   }
 
   return $instance;
@@ -232,16 +303,16 @@ function apb7_notification_manager_get() {
  */
 function apb7_follow_theme() {
   return array(
-    'notifications_block' => array(
+    'notification_block' => array(
       'render element' => 'data',
-      'template'       => 'notifications-block',
+      'template'       => 'notification-block',
     ),
-    'notifications_page' => array(
+    'notification_page' => array(
       'render element' => 'form',
-      'template'       => 'notifications-page',
-      'file'           => 'apb7_follow.pages.inc'
+      'template'       => 'notification-page',
+      'file'           => 'notification.pages.inc'
     ),
-    'notifications_loader' => array(),
+    'notification_loader' => array(),
   );
 }
 
@@ -258,7 +329,7 @@ function apb7_follow_block_info() {
       'info'  => t("Follow displayed node (content pages)"),
       'cache' => DRUPAL_NO_CACHE,
     ),
-    'notifications' => array(
+    'notification' => array(
       'info'  => t("Current user notifications"),
       'cache' => variable_get(APB_VAR_ENABLE_AJAX, APB_DEF_ENABLE_AJAX) ? DRUPAL_CACHE_GLOBAL : DRUPAL_NO_CACHE,
     ),
@@ -343,7 +414,7 @@ function apb7_follow_block_view($delta = '') {
       }
       break;
 
-    case 'notifications':
+    case 'notification':
 
       $block = array(
         'content' => array(
@@ -357,22 +428,22 @@ function apb7_follow_block_view($delta = '') {
       );
 
       // Should move out into a hook_library_info() maybe.
-      drupal_add_css(drupal_get_path('module', 'apb7_follow') . '/apb7_follow.css');
+      drupal_add_css(drupal_get_path('module', 'apb7_follow') . '/notification.css');
 
       if (variable_get(APB_VAR_ENABLE_PROD, APB_DEF_ENABLE_PROD)) {
-        drupal_add_js(drupal_get_path('module', 'apb7_follow') . '/notifications-block.min.js');
+        drupal_add_js(drupal_get_path('module', 'apb7_follow') . '/notification-block.min.js');
       } else {
-        drupal_add_js(drupal_get_path('module', 'apb7_follow') . '/notifications-block.js');
+        drupal_add_js(drupal_get_path('module', 'apb7_follow') . '/notification-block.js');
       }
 
       if (variable_get(APB_VAR_ENABLE_AJAX, APB_DEF_ENABLE_AJAX)) {
         drupal_add_js(array(
-          'notifications' => array(
+          'notification' => array(
             'enabled'    => TRUE,
-            'refreshUrl' => url('notifications/ajax/user'),
+            'refreshUrl' => url('notification/ajax/user'),
           ),
         ), 'setting');
-        $block['content']['inside']['#markup'] = theme('notifications_loader');
+        $block['content']['inside']['#markup'] = theme('notification_loader');
       } else {
         $block['content']['inside'] += apb7_follow_notification_render_block($user);
       }
@@ -388,7 +459,7 @@ function apb7_follow_account_link_form($form, &$form_state, $targetId, $targetTy
 
   global $user;
 
-  $manager    = apb7_notification_manager_get();
+  $manager    = notification_manager_get();
   $chanId     = $manager->getChanId($targetType, $targetId);
   $subscriber = $manager->getSubscriberFor($user->uid);
 
@@ -427,7 +498,7 @@ function apb7_follow_account_link_form_submit($form, &$form_state) {
 
   $chanId       = $form_state['values']['cid'];
   $subscriberId = $form_state['values']['sid'];
-  $manager      = apb7_notification_manager_get();
+  $manager      = notification_manager_get();
   $backend      = $manager->getBackend();
   $subscriber   = $backend->getSubscriber($subscriberId);
 
@@ -513,11 +584,11 @@ function apb7_follow_image_render($uri, $size = 32) {
 function apb7_follow_notification_render_block($account) {
 
   $build = array(
-    '#theme' => 'notifications_block',
+    '#theme' => 'notification_block',
     '#list'  => array(),
   );
 
-  $manager     = apb7_notification_manager_get();
+  $manager     = notification_manager_get();
   $subscriber  = $manager->getSubscriberFor($account->uid); 
 
   $unreadCount = 0;
@@ -583,7 +654,7 @@ function apb7_follow_notification_render_block($account) {
 /**
  * Notifications loader, very simple.
  */
-function theme_notifications_loader() {
+function theme_notification_loader() {
 
   $attributes = array(
     'title'  => t("Loading notifications..."),
@@ -596,7 +667,7 @@ function theme_notifications_loader() {
 /**
  * Implements template_preprocess_HOOK().
  */
-function template_preprocess_notifications_block(&$variables) {
+function template_preprocess_notification_block(&$variables) {
 
   global $user;
 

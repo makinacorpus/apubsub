@@ -31,7 +31,7 @@ function apb7_follow_entity_insert($entity, $entityType) {
     'type' => $entityType,
   );
 
-  apb7_notification_manager_get()->notify(APB_TYPE_ENTITY, $id, $eventData);
+  notification_manager_get()->notify(APB_TYPE_ENTITY, $id, $eventData);
 }
 
 /**
@@ -60,7 +60,7 @@ function apb7_follow_entity_update($entity, $entityType) {
     'type' => $entityType,
   );
 
-  $manager = apb7_notification_manager_get();
+  $manager = notification_manager_get();
   $manager->notify(APB_TYPE_ENTITY, $id, $eventData);
   $manager->notify(APB_TYPE_USER, $user->uid, $eventData);
 }
@@ -85,7 +85,7 @@ function apb7_follow_entity_delete($entity, $entityType) {
     'type' => $entityType,
   );
 
-  $manager = apb7_notification_manager_get();
+  $manager = notification_manager_get();
   $manager->notify(APB_TYPE_ENTITY, $id, $eventData);
   $manager->notify(APB_TYPE_USER, $user->uid, $eventData);
 }
@@ -94,12 +94,12 @@ function apb7_follow_entity_delete($entity, $entityType) {
  * Implements hook_user_login().
  */
 function apb7_follow_user_login(&$edit, $account) {
-  apb7_notification_manager_get()->notify(APB_TYPE_USER, $account->uid, array('a' => 'login'));
+  notification_manager_get()->notify(APB_TYPE_USER, $account->uid, array('a' => 'login'));
 }
 
 /**
  * Implements hook_user_logout().
  */
 function apb7_follow_user_logout($account) {
-  apb7_notification_manager_get()->notify(APB_TYPE_USER, $account->uid, array('a' => 'logout'));
+  notification_manager_get()->notify(APB_TYPE_USER, $account->uid, array('a' => 'logout'));
 }

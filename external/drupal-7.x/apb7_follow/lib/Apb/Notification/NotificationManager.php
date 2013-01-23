@@ -23,6 +23,13 @@ class NotificationManager
     protected $typeRegistry;
 
     /**
+     * Disabled types. Keys are type names and values are any non null value
+     *
+     * @var array
+     */
+    protected $disabledTypes = array();
+
+    /**
      * @var boolean
      */
     protected $storeFormatted = false;
@@ -40,15 +47,22 @@ class NotificationManager
      *                                 will be stored into messages
      * @param boolean $silentMode      If set to true this object will never
      *                                 predictible exceptions
+     * @param array $disabledTypes     List of disabled types
      */
     public function __construct(
         PubSubInterface $backend,
         $storeFormatted = false,
-        $silentMode = false)
+        $silentMode     = false,
+        $disabledTypes  = null)
     {
         $this->backend        = $backend;
         $this->storeFormatted = $storeFormatted;
         $this->silentMode     = $silentMode;
+        $this->typeRegistry   = new TypeRegistry();
+
+        if (null !== $disabledTypes) {
+            $this->disabledTypes = array_flip($disabledTypes);
+        }
     }
 
     /**
@@ -95,15 +109,25 @@ class NotificationManager
      */
     public function getTypeRegistry()
     {
-        if (null === $this->typeRegistry) {
-            $this->typeRegistry = new TypeRegistry();
-        }
-
         return $this->typeRegistry;
     }
 
     /**
+     * Tell if given type is enabled
+     *
+     * @param string $type Type
+     *
+     * @return boolean     True if type is enabled otherwise false
+     */
+    public function isTypeEnabled($type)
+    {
+        return !isset($this->disabledTypes[$type]) && $this->typeRegistry->typeExists($type);
+    }
+
+    /**
      * Send notification
+     *
+     * If notification type is disabled the message will be dropped
      *
      * @param string $type Source object type
      * @param scalar $id   Source object identifier
@@ -111,6 +135,10 @@ class NotificationManager
      */
     public function notify($type, $id, $data, $level = Notification::LEVEL_INFO)
     {
+        if (!$this->isTypeEnabled($type)) {
+            return;
+        }
+
         try {
             $contents = array(
                 'i' => $id,

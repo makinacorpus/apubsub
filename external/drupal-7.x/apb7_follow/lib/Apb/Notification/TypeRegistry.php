@@ -7,16 +7,11 @@ use Apb\Notification\Formatter\NullFormatter;
 class TypeRegistry
 {
     /**
-     * Hook name fired by this implementation
-     */
-    const DRUPAL_HOOK_NAME = 'notifications_type_info';
-
-    /**
      * Stored known formatters
      *
      * @param array
      */
-    private $data;
+    private $data = array();
 
     /**
      * Stored known instances
@@ -50,68 +45,59 @@ class TypeRegistry
     }
 
     /**
-     * Overridable method for sub class that rebuilds the data array
+     * Tell if the given type exists
+     *
+     * @param string $type Type
+     *
+     * @return boolean     True if type exists false otherwise
      */
-    protected function buildData()
+    public function typeExists($type)
     {
-        $this->data = array();
-
-        $hook = self::DRUPAL_HOOK_NAME;
-
-        // Fetch module-driven definitions.
-        foreach (module_implements($hook) as $module) {
-            foreach (module_invoke($module, $hook) as $key => $info) {
-
-                // Avoid duplicates and wild overrides.
-                if (isset($types[$key])) {
-                    watchdog('apb_follow', "Module @module overrides the @key notification type, dropping", array(
-                        '@module' => $module,
-                        '@key'    => $key,
-                    ), WATCHDOG_WARNING);
-
-                    continue;
-                }
-
-                if (!class_exists($info['class'])) {
-                    watchdog('apb_follow', "Module @module provides @key notification type using unknown class @class, dropping", array(
-                        '@module' => $module,
-                        '@key'    => $key,
-                        '@class'  => $info['class'],
-                    ), WATCHDOG_WARNING);
-
-                    continue;
-                }
-
-                /*
-                if (!is_a($class, '\Apb\Follow\NotitificationTypeInterface')) {
-                    watchdog('apb_follow', "Module @module provides @key type using class @class which does not implements \Apb\Follow\NotitificationTypeInterface, dropping", array(
-                        '@module' => $module,
-                        '@key'    => $key,
-                        '@class'  => $class,
-                    ), WATCHDOG_WARNING);
-
-                    continue;
-                }
-                 */
-
-                if (!isset($info['description'])) {
-                    $info['description'] = $key;
-                }
-
-                $this->data[$key] = $info;
-            }
-        }
-
-        // Allow other modules to alter definition (aKa "The Drupal Way").
-        drupal_alter('apb_follow_type', $this->data);
+        return isset($this->data[$type]);
     }
 
     /**
-     * Refresh internal data and types definition
+     * Register single type
+     *
+     * Existing definition will be overriden
+     *
+     * @param string $type        Type
+     * @param string $class       Class to use
+     * @param string $description Human readable description
      */
-    final public function refreshData()
+    public function registerType($type, $class, $description = null)
     {
-        $this->buildData();
+        if (!class_exists($class)) {
+            throw new \InvalidArgumentException(sprintf(
+                "Class '%s' does not exist", $class));
+        }
+
+        if (isset($this->instances[$type])) {
+            unset($this->instances[$type]);
+        }
+
+        $this->data[$type] = array(
+            'class'       => $class,
+            'description' => $description,
+        );
+    }
+
+    /**
+     * Register single formatter instance
+     *
+     * Existing definition will be overriden
+     *
+     * @param FormatterInterface $instance Instance to register
+     */
+    public function registerInstance(FormatterInterface $instance)
+    {
+        $type = $instance->getType();
+
+        if (isset($this->data[$type])) {
+            unset($this->data[$type]);
+        }
+
+        $this->instances[$type] = $instance;
     }
 
     /**
@@ -167,11 +153,6 @@ class TypeRegistry
     final public function getInstance($type)
     {
         if (!isset($this->instances[$type])) {
-
-            if (null === $this->data) {
-                $this->refreshData();
-            }
-
             try {
                 if (!isset($this->data[$type])) {
                     throw new \InvalidArgumentException(sprintf(
@@ -203,10 +184,6 @@ class TypeRegistry
     final public function getAllInstances()
     {
         $ret = array();
-
-        if (null === $this->data) {
-            $this->refreshData();
-        }
 
         foreach ($this->data as $type => $data) {
             try {

@@ -6,9 +6,9 @@
  */
 
 /**
- * Implements hook_notifications_type_info().
+ * Implements hook_notification_type_info().
  */
-function follow_comment_notifications_type_info() {
+function follow_comment_notification_type_info() {
   return array(
     'comment' => array(
       'class'       => 'Apb\Notification\Formatter\CommentFormatter',
@@ -49,7 +49,7 @@ function follow_comment_node_view_alter(&$build) {
  */
 function follow_comment_comment_insert($comment) {
   if ($comment->status) {
-    apb7_notification_manager_get()->notify('comment', $comment->nid, array(
+    notification_manager_get()->notify('comment', $comment->nid, array(
       'a' => 'insert',
       'c' => $comment->cid,
     ));
@@ -61,7 +61,7 @@ function follow_comment_comment_insert($comment) {
  */
 function follow_comment_comment_update($comment) {
   if ($comment->status) {
-    apb7_notification_manager_get()->notify('comment', $comment->nid, array(
+    notification_manager_get()->notify('comment', $comment->nid, array(
       'a' => 'update',
       'c' => $comment->cid,
     ));
@@ -72,20 +72,20 @@ function follow_comment_comment_update($comment) {
  * Implements hook_comment_publish().
  */
 function follow_comment_comment_publish($comment) {
-  apb7_notification_manager_get()->notify('comment', $comment->nid, array(
-      'a' => 'insert',
-      'c' => $comment->cid,
-    ));
+  notification_manager_get()->notify('comment', $comment->nid, array(
+    'a' => 'insert',
+    'c' => $comment->cid,
+  ));
 }
 
 /**
  * Implements hook_comment_unpublish().
  */
 function follow_comment_comment_unpublish($comment) {
-  apb7_notification_manager_get()->notify('comment', $comment->nid, array( 
-      'a' => 'delete',
-      'c' => $comment->cid,
-    ));
+  notification_manager_get()->notify('comment', $comment->nid, array( 
+    'a' => 'delete',
+    'c' => $comment->cid,
+  ));
 }
 
 /**
@@ -93,7 +93,7 @@ function follow_comment_comment_unpublish($comment) {
  */
 function follow_comment_comment_delete($comment) {
   if ($comment->status) {
-    apb7_notification_manager_get()->notify('comment', $comment->nid, array(
+    notification_manager_get()->notify('comment', $comment->nid, array(
       'a' => 'delete',
       'c' => $comment->cid,
       // Comment already has been deleted, we need more data!

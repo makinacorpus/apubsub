@@ -15,7 +15,7 @@ use Apb\Notification\NotificationManager;
  */
 function apb7_notification_page_user_list($form, &$form_state, $account) {
 
-  $manager     = apb7_notification_manager_get();
+  $manager     = notification_manager_get();
   $backend     = $manager->getBackend();
   $subscriber  = $manager->getSubscriberFor($account->uid);
   $displayed   = 0;
@@ -35,7 +35,7 @@ function apb7_notification_page_user_list($form, &$form_state, $account) {
   pager_default_initialize($total, $limit);
 
   $form['#tree']  = TRUE;
-  $form['#theme'] = 'notifications_page';
+  $form['#theme'] = 'notification_page';
   $form['list'] = array(
     '#type'    => 'checkboxes',
     '#options' => array(),
@@ -103,7 +103,7 @@ function apb7_notification_page_user_list($form, &$form_state, $account) {
  */
 function apb7_notification_page_user_list_submit_unread($form, &$form_state) {
 
-  $manager    = apb7_notification_manager_get();
+  $manager    = notification_manager_get();
   $subscriber = $manager->getSubscriberFor($form_state['values']['uid']);
   $count      = 0;
 
@@ -131,7 +131,7 @@ function apb7_notification_page_user_list_submit_unread($form, &$form_state) {
  */
 function apb7_notification_page_user_list_submit_delete($form, &$form_state) {
 
-  $manager    = apb7_notification_manager_get();
+  $manager    = notification_manager_get();
   $subscriber = $manager->getSubscriberFor($form_state['values']['uid']);
   $count      = 0;
   $list       = array();
@@ -161,7 +161,7 @@ function apb7_notification_page_user_settings($form, &$form_state, $account) {
 /**
  * Implements template_preprocess_HOOK().
  */
-function template_preprocess_notifications_page(&$variables) {
+function template_preprocess_notification_page(&$variables) {
 
   $form = &$variables['form'];
 

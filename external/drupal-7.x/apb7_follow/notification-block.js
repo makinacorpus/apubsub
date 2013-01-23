@@ -124,10 +124,10 @@ Drupal.behaviors.NotificationDropDown = {
 Drupal.behaviors.NotificationBlock = {
     attach: function (context) {
 
-        if (Drupal.settings.notifications &&
-            Drupal.settings.notifications.enabled)
+        if (Drupal.settings.notification &&
+            Drupal.settings.notification.enabled)
         {
-            var url          = Drupal.settings.notifications.refreshUrl,
+            var url          = Drupal.settings.notification.refreshUrl,
                 element      = null,
                 notification = null;
 
@@ -135,7 +135,7 @@ Drupal.behaviors.NotificationBlock = {
                 .find('#notifications')
                 .each(function () {
                     element = this;
-                    jQuery(element).once('notifications', function () {
+                    jQuery(element).once('notification', function () {
                         notification = new NotificationBlock(url, element);
                         notification.startTimer(true);
                         NotificationBlockList.push(notification);
