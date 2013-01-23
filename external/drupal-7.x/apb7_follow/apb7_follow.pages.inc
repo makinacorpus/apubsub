@@ -20,18 +20,19 @@ function apb7_notification_page_user_list($form, &$form_state, $account) {
   $subscriber  = $manager->getSubscriberFor($account->uid);
   $displayed   = 0;
   $total       = 0;
-
-  // FIXME: Handle pager here.
-  $offset = 0;
+  $limit       = variable_get(APB_VAR_USER_PAGER_LIMIT, APB_DEF_USER_PAGER_LIMIT);
+  $element     = PagerDefault::$maxElement++;
+  $offset      = pager_find_page($element) * $limit;
 
   $cursor = $subscriber
     ->fetch()
     ->addSort(
         CursorInterface::FIELD_MSG_SENT,
         CursorInterface::SORT_DESC)
-    ->setRange(50, $offset);
+    ->setRange($limit, $offset);
 
-  $total = count($cursor);
+  $total = $cursor->getTotalCount();
+  pager_default_initialize($total, $limit);
 
   $form['#tree']  = TRUE;
   $form['#theme'] = 'notifications_page';

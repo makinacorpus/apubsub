@@ -26,9 +26,7 @@ spl_autoload_register(function ($className) {
     $parts = explode('\\', $className);
     if ('Apb' === $parts[0] && 'Notification' === $parts[1]) {
       $filename = __DIR__ . '/lib/' . implode('/', $parts) . '.php';
-      if (file_exists($filename)) {
-        return (bool)require_once $filename;
-      }
+      return (bool)include_once $filename;
     }
   }
   return false;
@@ -83,6 +81,16 @@ const APB_VAR_ENABLE_FORMATTED_CONTENT = 'apb_follow_enable_formatted_content';
  * Store HTML inside messages default value.
  */
 const APB_DEF_ENABLE_FORMATTED_CONTENT = false;
+
+/**
+ * Backend variable name.
+ */
+const APB_VAR_USER_PAGER_LIMIT = 'apb_follow_user_pager_limit';
+
+/**
+ * Backend default value.
+ */
+const APB_DEF_USER_PAGER_LIMIT = 20;
 
 /**
  * Implements hook_notifications_type_info().
@@ -521,7 +529,8 @@ function apb7_follow_notification_render_block($account) {
     ->fetch()
     ->addSort(
       CursorInterface::FIELD_MSG_SENT,
-      CursorInterface::SORT_DESC);
+      CursorInterface::SORT_DESC)
+    ->setRange(10, $offset);
 
   foreach ($cursor as $message) {
 

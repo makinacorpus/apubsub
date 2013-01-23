@@ -40,32 +40,45 @@ function apb7_follow_admin_notification_overview($form, &$form_state) {
  */
 function apb7_follow_admin_notification_settings($form, &$form_state) {
 
-  $form[APB_VAR_ENABLE_AJAX] = array(
+  $form['interface'] = array(
+    '#type'  => 'fieldset',
+    '#title' => t("User interface"),
+  );
+  $form['interface'][APB_VAR_ENABLE_AJAX] = array(
     '#type'          => 'checkbox',
     '#title'         => t("Load and refresh notifications block using AJAX"),
     '#description'   => t("Using AJAX for loading notification block will make your page rendering faster and allow the block to be cached globally for everyone."),
     '#default_value' => variable_get(APB_VAR_ENABLE_AJAX, APB_DEF_ENABLE_AJAX),
   );
-  $form[APB_VAR_ENABLE_AJAX . '.default'] = array(
+  $form['interface'][APB_VAR_ENABLE_AJAX . '.default'] = array(
      '#type'         => 'value',
      '#value'        => variable_get(APB_VAR_ENABLE_AJAX, APB_DEF_ENABLE_AJAX),
   );
+  $form['interface'][APB_VAR_USER_PAGER_LIMIT] = array(
+    '#type'          => 'select',
+    '#title'         => t("User notification page limit"),
+    '#options'       => drupal_map_assoc(array(5, 10, 20, 30, 50, 100)),
+    '#description'   => t("Number of notifications being displayed per page in user notification page."),
+    '#default_value' => variable_get(APB_VAR_USER_PAGER_LIMIT, APB_DEF_USER_PAGER_LIMIT),
+  );
 
-  $form[APB_VAR_ENABLE_PROD] = array(
+  $form['advanced'] = array(
+    '#type'  => 'fieldset',
+    '#title' => t("Advanced"),
+  );
+  $form['advanced'][APB_VAR_ENABLE_PROD] = array(
     '#type'          => 'checkbox',
     '#title'         => t("Enable production mode"),
     '#description'   => t("Will suppress some warnings and error, and use minified JavaScript files. Always check this option on a production site."),
     '#default_value' => variable_get(APB_VAR_ENABLE_PROD, APB_DEF_ENABLE_PROD),
   );
-
-  $form[APB_VAR_ENABLE_FORMATTED_CONTENT] = array(
+  $form['advanced'][APB_VAR_ENABLE_FORMATTED_CONTENT] = array(
     '#type'          => 'checkbox',
     '#title'         => t("Store content inside messages"),
     '#description'   => t("If checked, formatted messages will be sent in the message contents instead of being formatted at view time. This will bypass translation but allows you to display those notifications outside of the originating website. If checked generated links inside formatted notifications will all be absolute. Note that if you change this setting and data has already been sent some notifications might not be displayed correctly."),
     '#default_value' => variable_get(APB_VAR_ENABLE_FORMATTED_CONTENT, APB_DEF_ENABLE_FORMATTED_CONTENT),
   );
-
-  $form[APB_VAR_BACKEND] = array(
+  $form['advanced'][APB_VAR_BACKEND] = array(
     '#type'          => 'radios',
     '#title'         => t("Pub/Sub backend to use"),
     '#options'       => apb7_backend_list_select_options(),
