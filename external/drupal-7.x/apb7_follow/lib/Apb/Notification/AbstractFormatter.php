@@ -14,10 +14,16 @@ abstract class AbstractFormatter implements FormatterInterface
      */
     private $description;
 
-    public function __construct($type, $description)
+    /**
+     * @var boolean
+     */
+    private $isVisible;
+
+    public function __construct($type, $description, $isVisible = true)
     {
-        $this->type = $type;
+        $this->type        = $type;
         $this->description = $description;
+        $this->isVisible   = $isVisible;
     }
 
     /**
@@ -36,5 +42,27 @@ abstract class AbstractFormatter implements FormatterInterface
     public function getDescription()
     {
         return $this->description;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \Apb\Notification\FormatterInterface::isVisible()
+     */
+    public function isVisible()
+    {
+        return $this->isVisible;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \Apb\Notification\FormatterInterface::getSubscriptionLabel()
+     */
+    public function getSubscriptionLabel($id)
+    {
+        if (null === $this->description) {
+            return $this->type . ' #' . $id;
+        } else {
+            return $this->description. ' #' . $id;
+        }
     }
 }

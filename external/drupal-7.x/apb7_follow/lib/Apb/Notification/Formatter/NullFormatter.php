@@ -25,7 +25,17 @@ class NullFormatter implements FormatterInterface
      */
     public function getDescription()
     {
-        return t("NUll");
+        return t("Null");
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \Apb\Notification\FormatterInterface::isVisible()
+     */
+    public function isVisible()
+    {
+        // Not sure that true is a wise default
+        return true;
     }
 
     /**
@@ -44,5 +54,16 @@ class NullFormatter implements FormatterInterface
     public function getImageURI(Notification $notification)
     {
         return null;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \Apb\Notification\FormatterInterface::getSubscriptionLabel()
+     */
+    public function getSubscriptionLabel($id)
+    {
+        return t('Unknown subscription with identifier %id', array(
+            '%id' => $id,
+        ));
     }
 }

@@ -162,6 +162,9 @@ function notification_type_info_get() {
       if (!isset($info['description'])) {
         $info['description'] = $key;
       }
+      if (!isset($info['visible'])) {
+        $info['visible'] = true;
+      }
 
       $ret[$key] = $info;
     }
@@ -272,6 +275,7 @@ function apb7_follow_library() {
   return array(
     'notification' => array(
       'title'   => "Notification",
+      'version' => '0.1',
       'website' => "http://github.com/pounard/apubsub",
       'js'      => array($path . '/notification.js'  => array()),
       'css'     => array($path . '/notification.css' => array()),
@@ -313,7 +317,11 @@ function notification_manager_get() {
     // Register all "Drupal Way (TM)" notification types.
     $typeRegistry = $instance->getTypeRegistry();
     foreach (notification_type_info_get() as $type => $info) {
-      $typeRegistry->registerType($type, $info['class'], $info['description']);
+      $typeRegistry->registerType(
+          $type,
+          $info['class'],
+          $info['description'],
+          $info['visible']);
     }
   }
 
@@ -520,6 +528,10 @@ function notification_follow_form_submit($form, &$form_state) {
   $manager      = notification_manager_get();
   $backend      = $manager->getBackend();
   $subscriber   = $backend->getSubscriber($subscriberId);
+
+  // FIXME: This needs fixing
+  //  * operation must be set in form, else submit may differ from button label
+  //  * use the notification manager instead would be better
 
   try {
     $subscription = $subscriber->getSubscriptionFor($chanId);

@@ -84,12 +84,51 @@ class NotificationManager
      * @param int $id      Object identifier
      * @param string $type Type identifier, if none given assume
      *                     user account
+     *
+     * @return \APubSub\SubscriberInterface
      */
     public function getSubscriberFor($id, $type = APB_TYPE_USER)
     {
         return $this
             ->backend
             ->getSubscriber($this->getChanId($type, $id));
+    }
+
+    /**
+     * Subscribe an object to a chan
+     *
+     * @param scalar $targetId   Target object identifier
+     * @param string $targetType Target object type
+     * @param scalar $id         Subscriber object identifier
+     * @param string $type       Subscriber object type
+     */
+    public function subscribe($targetId, $targetType, $id, $type = APB_TYPE_USER)
+    {
+        $subscriber = $this->getSubscriberFor($id, $type);
+        $chanId     = $this->getChanId($targetType, $targetId);
+
+        try {
+            $subscriber->subscribe($chanId);
+        } catch (ChannelDoesNotExistException $e) {
+            $this->getBackend()->createChannel($chanId);
+            $subscriber->subscribe($chanId);
+        }
+    }
+
+    /**
+     * Unsubscribe an object to a chan
+     *
+     * @param scalar $targetId   Target object identifier
+     * @param string $targetType Target object type
+     * @param scalar $id         Subscriber object identifier
+     * @param string $type       Subscriber object type
+     */
+    public function unsubscribe($targetId, $targetType, $id, $type = APB_TYPE_USER)
+    {
+        $subscriber = $this
+            ->getSubscriberFor($id, $type)
+            ->unsubscribe(
+                 $this->getChanId($targetType, $targetId));
     }
 
     /**

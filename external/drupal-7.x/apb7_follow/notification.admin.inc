@@ -17,6 +17,8 @@ function apb7_follow_admin_notification_overview($form, &$form_state) {
 
   $label_disabled = t("Disabled");
   $label_enabled  = '<strong>' . t("Enabled") . '</strong>';
+  $label_yes      = t("Yes");
+  $label_no       = t("No");
 
   $options = array();
   foreach ($instances as $type => $instance) {
@@ -25,6 +27,7 @@ function apb7_follow_admin_notification_overview($form, &$form_state) {
 
       $options[$type]['description'] = $instance->getDescription();
       $options[$type]['type']        = $type;
+      $options[$type]['visible']     = $instance->isVisible() ? $label_yes : $label_no;
       $options[$type]['status']      = $manager->isTypeEnabled($type) ? $label_enabled : $label_disabled;
     }
   }
@@ -34,6 +37,7 @@ function apb7_follow_admin_notification_overview($form, &$form_state) {
     '#header'  => array(
       'type'        => t("Type"),
       'description' => t("Description"),
+      'visible'     => t("Visible for user"),
       'status'      => t("Status"),
     ),
     '#options' => $options,
