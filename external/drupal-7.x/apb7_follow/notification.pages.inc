@@ -7,6 +7,7 @@
 
 use APubSub\CursorInterface;
 use APubSub\Error\MessageDoesNotExistException;
+use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\SubscriberInterface;
 use APubSub\SubscriptionInterface;
 
@@ -188,6 +189,11 @@ function apb7_notification_page_user_settings($form, &$form_state, $account) {
     } 
   }
 
+  $form['uid'] = array(
+    '#type'  => 'value',
+    '#value' => $account->uid,
+  );
+
   $form['channels'] = array(
     '#type'    => 'tableselect',
     '#header'  => array(
@@ -198,7 +204,126 @@ function apb7_notification_page_user_settings($form, &$form_state, $account) {
     '#options' => $options,
   );
 
+  $form['actions'] = array(
+    '#type'     => 'actions',
+  );
+  $form['actions']['enable'] = array(
+    '#type'     => 'submit',
+    '#value'    => t("Enable"),
+    '#submit'   => array('apb7_notification_page_user_settings_submit_enable'),
+    '#disabled' => empty($options),
+  );
+  $form['actions']['disable'] = array(
+    '#type'     => 'submit',
+    '#value'    => t("Disable"),
+    '#submit'   => array('apb7_notification_page_user_settings_submit_disable'),
+    '#disabled' => empty($options),
+  );
+  $form['actions']['delete'] = array(
+    '#type'     => 'submit',
+    '#value'    => t("Unfollow"),
+    '#submit'   => array('apb7_notification_page_user_settings_submit_delete'),
+    '#disabled' => empty($options),
+  );
+
   return $form;
+}
+
+/**
+ * User notifications preference page enable submit handler.
+ */
+function apb7_notification_page_user_settings_submit_enable($form, &$form_state) {
+
+  $manager    = notification_manager_get();
+  $uid        = $form_state['values']['uid'];
+  $subscriber = $manager->getSubscriberFor($uid);
+
+  $selected   = array();
+
+  foreach ($form_state['values']['channels'] as $chan_id => $enabled) {
+    if ($chan_id === $enabled) {
+      $selected[] = $enabled;
+    }
+  }
+
+  if (empty($selected)) {
+    drupal_set_message(t("Nothing to do."));
+    return;
+  }
+
+  foreach ($selected as $chan_id) {
+    try {
+      $subscriber->getSubscriptionFor($chan_id)->activate();
+    } catch (SubscriptionDoesNotExistException $e) {
+      // Nothing to do here. Channel may have been suppressed by another thread.
+      // Life is life and everything goes on.
+    }
+  }
+
+  drupal_set_message(t("Subscriptions where enabled successfully."));
+}
+
+/**
+ * User notifications preference page disable submit handler.
+ */
+function apb7_notification_page_user_settings_submit_disable($form, &$form_state) {
+
+  $manager    = notification_manager_get();
+  $uid        = $form_state['values']['uid'];
+  $subscriber = $manager->getSubscriberFor($uid);
+
+  $selected   = array();
+
+  foreach ($form_state['values']['channels'] as $chan_id => $enabled) {
+    if ($chan_id === $enabled) {
+      $selected[] = $enabled;
+    }
+  }
+
+  if (empty($selected)) {
+    drupal_set_message(t("Nothing to do."));
+    return;
+  }
+
+  foreach ($selected as $chan_id) {
+    try {
+      $subscriber->getSubscriptionFor($chan_id)->deactivate();
+    } catch (SubscriptionDoesNotExistException $e) {
+      // Nothing to do here. Channel may have been suppressed by another thread.
+      // Life is life and everything goes on.
+    }
+  }
+
+  drupal_set_message(t("Subscriptions where disabled successfully."));
+}
+
+/**
+ * User notifications preference page delete submit handler.
+ */
+function apb7_notification_page_user_settings_submit_delete($form, &$form_state) {
+
+  $manager    = notification_manager_get();
+  $uid        = $form_state['values']['uid'];
+  $subscriber = $manager->getSubscriberFor($uid);
+
+  $selected   = array();
+
+  foreach ($form_state['values']['channels'] as $chan_id => $enabled) {
+    if ($chan_id === $enabled) {
+      $selected[] = $enabled;
+    }
+  }
+
+  if (empty($selected)) {
+    drupal_set_message(t("Nothing to do."));
+    return;
+  }
+
+  foreach ($selected as $chan_id) {
+    $subscriber->unsubscribe($chan_id);
+  }
+
+  drupal_set_message(t("Subscriptions where unfollowed successfully."));
 }
 
 /**
