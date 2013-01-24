@@ -632,7 +632,7 @@ function apb7_follow_notification_render_block($account) {
     ->addSort(
       CursorInterface::FIELD_MSG_SENT,
       CursorInterface::SORT_DESC)
-    ->setRange(10, $offset);
+    ->setRange(10, 0);
 
   foreach ($cursor as $message) {
 
