@@ -43,7 +43,7 @@ class DrupalHelper
         } else {
             $variableName = 'DRUPAL_PATH_' . $versionMajor;
 
-            if (($path = getenv($variableName)) &&
+            if ((($path = $GLOBALS[$variableName]) || ($path = getenv($variableName))) &&
                 is_dir($path) &&
                 file_exists($path . '/index.php'))
             {
@@ -93,6 +93,11 @@ class DrupalHelper
                 switch ($versionMajor) {
 
                     case 7:
+                        /*
+                        drupal_bootstrap(DRUPAL_BOOTSTRAP_CONFIGURATION);
+                        restore_error_handler();
+                        restore_exception_handler();
+                         */
                         drupal_bootstrap(DRUPAL_BOOTSTRAP_DATABASE);
                         return self::$databaseConnection = \Database::getConnection();
 
@@ -102,6 +107,8 @@ class DrupalHelper
                         throw new \Exception(sprintf(
                             "Drupal version unsupported yet: %s", $versionMajor));
                 }
+
+                // Once bootstrapped, we need to reset error handlers
             }
         }
 

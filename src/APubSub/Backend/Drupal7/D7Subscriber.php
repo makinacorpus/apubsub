@@ -106,46 +106,48 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
         $cx        = $this->context->dbConnection;
         $tx        = $cx->startTransaction();
 
-        if (isset($this->idList[$channelId])) {
-            throw new SubscriptionAlreadyExistsException();
-        }
-
-        // Load the channel only once the subscription load has been attempted,
-        // this ensures a few static caches may have been built ahead of us
-        $channel = $this->context->backend->getChannel($channelId);
-
         try {
-            $cx
-                ->insert('apb_sub')
-                ->fields(array(
-                    'chan_id' => $channel->getDatabaseId(),
-                    'status' => 1,
-                    'created' => $created,
-                    'activated' => $activated,
-                ))
-                ->execute();
+            if (isset($this->idList[$channelId])) {
+                // See the getSubscriptionFor() implementation
+                $subscription = $this->context->backend->getSubscription($this->idList[$channelId]);
+            } else {
 
-            $id = (int)$cx->lastInsertId();
+                // Load the channel only once the subscription load has been attempted,
+                // this ensures a few static caches may have been built ahead of us
+                $channel = $this->context->backend->getChannel($channelId);
 
-            $cx
-                ->insert('apb_sub_map')
-                ->fields(array(
-                    'name' => $this->id,
-                    'sub_id' => $id,
-                ))
-                ->execute();
+                $cx
+                    ->insert('apb_sub')
+                    ->fields(array(
+                        'chan_id' => $channel->getDatabaseId(),
+                        'status' => 1,
+                        'created' => $created,
+                        'activated' => $activated,
+                    ))
+                    ->execute();
+
+                $id = (int)$cx->lastInsertId();
+
+                $cx
+                    ->insert('apb_sub_map')
+                    ->fields(array(
+                        'name' => $this->id,
+                        'sub_id' => $id,
+                    ))
+                    ->execute();
+
+                $subscription = new D7Subscription(
+                    $this->context, $channel->getDatabaseId(),
+                    $id, $created, $activated, 0, false);
+
+                // Also ensure a few static caches are setup in the global context:
+                // this will be the only cache object instance direct access from
+                // this class
+                $this->context->cache->addSubscription($subscription);
+                $this->idList[$channelId] = $id;
+            }
 
             unset($tx); // Explicit commit
-
-            $subscription = new D7Subscription(
-                $this->context, $channel->getDatabaseId(),
-                $id, $created, $activated, 0, false);
-
-            // Also ensure a few static caches are setup in the global context:
-            // this will be the only cache object instance direct access from
-            // this class
-            $this->context->cache->addSubscription($subscription);
-            $this->idList[$channelId] = $id;
 
             return $subscription;
 
@@ -153,6 +155,22 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
             $tx->rollback();
 
             throw $e;
+        }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::unsubscribe()
+     */
+    public function unsubscribe($channelId)
+    {
+        try {
+            if (isset($this->idList[$channelId])) {
+                // See the getSubscriptionFor() implementation
+                $this->context->backend->getSubscription($this->idList[$channelId])->delete();
+            }
+        } catch (SubscriptionDoesNotExistException $e) {
+            // All OK
         }
     }
 

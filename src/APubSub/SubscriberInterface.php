@@ -49,17 +49,28 @@ interface SubscriberInterface extends
      * Note that unlike the subscription, subscribing from here must activate
      * the subscription right away
      *
+     * If subscription already exists, be silent about about it
+     *
      * @param string $channelId               Channel identifier
      *
      * @return \APubSub\SubscriptionInterface New subscription instance
      *
-     * @throws \APubSub\Error\SubscriptionDoesNotExistException
-     *                                        If the subscriber already have
-     *                                        been subscribed to this channel
      * @throws \APubSub\Error\ChannelDoesNotExistException
      *                                        If channel does not exist
      */
     public function subscribe($channelId);
+
+    /**
+     * Create a new subscription for a specific channel
+     *
+     * Note that unlike the subscription, subscribing from here must activate
+     * the subscription right away
+     *
+     * If subscription nor chan do not exist, be silent about it. 
+     *
+     * @param string $channelId Channel identifier
+     */
+    public function unsubscribe($channelId);
 
     /**
      * Fetch current message queue

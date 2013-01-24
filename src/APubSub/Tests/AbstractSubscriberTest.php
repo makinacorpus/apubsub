@@ -46,10 +46,8 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
 
         try {
             $subscriber->subscribe('foo');
-
-            $this->fail("Should have thrown a SubscriptionAlreadyExistsException exception");
         } catch (SubscriptionAlreadyExistsException $e) {
-            $this->assertTrue(true, "Subscription already exists");
+            $this->assertFalse(true, "This should have been silent");
         }
 
         try {
@@ -59,6 +57,10 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
         } catch (ChannelDoesNotExistException $e) {
             $this->assertTrue(true, "Channel does not exists");
         }
+
+        // This should not throw any exception
+        $subscriber->unsubscribe('foo');
+        $subscriber->unsubscribe('nonexisting');
     }
 
     public function testGetters()

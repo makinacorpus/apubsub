@@ -82,21 +82,29 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
     {
         $channel = $this->context->backend->getChannel($channelId);
 
-        // Remember, this is for testing purposes only
         try {
-            if ($this->getSubscriptionFor($channelId)) {
-                throw new SubscriptionAlreadyExistsException();
-            }
+            return $this->getSubscriptionFor($channelId);
         } catch (SubscriptionDoesNotExistException $e) {
-            // Everything is OK
+            $subscription = $channel->subscribe();
+            $subscription->activate();
+
+            $this->subscriptions[$subscription->getId()] = $subscription;
         }
 
-        $subscription = $channel->subscribe();
-        $subscription->activate();
-
-        $this->subscriptions[$subscription->getId()] = $subscription;
-
         return $subscription;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::subscribe()
+     */
+    public function unsubscribe($channelId)
+    {
+        try {
+            $this->getSubscriptionFor($channelId)->delete();
+        } catch (SubscriptionDoesNotExistException $e) {
+            return;
+        }
     }
 
     /**

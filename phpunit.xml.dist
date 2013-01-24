@@ -16,4 +16,8 @@
             </exclude>
         </whitelist>
     </filter>
+
+    <php>
+        <var name="DRUPAL_7_PATH" value="/var/www/drupal-7" />
+    </php>
 </phpunit>
