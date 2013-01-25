@@ -107,6 +107,16 @@ const APB_VAR_ENABLED_TYPES = 'apb_follow_enabled_types';
 const APB_DEF_ENABLED_TYPES = null;
 
 /**
+ * Cache types info variable name.
+ */
+const APB_VAR_CACHE_TYPES = 'apb_follow_cache_types';
+
+/**
+ * Cache types info default value.
+ */
+const APB_DEF_CACHE_TYPES = false;
+
+/**
  * Implements hook_notification_type_info().
  */
 function apb7_follow_notification_type_info() {
@@ -125,9 +135,9 @@ function apb7_follow_notification_type_info() {
 /**
  * Build notification type info using the Drupal Way (TM).
  *
- * This should never be called manually, use the manager instead.
+ * This should never be called manually: use the manager instead.
  *
- * @see 
+ * @see notification_manager_get()
  *
  * @return array
  *   Notification types info as an internal and very specific array.
@@ -135,7 +145,13 @@ function apb7_follow_notification_type_info() {
 function notification_type_info_get() {
   $ret  = array();
 
-  $hook = 'notification_type_info';
+  $hook  = 'notification_type_info';
+  $bin   = 'cache_bootstrap';
+  $cache = variable_get(APB_VAR_CACHE_TYPES, APB_DEF_CACHE_TYPES);
+
+  if ($cache && ($cached = cache_get($hook, $bin))) {
+    return $cached->data;
+  }
 
   // Fetch module-driven definitions.
   foreach (module_implements($hook) as $module) {
@@ -172,6 +188,10 @@ function notification_type_info_get() {
 
   // Allow other modules to alter definition (aKa "The Drupal Way").
   drupal_alter($hook, $ret);
+
+  if ($cache) {
+    cache_set($hook, $ret, $bin);
+  }
 
   return $ret;
 }

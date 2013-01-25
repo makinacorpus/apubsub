@@ -55,6 +55,14 @@ abstract class AbstractFormatter implements FormatterInterface
 
     /**
      * (non-PHPdoc)
+     * @see \Apb\Notification\FormatterInterface::getImageURI()
+     */
+    public function getImageURI(Notification $notification)
+    {
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \Apb\Notification\FormatterInterface::getSubscriptionLabel()
      */
     public function getSubscriptionLabel($id)

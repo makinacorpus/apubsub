@@ -147,13 +147,19 @@ function apb7_follow_admin_notification_settings($form, &$form_state) {
 
   $form['advanced'] = array(
     '#type'  => 'fieldset',
-    '#title' => t("Advanced"),
+    '#title' => t("Advanced / Performance"),
   );
   $form['advanced'][APB_VAR_ENABLE_PROD] = array(
     '#type'          => 'checkbox',
     '#title'         => t("Enable production mode"),
     '#description'   => t("Will suppress some warnings, errors and exceptions. Always check this option on a production site."),
     '#default_value' => variable_get(APB_VAR_ENABLE_PROD, APB_DEF_ENABLE_PROD),
+  );
+  $form['advanced'][APB_VAR_CACHE_TYPES] = array(
+    '#type'          => 'checkbox',
+    '#title'         => t("Cache types definition"),
+    '#description'   => t("Do this only if you have <em>a lot</em> of types definition. I don't think anyone will ever click on this checkbox, or (s)he's probably insane."),
+    '#default_value' => variable_get(APB_VAR_CACHE_TYPES, APB_DEF_CACHE_TYPES),
   );
   $form['advanced'][APB_VAR_ENABLE_FORMATTED_CONTENT] = array(
     '#type'          => 'checkbox',
