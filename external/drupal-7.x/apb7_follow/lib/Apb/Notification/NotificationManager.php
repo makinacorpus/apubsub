@@ -171,11 +171,25 @@ class NotificationManager
      * @param string $type Source object type
      * @param scalar $id   Source object identifier
      * @param mixed $data  Arbitrary data to send along
+     * @param int $level   Arbitrary level, see Notification::LEVEL_* constants.
+     *                     This value is purely arbitrary, it is up to the
+     *                     business layer to do something with it. It does not
+     *                     alters the notification system behavior
+     * @param int $chanId  Forces a channel identifier, for convenience if this
+     *                     is left to null the channel identifier will be
+     *                     computed from the given $type and $id parameters
+     *                     using the getChanId() method
      */
-    public function notify($type, $id, $data, $level = Notification::LEVEL_INFO)
+    public function notify($type, $id, $data, $level = null, $chanId = null)
     {
         if (!$this->isTypeEnabled($type)) {
             return;
+        }
+        if (null === $level) {
+            $level = Notification::LEVEL_INFO;
+        }
+        if (null === $chanId) {
+            $chanId = $this->getChanId($type, $id);
         }
 
         try {
@@ -194,7 +208,7 @@ class NotificationManager
 
             $this
                 ->getBackend()
-                ->getChannel($this->getChanId($type, $id))
+                ->getChannel($chanId)
                 ->send($contents, $type, $level);
 
         } catch (ChannelDoesNotExistException $e) {
