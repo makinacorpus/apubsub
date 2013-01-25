@@ -152,7 +152,7 @@ function apb7_follow_admin_notification_settings($form, &$form_state) {
   $form['advanced'][APB_VAR_ENABLE_PROD] = array(
     '#type'          => 'checkbox',
     '#title'         => t("Enable production mode"),
-    '#description'   => t("Will suppress some warnings and error, and use minified JavaScript files. Always check this option on a production site."),
+    '#description'   => t("Will suppress some warnings, errors and exceptions. Always check this option on a production site."),
     '#default_value' => variable_get(APB_VAR_ENABLE_PROD, APB_DEF_ENABLE_PROD),
   );
   $form['advanced'][APB_VAR_ENABLE_FORMATTED_CONTENT] = array(

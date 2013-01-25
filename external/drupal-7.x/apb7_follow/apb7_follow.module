@@ -287,7 +287,8 @@ function apb7_follow_library() {
  * Implements hook_init().
  */
 function apb7_follow_init() {
-  drupal_add_library('apb7_follow', 'notification');
+  // Force this library to exist in aggregated set of libraries.
+  drupal_add_library('apb7_follow', 'notification', TRUE);
 }
 
 /**
