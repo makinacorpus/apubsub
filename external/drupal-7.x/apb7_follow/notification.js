@@ -7,76 +7,79 @@ var NotificationBlockList = [];
 
 /**
  * Notification block AJAX refresher
+ *
+ * @param string url     URL used for refreshing
+ * @param object element DOM element that carries the block
  */
 var NotificationBlock = function (url, element) {
-    this.element = element;
-    this.url = url;
-};
-
-NotificationBlock.prototype = {
-
-    url:          null,
-    element:      null,
-    defaultDelay: 8,
-    delay:        8,
-    threshold:    320,
-    factor:       1.5,
-    running:      false,
-
-    startTimer: function (fromStart) {
-        var self  = this,
-            delay = this.delay;
-
-        // Already running
-        if (this.running) {
-            return;
-        }
-
-        if (fromStart) {
-            delay = 1;
-            this.delay = this.defaultDelay;
-        }
-
-        this.running = true;
-
-        setTimeout(function () {
-            // External caller asked for explicit stop
-            if (!self.running) {
-                return;
-            }
-
-            self.refresh();
-            self.delay = Math.round(self.delay * self.factor);
-
-            if (self.delay < self.threshold) {
-                self.running = false;
-                self.startTimer();
-            }
-        }, delay * 1000);
-    },
-
-    refresh: function () {
-        var self = this;
-
-        jQuery.ajax({
-            url: this.url,
-            async: true,
-            cache: false,
-            success: function (data, textStatus, jqXHR) {
-                self.element.innerHTML = data;
-                Drupal.behaviors.NotificationDropDown.attach(self.element.parentNode);
-            },
-            type: 'GET'
-        });
-    }
+    this.defaultDelay = 8;
+    this.delay        = 8;
+    this.threshold    = 320;
+    this.factor       = 1.5;
+    this.running      = false;
+    this.element      = element;
+    this.url          = url;
 };
 
 /**
- * Enable notification drop down on click
+ * Starts timer and run the block content refresh loop
+ *
+ * @param bool fromStart Restart timer to default value
  */
+NotificationBlock.prototype.startTimer = function (fromStart) {
+
+    var self  = this,
+        delay = this.delay;
+
+    if (this.running) {
+        return;
+    }
+
+    if (fromStart) {
+        delay = 1;
+        this.delay = this.defaultDelay;
+    }
+
+    this.running = true;
+
+    setTimeout(function () {
+        // External caller asked for explicit stop
+        if (!self.running) {
+            return;
+        }
+
+        self.refresh();
+        self.delay = Math.round(self.delay * self.factor);
+
+        if (self.delay < self.threshold) {
+            self.running = false;
+            self.startTimer();
+        }
+    }, delay * 1000);
+};
+
+/**
+ * Refresh current block content
+ */
+NotificationBlock.prototype.refresh = function () {
+    var self = this;
+
+    jQuery.ajax({
+        url: this.url,
+        async: true,
+        cache: false,
+        success: function (data, textStatus, jqXHR) {
+            self.element.innerHTML = data;
+            Drupal.behaviors.NotificationDropDown.attach(self.element.parentNode);
+        },
+        type: 'GET'
+    });
+};
+
 Drupal.behaviors.NotificationDropDown = {
-    // Shocked? Drupal 2 tabs indent sucks. If there is too many imbricated if
-    // statements, just produce a better algorithm instead of reducing tab size
+    /**
+     * Enable notification drop down on click
+     */
     attach: function (context) {
 
         var jContainer = jQuery(context).find("#notifications"),
@@ -118,10 +121,10 @@ Drupal.behaviors.NotificationDropDown = {
     }
 };
 
-/**
- * Enable AJAX refresh
- */
 Drupal.behaviors.NotificationBlock = {
+    /**
+     * Enable AJAX refresh
+     */
     attach: function (context) {
 
         if (Drupal.settings.notification &&

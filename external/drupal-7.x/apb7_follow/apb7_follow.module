@@ -560,7 +560,7 @@ function notification_follow_form_submit($form, &$form_state) {
  * @return string|array
  *   drupal_render() friendly structure.
  */
-function apb7_follow_image_render($uri, $size = 32) {
+function notification_image_render($uri, $size = 32) {
 
   $scheme = null;
   $path   = null;
@@ -653,7 +653,7 @@ function apb7_follow_notification_render_block($account) {
     }
 
     if ($uri = $notification->getImageUri()) {
-      $image = apb7_follow_image_render($uri);
+      $image = notification_image_render($uri);
     } else {
       $image = '';
     }

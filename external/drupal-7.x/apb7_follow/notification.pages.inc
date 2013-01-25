@@ -58,7 +58,7 @@ function apb7_notification_page_user_list($form, &$form_state, $account) {
     ++$displayed;
 
     if ($uri = $notification->getImageUri()) {
-      $image = apb7_follow_image_render($uri);
+      $image = notification_image_render($uri);
     } else {
       $image = '';
     }
