@@ -97,15 +97,13 @@ class NotificationManager
     /**
      * Subscribe an object to a chan
      *
-     * @param scalar $targetId   Target object identifier
-     * @param string $targetType Target object type
-     * @param scalar $id         Subscriber object identifier
-     * @param string $type       Subscriber object type
+     * @param string $chanId Channel identifier
+     * @param scalar $id     Subscriber object identifier
+     * @param string $type   Subscriber object type
      */
-    public function subscribe($targetId, $targetType, $id, $type = APB_TYPE_USER)
+    public function subscribe($chanId, $id, $type = APB_TYPE_USER)
     {
         $subscriber = $this->getSubscriberFor($id, $type);
-        $chanId     = $this->getChanId($targetType, $targetId);
 
         try {
             $subscriber->subscribe($chanId);
@@ -118,17 +116,15 @@ class NotificationManager
     /**
      * Unsubscribe an object to a chan
      *
-     * @param scalar $targetId   Target object identifier
-     * @param string $targetType Target object type
-     * @param scalar $id         Subscriber object identifier
-     * @param string $type       Subscriber object type
+     * @param string $chanId Channel identifier
+     * @param scalar $id     Subscriber object identifier
+     * @param string $type   Subscriber object type
      */
-    public function unsubscribe($targetId, $targetType, $id, $type = APB_TYPE_USER)
+    public function unsubscribe($chanId, $id, $type = APB_TYPE_USER)
     {
         $subscriber = $this
             ->getSubscriberFor($id, $type)
-            ->unsubscribe(
-                 $this->getChanId($targetType, $targetId));
+            ->unsubscribe($chanId);
     }
 
     /**
