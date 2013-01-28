@@ -433,6 +433,19 @@ function apb7_follow_image_default_styles() {
         ),
       ),
     ),
+    'icon-48' => array(
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => 48,
+            'height' => 48,
+            'upscale' => 1,
+          ),
+          'weight' => 0,
+        ),
+      ),
+    ),
   );
 }
 
