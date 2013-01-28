@@ -107,6 +107,16 @@ const APB_VAR_ENABLED_TYPES = 'apb_follow_enabled_types';
 const APB_DEF_ENABLED_TYPES = null;
 
 /**
+ * Notification image style variable name.
+ */
+const APB_VAR_IMG_STYLE = 'apb_follow_image_style';
+
+/**
+ * Notification image style default value.
+ */
+const APB_DEF_IMG_STYLE = 'icon-64';
+
+/**
  * Cache types info variable name.
  */
 const APB_VAR_CACHE_TYPES = 'apb_follow_cache_types';
@@ -580,7 +590,7 @@ function notification_follow_form_submit($form, &$form_state) {
  * @return string|array
  *   drupal_render() friendly structure.
  */
-function notification_image_render($uri, $size = 32) {
+function notification_image_render($uri, $size = null) {
 
   $scheme = null;
   $path   = null;
@@ -596,6 +606,11 @@ function notification_image_render($uri, $size = 32) {
       return;
     }
     if ($uri = stockicon_get()->renderIcon($path, $size . 'x' . $size)) {
+      $build['#markup'] = theme('image', array('path' => $uri));
+    }
+  } else if ($style = variable_get(APB_VAR_IMG_STYLE, APB_DEF_IMG_STYLE)) {
+    // Try with user driven configuration if possible.
+    if ($uri = image_style_url($style, $uri)) {
       $build['#markup'] = theme('image', array('path' => $uri));
     }
   } else {

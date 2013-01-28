@@ -1,6 +1,6 @@
 name = "APubSub Follow"
-description = "Sample usage of APubSub module that allows any user to follow any other user content creation or modification"
+description = "Uses APubSub to provide high performance transient user notifications"
 core = 7.x
-package = Utility
+package = APubSub
 php = 5.3
 dependencies[] = apb7

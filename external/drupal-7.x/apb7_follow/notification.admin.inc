@@ -144,6 +144,13 @@ function apb7_follow_admin_notification_settings($form, &$form_state) {
     '#description'   => t("Number of notifications being displayed per page in user notification page."),
     '#default_value' => variable_get(APB_VAR_USER_PAGER_LIMIT, APB_DEF_USER_PAGER_LIMIT),
   );
+  $form['interface'][APB_VAR_IMG_STYLE] = array(
+    '#type'          => 'select',
+    '#title'         => t("Notification image style"),
+    '#options'       => image_style_options(TRUE),
+    '#description'   => t("Number of notifications being displayed per page in user notification page."),
+    '#default_value' => variable_get(APB_VAR_IMG_STYLE, APB_DEF_IMG_STYLE),
+  );
 
   $form['advanced'] = array(
     '#type'  => 'fieldset',

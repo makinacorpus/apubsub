@@ -143,7 +143,12 @@ function apb7_backend_get($name = 'default') {
         } else {
           $target = 'default';
         }
-        $backend = new $class(Database::getConnection($target));
+        if (isset($conf[$name]['key'])) {
+          $key = $conf[$name]['key'];
+        } else {
+          $key = NULL;
+        }
+        $backend = new $class(Database::getConnection($target, $key));
         break;
 
       case '\APubSub\Backend\Predis\PredisPubSub':
