@@ -59,6 +59,15 @@ NotificationBlock.prototype.startTimer = function (fromStart) {
 };
 
 /**
+ * Stop timer and refresh
+ */
+NotificationBlock.prototype.stopTimer = function () {
+    this.running = false;
+    this.element.style.display = 'none';
+    this.element.style.visibility = 'hidden';
+}
+
+/**
  * Refresh current block content
  */
 NotificationBlock.prototype.refresh = function () {
@@ -71,6 +80,11 @@ NotificationBlock.prototype.refresh = function () {
         success: function (data, textStatus, jqXHR) {
             self.element.innerHTML = data;
             Drupal.behaviors.NotificationDropDown.attach(self.element.parentNode);
+        },
+        error: function () {
+            // Whatever is the error, we cannot let the user with an incomplete
+            // or broken UI: just hide the widget
+            self.stopTimer();
         },
         type: 'GET'
     });
