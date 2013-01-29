@@ -239,6 +239,10 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
                         $query->condition('q.msg_id', $value);
                         break;
 
+                    case CursorInterface::FIELD_MSG_UNREAD:
+                        $query->condition('q.unread', $value);
+                        break;
+
                     default:
                         trigger_error(sprintf("% does not support filter %d yet",
                             get_class($this), $field));
