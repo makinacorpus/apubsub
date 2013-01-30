@@ -392,7 +392,7 @@ function apb7_follow_block_info() {
     ),
     'notification' => array(
       'info'  => t("Current user notifications"),
-      'cache' => variable_get(APB_VAR_ENABLE_AJAX, APB_DEF_ENABLE_AJAX) ? DRUPAL_CACHE_GLOBAL : DRUPAL_NO_CACHE,
+      'cache' => DRUPAL_NO_CACHE,
     ),
   );
 }
@@ -468,6 +468,11 @@ function apb7_follow_entity_type_is_supported($type) {
 function apb7_follow_block_view($delta = '') {
   global $user;
 
+  // No notifications possible for anonymous user.
+  if (!$user->uid) {
+    return;
+  }
+
   switch ($delta) {
 
     case 'follow_user':
@@ -489,7 +494,6 @@ function apb7_follow_block_view($delta = '') {
       break;
 
     case 'notification':
-
       $block = array(
         'content' => array(
           // Stupid Drupal is stupid, and will move out your div over the
