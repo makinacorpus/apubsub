@@ -674,11 +674,9 @@ function apb7_follow_notification_render_block($account) {
 
   $manager     = notification_manager_get();
   $subscriber  = $manager->getSubscriberFor($account->uid); 
-
   $unreadCount = 0;
   $totalCount  = 0;
-  $unreadTitle = null;
-  $totalTitle  = null;
+  $title       = null;
 
   $cursor = $subscriber
     ->fetch()
@@ -720,17 +718,22 @@ function apb7_follow_notification_render_block($account) {
 
   // Build header
   if ($unreadCount) {
-    $unreadTitle = format_plural($unreadCount, "@count unread message", "@count unread messages");
+    $title = format_plural(
+      $unreadCount,
+      "@count unread message out of @total",
+      "@count unread messages out of @total",
+      array(
+        '@count' => $unreadCount,
+        '@total' => $totalCount,
+      ));
   } else {
-    $unreadTitle = '';
+    $title = format_plural($totalCount, "@count message", "@count messages");
   }
-  $totalTitle = format_plural($totalCount, "@count message", "@count messages");
 
   $build['#unread_count'] = $unreadCount;
-  $build['#unread_title'] = $unreadTitle;
   $build['#total_count']  = $totalCount;
-  $build['#total_title']  = $totalTitle;
   $build['#real_total']   = $cursor->getTotalCount();
+  $build['#title']        = $title;
 
   return $build;
 }

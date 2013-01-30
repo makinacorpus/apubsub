@@ -196,6 +196,7 @@ class D7MessageCursor extends AbstractCursor implements
             $query = clone $this->query;
 
             $this->count = $query
+                ->range()
                 ->countQuery()
                 ->execute()
                 ->fetchField();

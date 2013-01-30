@@ -7,13 +7,14 @@
 ?>
 <div class="top">
   <?php if ($unread_count): ?>
-  <div class="unread number" title="<?php echo $unread_title; ?>">
-    <?php echo $unread_count; ?>
-  </div>
-  <?php endif; ?>
-  <div class="number" title="<?php echo $total_title; ?>">
+  <div class="unread number" title="<?php echo $title; ?>">
     <?php echo $total_count; ?>
   </div>
+  <?php else: ?>
+  <div class="number" title="<?php echo $title; ?>">
+    <?php echo $total_count; ?>
+  </div>
+  <?php endif; ?>
 </div>
 <div class="list">
   <ul>
