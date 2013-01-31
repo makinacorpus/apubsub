@@ -97,6 +97,16 @@ const APB_VAR_USER_PAGER_LIMIT = 'apb_follow_user_pager_limit';
 const APB_DEF_USER_PAGER_LIMIT = 20;
 
 /**
+ * User block limit variable name.
+ */
+const APB_VAR_USER_BLOCK_LIMIT = 'apb_follow_user_block_limit';
+
+/**
+ * User block limit default value.
+ */
+const APB_DEF_USER_BLOCK_LIMIT = 8;
+
+/**
  * Enabled types variable name.
  */
 const APB_VAR_ENABLED_TYPES = 'apb_follow_enabled_types';
@@ -420,19 +430,6 @@ function apb7_follow_image_default_styles() {
         ),
       ),
     ),
-    'icon-64' => array(
-      'effects' => array(
-        array(
-          'name' => 'image_scale_and_crop',
-          'data' => array(
-            'width' => 64,
-            'height' => 64,
-            'upscale' => 1,
-          ),
-          'weight' => 0,
-        ),
-      ),
-    ),
     'icon-48' => array(
       'effects' => array(
         array(
@@ -440,6 +437,19 @@ function apb7_follow_image_default_styles() {
           'data' => array(
             'width' => 48,
             'height' => 48,
+            'upscale' => 1,
+          ),
+          'weight' => 0,
+        ),
+      ),
+    ),
+    'icon-64' => array(
+      'effects' => array(
+        array(
+          'name' => 'image_scale_and_crop',
+          'data' => array(
+            'width' => 64,
+            'height' => 64,
             'upscale' => 1,
           ),
           'weight' => 0,
@@ -676,6 +686,7 @@ function apb7_follow_notification_render_block($account) {
   $subscriber  = $manager->getSubscriberFor($account->uid); 
   $unreadCount = 0;
   $totalCount  = 0;
+  $limit       = variable_get(APB_VAR_USER_BLOCK_LIMIT, APB_DEF_USER_BLOCK_LIMIT);
   $title       = null;
 
   $cursor = $subscriber
@@ -683,7 +694,7 @@ function apb7_follow_notification_render_block($account) {
     ->addSort(
       CursorInterface::FIELD_MSG_SENT,
       CursorInterface::SORT_DESC)
-    ->setRange(10, 0);
+    ->setRange($limit, 0);
 
   foreach ($cursor as $message) {
 
@@ -720,14 +731,17 @@ function apb7_follow_notification_render_block($account) {
   if ($unreadCount) {
     $title = format_plural(
       $unreadCount,
-      "@count unread message out of @total",
-      "@count unread messages out of @total",
+      "Displaying @count unread message out of @total",
+      "Displaying @count unread messages out of @total",
       array(
         '@count' => $unreadCount,
         '@total' => $totalCount,
       ));
   } else {
-    $title = format_plural($totalCount, "@count message", "@count messages");
+    $title = format_plural(
+      $totalCount,
+      "Displaying @count message",
+      "Displaying @count messages");
   }
 
   $build['#unread_count'] = $unreadCount;
@@ -762,10 +776,9 @@ function template_preprocess_notification_block(&$variables) {
 
   $variables += array(
     'unread_count' => $data['#unread_count'],
-    'unread_title' => $data['#unread_title'],
     'total_count'  => $data['#total_count'],
-    'total_title'  => $data['#total_title'],
     'real_total'   => $data['#real_total'],
+    'title'        => $data['#title'],
     'list'         => $data['#list'],
     'all_link'     => l(t("See all"), 'user/' . $user->uid . '/notifications', array('attributes' => array('class' => array('all-link')))),
     'pref_link'    => l(t("Preferences"), 'user/' . $user->uid . '/notifications/settings', array('attributes' => array('class' => array('pref-link')))),
