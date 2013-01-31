@@ -198,6 +198,67 @@ function notification_type_info_get() {
       if (!isset($info['description'])) {
         $info['description'] = $key;
       }
+
+      $ret[$key] = $info;
+    }
+  }
+
+  // Allow other modules to alter definition (aKa "The Drupal Way").
+  drupal_alter($hook, $ret);
+
+  if ($cache) {
+    cache_set($hook, $ret, $bin);
+  }
+
+  return $ret;
+}
+
+/**
+ * Build channel type info using the Drupal Way (TM).
+ *
+ * This should never be called manually: use the manager instead.
+ *
+ * @see notification_manager_get()
+ *
+ * @return array
+ *   Notification types info as an internal and very specific array.
+ */
+function notification_channel_info_get() {
+  $ret  = array();
+
+  $hook  = 'notification_channel_info';
+  $bin   = 'cache_bootstrap';
+  $cache = variable_get(APB_VAR_CACHE_TYPES, APB_DEF_CACHE_TYPES);
+
+  if ($cache && ($cached = cache_get($hook, $bin))) {
+    return $cached->data;
+  }
+
+  // Fetch module-driven definitions.
+  foreach (module_implements($hook) as $module) {
+    foreach (module_invoke($module, $hook) as $key => $info) {
+
+      // Avoid duplicates and wild overrides.
+      if (isset($types[$key])) {
+        watchdog('apb_follow', "Module @module overrides the @key notification type, dropping", array(
+          '@module' => $module,
+          '@key'    => $key,
+        ), WATCHDOG_WARNING);
+        continue;
+      }
+
+      if (!class_exists($info['class'])) {
+        watchdog('apb_follow', "Module @module provides @key notification type using unknown class @class, dropping", array(
+          '@module' => $module,
+          '@key'    => $key,
+          '@class'  => $info['class'],
+        ), WATCHDOG_WARNING);
+        continue;
+      }
+
+      if (!isset($info['description'])) {
+        $info['description'] = $key;
+      }
       if (!isset($info['visible'])) {
         $info['visible'] = true;
       }
@@ -282,10 +343,10 @@ function apb7_follow_menu() {
 
   // Site wide administration pages.
   $items['admin/config/people/notification'] = array(
-    'title'            => "Notifications",
+    'title'            => "Notifications types",
     'description'      => "Enable or disable notifications globally and configuration the notifications behavior.",
     'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('apb7_follow_admin_notification_overview'),
+    'page arguments'   => array('apb7_follow_admin_notification_notification_types'),
     'access arguments' => array('administer site configuration'),
     'type'             => MENU_NORMAL_ITEM,
     'file'             => 'notification.admin.inc',
@@ -293,6 +354,14 @@ function apb7_follow_menu() {
   $items['admin/config/people/notification/overview'] = array(
     'title'            => "Overview",
     'type'             => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['admin/config/people/notification/channel-type'] = array(
+    'title'            => "Channel types",
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('apb7_follow_admin_notification_channel_types'),
+    'access arguments' => array('administer site configuration'),
+    'type'             => MENU_LOCAL_TASK,
+    'file'             => 'notification.admin.inc',
   );
   $items['admin/config/people/notification/settings'] = array(
     'title'            => "Global settings",
@@ -356,9 +425,18 @@ function notification_manager_get() {
             APB_DEF_ENABLED_TYPES));
 
     // Register all "Drupal Way (TM)" notification types.
-    $typeRegistry = $instance->getTypeRegistry();
+    $formatterRegistry = $instance->getFormatterRegistry();
     foreach (notification_type_info_get() as $type => $info) {
-      $typeRegistry->registerType(
+      $formatterRegistry->registerType(
+          $type,
+          $info['class'],
+          $info['description']);
+    }
+
+    // Register all "Drupal Way (TM)" channel types.
+    $channelTypeRegistry = $instance->getChannelTypeRegistry();
+    foreach (notification_channel_info_get() as $type => $info) {
+      $channelTypeRegistry->registerType(
           $type,
           $info['class'],
           $info['description'],

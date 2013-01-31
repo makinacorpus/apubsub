@@ -189,7 +189,7 @@ class Notification
         } else {
             return $this
                 ->manager
-                ->getTypeRegistry()
+                ->getFormatterRegistry()
                 ->getInstance($this->type)
                 ->format($this);
         }
@@ -204,7 +204,7 @@ class Notification
     {
         return $this
             ->manager
-            ->getTypeRegistry()
+            ->getFormatterRegistry()
             ->getInstance($this->type)
             ->getImageURI($this);
     }

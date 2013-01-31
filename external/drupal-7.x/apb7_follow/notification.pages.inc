@@ -158,30 +158,30 @@ function apb7_notification_page_user_list_submit_delete($form, &$form_state) {
  */
 function apb7_notification_page_user_settings($form, &$form_state, $account) {
 
-  $manager    = notification_manager_get();
-  $registry   = $manager->getTypeRegistry();
-  $subscriber = $manager->getSubscriberFor($account->uid);
+  $manager             = notification_manager_get();
+  $channelTypeRegistry = $manager->getChannelTypeRegistry();
+  $subscriber          = $manager->getSubscriberFor($account->uid);
 
   $options = array();
   foreach ($subscriber->getSubscriptions() as $subscription) {
     if ($subscription instanceof SubscriptionInterface) {
 
-      $channel   = $subscription->getChannel();
-      $chan_name = $channel->getId();
-      $id        = null;
-      $formatter = null;
-      $created   = $subscription->getCreationTime();
+      $channel     = $subscription->getChannel();
+      $chan_name   = $channel->getId();
+      $id          = null;
+      $channelType = null;
+      $created     = $subscription->getCreationTime();
 
       if (FALSE !== strpos($chan_name, ':')) {
-        list($type, $id) = explode(':', $chan_name, 2);
-        $formatter = $registry->getInstance($type);
+        list($type, $id)   = explode(':', $chan_name, 2);
+        $channelType = $channelTypeRegistry->getInstance($type);
       } else {
-        $formatter = $registry->getInstance(null);
+        $channelType = $channelTypeRegistry->getInstance(null);
       }
 
-      if ($formatter->isVisible()) {
+      if ($channelType->isVisible()) {
         $options[$chan_name] = array(
-          'desc'   => $formatter->getSubscriptionLabel($id),
+          'desc'   => $channelType->getSubscriptionLabel($id),
           'since'  => format_date($created) . " / " . format_interval(time() - $created),
           'status' => $subscription->isActive() ? t("Enabled") : t("Disabled"),
         );

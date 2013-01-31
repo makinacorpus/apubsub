@@ -4,7 +4,10 @@ namespace Apb\Notification;
 
 use Apb\Notification\Formatter\NullFormatter;
 
-class TypeRegistry
+/**
+ * FIXME: Redundancies between FormatterRegistry and ChannelTypeRegistry
+ */
+class FormatterRegistry
 {
     /**
      * Stored known formatters
@@ -64,9 +67,8 @@ class TypeRegistry
      * @param string $type        Type
      * @param string $class       Class to use
      * @param string $description Human readable description
-     * @param string $isVisible   Visible state for this type of notification
      */
-    public function registerType($type, $class, $description = null, $isVisible = true)
+    public function registerType($type, $class, $description = null)
     {
         if (!class_exists($class)) {
             throw new \InvalidArgumentException(sprintf(
@@ -80,7 +82,6 @@ class TypeRegistry
         $this->data[$type] = array(
             'class'       => $class,
             'description' => $description,
-            'visible'     => $isVisible,
         );
     }
 
@@ -142,7 +143,7 @@ class TypeRegistry
                 "Class '%s' does not exist for type '%s'", $class, $type));
         }
 
-        return new $class($type, $description, $data['visible']);
+        return new $class($type, $description);
     }
 
     /**

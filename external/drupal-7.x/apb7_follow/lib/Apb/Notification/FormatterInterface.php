@@ -22,14 +22,6 @@ interface FormatterInterface
     public function getDescription();
 
     /**
-     * Is visible for the end user
-     *
-     * @return boolean True if the end user can manipulate subscriptions to
-     *                 these notifications
-     */
-    public function isVisible();
-
-    /**
      * Format notification as HTML code, if any link has to be set, set it
      * into this text
      *
@@ -50,14 +42,4 @@ interface FormatterInterface
      *                                   in the returned URI
      */
     public function getImageURI(Notification $notification);
-
-    /**
-     * Get subscription label corresponding to given id
-     *
-     * For example, if this instance is for formatting document oriented
-     * notifications, you can return something like "Document $id modifications"
-     *
-     * @param scalar $id
-     */
-    public function getSubscriptionLabel($id);
 }

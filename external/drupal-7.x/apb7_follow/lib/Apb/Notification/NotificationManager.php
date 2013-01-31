@@ -18,9 +18,14 @@ class NotificationManager
     protected $backend;
 
     /**
-     * @var \Apb\Notification\TypeRegistry
+     * @var \Apb\Notification\FormatterRegistry
      */
-    protected $typeRegistry;
+    protected $formatterRegistry;
+
+    /**
+     * @var \Apb\Notification\ChannelTypeRegistry
+     */
+    protected $channelTypeRegistry;
 
     /**
      * Disabled types. Keys are type names and values are any non null value
@@ -55,10 +60,11 @@ class NotificationManager
         $silentMode     = false,
         $disabledTypes  = null)
     {
-        $this->backend        = $backend;
-        $this->storeFormatted = $storeFormatted;
-        $this->silentMode     = $silentMode;
-        $this->typeRegistry   = new TypeRegistry();
+        $this->backend             = $backend;
+        $this->storeFormatted      = $storeFormatted;
+        $this->silentMode          = $silentMode;
+        $this->formatterRegistry   = new FormatterRegistry();
+        $this->channelTypeRegistry = new ChannelTypeRegistry();
 
         if (null !== $disabledTypes) {
             $this->disabledTypes = array_flip($disabledTypes);
@@ -140,11 +146,21 @@ class NotificationManager
     /**
      * Get type registry
      *
-     * @return \Apb\Notification\TypeRegistry Type registry
+     * @return \Apb\Notification\FormatterRegistry Type registry
      */
-    public function getTypeRegistry()
+    public function getFormatterRegistry()
     {
-        return $this->typeRegistry;
+        return $this->formatterRegistry;
+    }
+
+    /**
+     * Get channel type registry
+     *
+     * @return \Apb\Notification\ChannelTypeRegistry Type registry
+     */
+    public function getChannelTypeRegistry()
+    {
+      return $this->channelTypeRegistry;
     }
 
     /**
@@ -156,7 +172,7 @@ class NotificationManager
      */
     public function isTypeEnabled($type)
     {
-        return !isset($this->disabledTypes[$type]) && $this->typeRegistry->typeExists($type);
+        return !isset($this->disabledTypes[$type]) && $this->formatterRegistry->typeExists($type);
     }
 
     /**
@@ -197,7 +213,7 @@ class NotificationManager
             if ($this->storeFormatted) {
                 // Quite a hack, but efficient
                 $contents['f'] = $this
-                    ->getTypeRegistry()
+                    ->getFormatterRegistry()
                     ->getInstance($type)
                     ->format(new Notification($this, $contents));
             }

@@ -6,19 +6,18 @@
  */
 
 use Apb\Notification\FormatterInterface;
+use Apb\Notification\ChannelTypeInterface;
 
 /**
- * Main overview admin form.
+ * Notification types admin form.
  */
-function apb7_follow_admin_notification_overview($form, &$form_state) {
+function apb7_follow_admin_notification_notification_types($form, &$form_state) {
 
   $manager   = notification_manager_get();
-  $instances = $manager->getTypeRegistry()->getAllInstances(true);
+  $instances = $manager->getFormatterRegistry()->getAllInstances(true);
 
   $label_disabled = t("Disabled");
   $label_enabled  = '<strong>' . t("Enabled") . '</strong>';
-  $label_yes      = t("Yes");
-  $label_no       = t("No");
 
   $options = array();
   foreach ($instances as $type => $instance) {
@@ -27,7 +26,6 @@ function apb7_follow_admin_notification_overview($form, &$form_state) {
 
       $options[$type]['description'] = $instance->getDescription();
       $options[$type]['type']        = $type;
-      $options[$type]['visible']     = $instance->isVisible() ? $label_yes : $label_no;
       $options[$type]['status']      = $manager->isTypeEnabled($type) ? $label_enabled : $label_disabled;
     }
   }
@@ -37,7 +35,6 @@ function apb7_follow_admin_notification_overview($form, &$form_state) {
     '#header'  => array(
       'type'        => t("Type"),
       'description' => t("Description"),
-      'visible'     => t("Visible for user"),
       'status'      => t("Status"),
     ),
     '#options' => $options,
@@ -61,7 +58,7 @@ function apb7_follow_admin_notification_overview($form, &$form_state) {
 }
 
 /**
- * Main overview admin form enable selected submit handler.
+ * Notification types admin form enable selected submit handler.
  */
 function apb7_follow_admin_notification_overview_submit_enable($form, &$form_state) {
 
@@ -90,7 +87,7 @@ function apb7_follow_admin_notification_overview_submit_enable($form, &$form_sta
 }
 
 /**
- * Main overview admin form disable selected submit handler.
+ * Notification types admin form disable selected submit handler.
  */
 function apb7_follow_admin_notification_overview_submit_disable($form, &$form_state) {
 
@@ -116,6 +113,42 @@ function apb7_follow_admin_notification_overview_submit_disable($form, &$form_st
   }
 
   drupal_set_message(t("Disabled selected types"));
+}
+
+/**
+ * Channel types admin form.
+ */
+function apb7_follow_admin_notification_channel_types($form, &$form_state) {
+
+  $manager   = notification_manager_get();
+  $instances = $manager->getChannelTypeRegistry()->getAllInstances(true);
+
+  $label_disabled = t("Disabled");
+  $label_yes      = t("Yes");
+  $label_no       = t("No");
+
+  $options = array();
+  foreach ($instances as $type => $instance) {
+    if ($instance instanceof ChannelTypeInterface) {
+      $type = $instance->getType();
+
+      $options[$type]['description'] = $instance->getDescription();
+      $options[$type]['type']        = $type;
+      $options[$type]['visible']     = $instance->isVisible() ? $label_yes : $label_no;
+    }
+  }
+
+  $form['types'] = array(
+    '#type'    => 'tableselect',
+    '#header'  => array(
+      'type'        => t("Type"),
+      'description' => t("Description"),
+      'visible'     => t("Visible for user"),
+    ),
+    '#options' => $options,
+  );
+
+  return $form;
 }
 
 /**
