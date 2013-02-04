@@ -83,6 +83,33 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
         // FIXME: Test subscriptions identifiers? Order is not respected
     }
 
+    public function testDelete()
+    {
+        $subscriber = $this->backend->getSubscriber('foo');
+
+        $this->backend->createChannels(array(
+            'a',
+            'b',
+            'c',
+        ));
+
+        $sId1 = $subscriber->subscribe('a')->getId();
+        $sId2 = $subscriber->subscribe('b')->getId();
+        $sId3 = $subscriber->subscribe('c')->getId();
+
+        $subscriber->delete();
+
+        foreach (array($sId1, $sId2, $sId3) as $subId) {
+            try {
+                $this->backend->getSubscription($subId);
+
+                $this->fail("Subscription has not been deleted");
+            } catch (SubscriptionDoesNotExistException $e) {
+                $this->assertTrue(true, "Subscription has been deleted");
+            }
+        }
+    }
+
     public function testFetchCursorOrder()
     {
         $subscriber = $this->backend->getSubscriber('baz');

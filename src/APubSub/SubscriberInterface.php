@@ -87,4 +87,9 @@ interface SubscriberInterface extends
      * Delete everyting in all of this subscriber's subscription queues
      */
     public function flush();
+
+    /**
+     * Delete all subscriptions related to this subscriber
+     */
+    public function delete();
 }

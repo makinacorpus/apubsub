@@ -205,4 +205,15 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
 
         return $ret;
     }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::delete()
+     */
+    public function delete()
+    {
+        foreach ($this->getSubscriptions() as $subscription) {
+            $subscription->delete();
+        }
+    }
 }

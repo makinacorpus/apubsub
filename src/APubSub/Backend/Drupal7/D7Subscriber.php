@@ -325,4 +325,13 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
 
         return iterator_to_array($cursor);
     }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::delete()
+     */
+    public function delete()
+    {
+        $this->context->getBackend()->deleteSubscriptions($this->idList);
+    }
 }
