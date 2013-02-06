@@ -2,7 +2,6 @@
 
 namespace Apb\Notification;
 
-use APubSub\Backend\DefaultMessage;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\MessageInterface;
 use APubSub\PubSubInterface;
