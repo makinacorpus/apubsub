@@ -75,16 +75,21 @@ interface CursorInterface extends ObjectInterface, \Traversable, \Countable
     const FIELD_SUBER_NAME      = 30;
 
     /**
+     * Subscriber last access time
+     */
+    const FIELD_SUBER_ACCESS    = 31;
+
+    /**
      * Subscription identifier
      */
-    const FIELD_SUB_ID          = 31;
+    const FIELD_SUB_ID          = 40;
 
     /**
      * Subscription status
      *
      * For sort enabled > disabled
      */
-    const FIELD_SUB_STATUS      = 32;
+    const FIELD_SUB_STATUS      = 41;
 
     /**
      * Return a list of available sort bit flags

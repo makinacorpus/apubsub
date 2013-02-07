@@ -231,15 +231,6 @@ class MongoChannel extends AbstractObject implements ChannelInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::getStatHelper()
-     */
-    public function getStatHelper()
-    {
-        throw new UncapableException();
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\MessageContainerInterface::deleteMessage()
      */
     public function deleteMessage($id)

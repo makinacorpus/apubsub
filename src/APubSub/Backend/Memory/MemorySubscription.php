@@ -137,7 +137,7 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\ChannelAwareInterface::getChannelId()
+     * @see \APubSub\SubscriptionInterface::getChannelId()
      */
     public function getChannelId()
     {
@@ -146,7 +146,7 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\ChannelAwareInterface::getChannel()
+     * @see \APubSub\SubscriptionInterface::getChannel()
      */
     public function getChannel()
     {

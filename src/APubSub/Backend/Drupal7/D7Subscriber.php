@@ -16,29 +16,32 @@ use APubSub\SubscriberInterface;
 class D7Subscriber extends AbstractObject implements SubscriberInterface
 {
     /**
-     * Identifier
-     *
      * @var scalar
      */
     private $id;
 
     /**
-     * Subscription identifiers
-     *
      * @var array
      */
     private $idList = null;
 
     /**
+     * @var int
+     */
+    private $lastAccessTime = 0;
+
+    /**
      * Default constructor
      *
-     * @param D7Context $context Backend that owns this instance
-     * @param scalar $id         User set identifier
+     * @param D7Context $context  Backend that owns this instance
+     * @param scalar $id          User set identifier
+     * @param int $lastAccessTime Last access time
      */
-    public function __construct(D7Context $context, $id)
+    public function __construct(D7Context $context, $id, $lastAccessTime = 0)
     {
         $this->id = $id;
         $this->context = $context;
+        $this->lastAccessTime = $lastAccessTime;
 
         // Get subscription identifiers list, with channel mapping
         $this->idList = $this
@@ -177,6 +180,34 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
         } catch (SubscriptionDoesNotExistException $e) {
             // All OK
         }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::getLastAccessTime()
+     */
+    public function getLastAccessTime()
+    {
+        return $this->lastAccessTime;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::touch()
+     */
+    public function touch()
+    {
+        $this->lastAccessTime = time();
+
+        $this
+            ->context
+            ->dbConnection
+            ->update('apb_sub_map')
+            ->condition('name', $this->id)
+            ->fields(array(
+                'accessed' => $this->lastAccessTime,
+            ))
+            ->execute();
     }
 
     /**

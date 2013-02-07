@@ -217,7 +217,25 @@ class DefaultMessage implements MessageInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\ChannelAwareInterface::getChannelId()
+     * @see \APubSub\MessageInterface::getSubscriptionId()
+     */
+    public function getSubscriptionId()
+    {
+      return $this->subscriptionId;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageInterface::getSubscription()
+     */
+    public function getSubscription()
+    {
+        return $this->context->getBackend()->getSubscription($this->subscriptionId);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageInterface::getChannelId()
      */
     public function getChannelId()
     {
@@ -226,28 +244,10 @@ class DefaultMessage implements MessageInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\ChannelAwareInterface::getChannel()
+     * @see \APubSub\MessageInterface::getChannel()
      */
     public function getChannel()
     {
         return $this->context->getBackend()->getChannel($this->chanId);
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionAwareInterface::getSubscriptionId()
-     */
-    public function getSubscriptionId()
-    {
-        return $this->subscriptionId;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionAwareInterface::getSubscription()
-     */
-    public function getSubscription()
-    {
-        return $this->context->getBackend()->getSubscription($this->subscriptionId);
     }
 }

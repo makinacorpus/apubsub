@@ -192,6 +192,13 @@ function apb7_schema() {
         'length' => 128,
         'not null' => TRUE,
       ),
+      'accessed' => array(
+        'description' => "Last time a queued job accessed this subscriber",
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     // Subscription can be owned by only one subscriber
     'primary key' => array('sub_id'),
@@ -300,4 +307,17 @@ function apb7_schema() {
   );
 
   return $schema;
+}
+
+/**
+ * Adds a few missing fields.
+ */
+function apb7_update_7001() {
+  db_add_field('apb_sub_map', 'accessed', array(
+    'description' => "Last time a queued job accessed this subscriber",
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+  ));
 }

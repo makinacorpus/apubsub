@@ -17,6 +17,7 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
     protected function setUp()
     {
         parent::setUp();
+
         $this->channel = $this->backend->createChannel('foo');
     }
 
@@ -27,6 +28,30 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
 
         $subscriber = $this->backend->getSubscriber('bar');
         $this->assertInstanceOf('\APubSub\SubscriberInterface', $subscriber);
+    }
+
+    public function testLastAccess()
+    {
+        $subA = $this->backend->getSubscriber('A');
+        $subB = $this->backend->getSubscriber('B');
+
+        $this->backend->createChannels(array(
+            'a',
+            'b'
+        ));
+
+        $subA->subscribe('a');
+        $subA->subscribe('b');
+        $subB->subscribe('a');
+        $subB->subscribe('b');
+
+        // Ensure that the value is stupidely wrong if never accessed
+        $this->assertLessThan(time() - 10, $subA->getLastAccessTime());
+        $this->assertLessThan(time() - 10, $subB->getLastAccessTime());
+
+        $subA->touch();
+        $this->assertGreaterThan(time() - 5, $subA->getLastAccessTime());
+        $this->assertLessThan(time(), $subB->getLastAccessTime());
     }
 
     public function testSubscribe()

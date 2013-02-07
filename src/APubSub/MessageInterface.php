@@ -7,10 +7,7 @@ use APubSub\ObjectInterface;
 /**
  * Represent a specific message tied to a subscription
  */
-interface MessageInterface extends
-    ObjectInterface,
-    ChannelAwareInterface,
-    SubscriptionAwareInterface
+interface MessageInterface extends ObjectInterface
 {
     /**
      * Get internal message identifier
@@ -71,4 +68,38 @@ interface MessageInterface extends
      * @return int Arbitrary level set in queue
      */
     public function getLevel();
+
+    /**
+     * Get subscription identifier
+     *
+     * Use this method rather than getSubscription() whenever possible, in
+     * order to avoid backends lookup in most implementations
+     *
+     * @return mixed Subscription identiifer
+     */
+    public function getSubscriptionId();
+
+    /**
+     * Get channel
+     *
+     * @return \APubSub\SubscriptionInterface
+     */
+    public function getSubscription();
+
+    /**
+     * Get channel identifier
+     *
+     * Use this method rather than getChannel() whenever possible, in order to
+     * avoid backends lookup in most implementations
+     *
+     * @return string
+     */
+    public function getChannelId();
+
+    /**
+     * Get channel
+     *
+     * @return \APubSub\ChannelInterface
+     */
+    public function getChannel();
 }
