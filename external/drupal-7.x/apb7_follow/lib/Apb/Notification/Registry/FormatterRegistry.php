@@ -19,9 +19,8 @@ class FormatterRegistry extends AbstractRegistry
     }
 
     /**
-     * Overridable method that creates the real instance
-     *
-     * @param mixed $data Definition data
+     * (non-PHPdoc)
+     * @see \Apb\Notification\Registry\AbstractRegistry::getInstanceFromData()
      */
     protected function getInstanceFromData($type, $data)
     {
