@@ -325,17 +325,6 @@ class MongoPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getChannelListHelper()
-     */
-    public function getChannelListHelper()
-    {
-        throw new \Exception("Not implemented yet");
-
-        // return new MongoChannelCursor($this->context);
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::getSubscription()
      */
     public function getSubscription($id)
@@ -457,34 +446,12 @@ class MongoPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getSubscriptionListHelper()
-     */
-    public function getSubscriptionListHelper()
-    {
-        throw new \Exception("Not implemented yet");
-
-        //return new MongoSubscriptionCursor($this->context);
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::getSubscriber()
      */
     public function getSubscriber($id)
     {
         // In this implementation all writes will be delayed on real operations
         return new MongoSubscriber($this->context, $id);
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getSubscriberListHelper()
-     */
-    public function getSubscriberListHelper()
-    {
-        throw new \Exception("Not implemented yet");
-
-        //return new MongoSubscriberCursor($this->context);
     }
 
     /**

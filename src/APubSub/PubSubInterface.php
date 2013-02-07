@@ -80,15 +80,6 @@ interface PubSubInterface extends ObjectInterface
     public function deleteChannel($id);
 
     /**
-     * Get channel list helper if this backend implements it
-     *
-     * @return \APubSub\CursorInterface          Cursor
-     *
-     * @throws \APubSub\Error\UncapableException If backend cannot list
-     */
-    public function getChannelListHelper();
-
-    /**
      * Load an existing subscription
      *
      * @param scalar $id                      The subscription identifier
@@ -137,15 +128,6 @@ interface PubSubInterface extends ObjectInterface
     public function deleteSubscriptions($idList);
 
     /**
-     * Get subscription list helper if this backend implements it
-     *
-     * @return \APubSub\Helper\CursorInterface   Cursor
-     *
-     * @throws \APubSub\Error\UncapableException If backend cannot list
-     */
-    public function getSubscriptionListHelper();
-
-    /**
      * Get or create a new subscriber instance
      *
      * @param scalar $id                    Scalar value (will stored as a
@@ -158,11 +140,13 @@ interface PubSubInterface extends ObjectInterface
     /**
      * Get subscriber list helper if this backend implements it
      *
-     * @return \APubSub\CursorInterface          Cursor
+     * @param array $conditions  Array of key value pairs conditions, only the
+     *                           "equal" operation is supported. If value is an
+     *                           array, treat it as a "IN" operator
      *
-     * @throws \APubSub\Error\UncapableException If backend cannot list
+     * @return CursorInterface   Cursor
      */
-    public function getSubscriberListHelper();
+    public function fetchSubscribers(array $conditions = null);
 
     /**
      * Flush any non essential internal cache this backend may hold. Backends

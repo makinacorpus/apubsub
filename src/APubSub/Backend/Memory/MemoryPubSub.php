@@ -4,6 +4,7 @@ namespace APubSub\Backend\Memory;
 
 use APubSub\Backend\AbstractObject;
 use APubSub\Backend\ArrayCursor;
+use APubSub\CursorInterface;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
@@ -14,6 +15,40 @@ use APubSub\PubSubInterface;
  */
 class MemoryPubSub extends AbstractObject implements PubSubInterface
 {
+    /**
+     * Sort helper for messages
+     *
+     * @param MemorySubscriber $a Too lazy to comment
+     * @param array $conditions   Too lazy to comment
+     *
+     * @return bool               Too lazy to comment
+     *
+    public static function filterSubscribers(MemorySubscriber $a, array $conditions)
+    {
+        foreach ($conditions as $key => $value) {
+
+            $value = null;
+
+            switch ($key) {
+
+                case CursorInterface::FIELD_SUBER_ACCESS:
+                    $value = $a->isUnread();
+                    break;
+
+                case CursorInterface::FIELD_SUBER_NAME:
+                    $value = $a->isUnread();
+                    break;
+            }
+
+            if (null === $key && $value !== null || $key != $value) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+     */
+
     public function __construct()
     {
         $this->context = new MemoryContext($this);
@@ -121,15 +156,6 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getChannelListHelper()
-     */
-    public function getChannelListHelper()
-    {
-        return new ArrayCursor($this->context, $this->context->channels);
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::getSubscription()
      */
     public function getSubscription($id)
@@ -181,11 +207,23 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getSubscriptionListHelper()
+     * @see \APubSub\PubSubInterface::fetchSubscribers()
      */
-    public function getSubscriptionListHelper()
+    public function fetchSubscribers(array $conditions = null)
     {
-        return new ArrayCursor($this->context, $this->context->subscriptions);
+        throw new \Exception("Not implemented yet");
+
+        $ret = $this->context->subscribers;
+
+        if ($conditions) {
+            $ret = array_filter($ret, function ($a) use ($conditions) {
+                return MemoryPubSub::filterSubscribers($a, $conditions);
+            });
+        }
+
+        $sorter = new MemorySubscriberSorter();
+
+        return new ArrayCursor($this->context, $ret, $sorter->getAvailableSorts(), $sorter);
     }
 
     /**
@@ -199,15 +237,6 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
         }
 
         return $this->context->subscribers[$id];
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getSubscriberListHelper()
-     */
-    public function getSubscriberListHelper()
-    {
-        return new ArrayCursor($this->context, $this->context->subscribers);
     }
 
     /**

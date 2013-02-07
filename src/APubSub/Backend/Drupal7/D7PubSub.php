@@ -384,15 +384,6 @@ class D7PubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getChannelListHelper()
-     */
-    public function getChannelListHelper()
-    {
-        return new D7ChannelCursor($this->context);
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::getSubscription()
      */
     public function getSubscription($id)
@@ -541,15 +532,6 @@ class D7PubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getSubscriptionListHelper()
-     */
-    public function getSubscriptionListHelper()
-    {
-        return new D7SubscriptionCursor($this->context);
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\PubSubInterface::getSubscriber()
      */
     public function getSubscriber($id)
@@ -560,11 +542,11 @@ class D7PubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getSubscriberListHelper()
+     * @see \APubSub\PubSubInterface::fetchSubscribers()
      */
-    public function getSubscriberListHelper()
+    public function fetchSubscribers(array $conditions = null)
     {
-        return new D7SubscriberCursor($this->context);
+        throw new \Exception("Not implemented yet");
     }
 
     /**
