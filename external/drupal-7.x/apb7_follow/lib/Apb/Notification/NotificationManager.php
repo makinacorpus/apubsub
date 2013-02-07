@@ -15,6 +15,11 @@ use APubSub\PubSubInterface;
 class NotificationManager
 {
     /**
+     * Default subscriber type
+     */
+    const TYPE_USER = 'u';
+
+    /**
      * @var \APubSub\PubSubInterface
      */
     protected $backend;
@@ -100,7 +105,7 @@ class NotificationManager
      *
      * @return \APubSub\SubscriberInterface
      */
-    public function getSubscriberFor($id, $type = APB_TYPE_USER)
+    public function getSubscriberFor($id, $type = self::TYPE_USER)
     {
         return $this
             ->backend
@@ -114,7 +119,7 @@ class NotificationManager
      * @param scalar $id     Subscriber object identifier
      * @param string $type   Subscriber object type
      */
-    public function subscribe($chanId, $id, $type = APB_TYPE_USER)
+    public function subscribe($chanId, $id, $type = self::TYPE_USER)
     {
         $subscriber = $this->getSubscriberFor($id, $type);
 
@@ -133,7 +138,7 @@ class NotificationManager
      * @param scalar $id     Subscriber object identifier
      * @param string $type   Subscriber object type
      */
-    public function unsubscribe($chanId, $id, $type = APB_TYPE_USER)
+    public function unsubscribe($chanId, $id, $type = self::TYPE_USER)
     {
         $subscriber = $this
             ->getSubscriberFor($id, $type)

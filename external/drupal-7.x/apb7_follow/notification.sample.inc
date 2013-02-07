@@ -6,6 +6,44 @@
  */
 
 /**
+ * Notification type for user following.
+ */
+const APB_TYPE_USER = 'u';
+
+/**
+ * Notification type for entity following.
+ */
+const APB_TYPE_ENTITY = 'e';
+
+/**
+ * Implements hook_notification_type_info().
+ */
+function apb7_follow_notification_type_info() {
+  return array(
+    APB_TYPE_ENTITY => array(
+      'class'       => 'Apb\Notification\Formatter\EntityFormatter',
+      'description' => t("Entities (Example)"),
+    ),
+    APB_TYPE_USER   => array(
+      'class'       => 'Apb\Notification\Formatter\UserActionFormatter',
+      'description' => t("User (Example)"),
+    ),
+  );
+}
+
+/**
+ * Implements hook_notification_channel_info().
+ */
+function apb7_follow_notification_channel_info() {
+  return array(
+    APB_TYPE_ENTITY => array(
+      'description' => t("Entity channel"),
+      'visible'     => true,
+    ),
+  );
+}
+
+/**
  * Implements hook_entity_insert().
  */
 function apb7_follow_entity_insert($entity, $entityType) {

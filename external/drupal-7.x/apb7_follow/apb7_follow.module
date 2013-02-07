@@ -32,20 +32,6 @@ spl_autoload_register(function ($className) {
   return false;
 });
 
-// And still for sample purposes only, all triggers have been moved into a
-// separate file for code readability purposes.
-require_once __DIR__ . '/notification.sample.inc';
-
-/**
- * Notification type for user following.
- */
-const APB_TYPE_USER = 'u';
-
-/**
- * Notification type for entity following.
- */
-const APB_TYPE_ENTITY= 'e';
-
 /**
  * Type instance info
  */
@@ -147,22 +133,6 @@ const APB_VAR_CACHE_TYPES = 'apb_follow_cache_types';
 const APB_DEF_CACHE_TYPES = false;
 
 /**
- * Implements hook_notification_type_info().
- */
-function apb7_follow_notification_type_info() {
-  return array(
-    APB_TYPE_ENTITY => array(
-      'class'       => 'Apb\Notification\Formatter\EntityFormatter',
-      'description' => t("Entities (Example)"),
-    ),
-    APB_TYPE_USER   => array(
-      'class'       => 'Apb\Notification\Formatter\UserActionFormatter',
-      'description' => t("User (Example)"),
-    ),
-  );
-}
-
-/**
  * Build component type info using the Drupal Way (TM).
  *
  * This should never be called manually: use the manager instead.
@@ -185,6 +155,7 @@ function notification_type_info_get($target = APB_INFO_TYPE) {
     case APB_INFO_CHAN:
       $hook     = 'notification_channel_info';
       $defaults = array(
+        'class'   => '\Apb\Notification\ChannelType\DefaultChannelType',
         'visible' => true,
       );
       break;
@@ -204,6 +175,8 @@ function notification_type_info_get($target = APB_INFO_TYPE) {
   // Fetch module-driven definitions.
   foreach (module_implements($hook) as $module) {
     foreach (module_invoke($module, $hook) as $key => $info) {
+
+      $info += $defaults;
 
       // Avoid duplicates and wild overrides.
       if (isset($types[$key])) {
@@ -226,8 +199,6 @@ function notification_type_info_get($target = APB_INFO_TYPE) {
       if (!isset($info['description'])) {
         $info['description'] = $key;
       }
-
-      $info += $defaults;
 
       $ret[$key] = $info;
     }
@@ -429,14 +400,6 @@ function apb7_follow_theme() {
  */
 function apb7_follow_block_info() {
   return array(
-    'follow_user' => array(
-      'info'  => t("Follow displayed user (profile pages)"),
-      'cache' => DRUPAL_NO_CACHE,
-    ),
-    'follow_node' => array(
-      'info'  => t("Follow displayed node (content pages)"),
-      'cache' => DRUPAL_NO_CACHE,
-    ),
     'notification' => array(
       'info'  => t("Current user notifications"),
       'cache' => DRUPAL_NO_CACHE,
@@ -513,6 +476,7 @@ function apb7_follow_entity_type_is_supported($type) {
  * Implements hook_block_view().
  */
 function apb7_follow_block_view($delta = '') {
+
   global $user;
 
   // No notifications possible for anonymous user.
@@ -521,24 +485,6 @@ function apb7_follow_block_view($delta = '') {
   }
 
   switch ($delta) {
-
-    case 'follow_user':
-      if (($account = menu_get_object('user')) && !arg(2)) {
-        return array(
-          'subject' => t("Follow"),
-          'content' => drupal_get_form('notification_follow_form', $account->uid, APB_TYPE_USER),
-        );
-      }
-      break;
-
-    case 'follow_node':
-      if ($node = menu_get_object('node')) {
-        return array(
-          'subject' => t("Follow"),
-          'content' => drupal_get_form('notification_follow_form', $node->nid, APB_TYPE_ENTITY),
-        );
-      }
-      break;
 
     case 'notification':
       $block = array(
