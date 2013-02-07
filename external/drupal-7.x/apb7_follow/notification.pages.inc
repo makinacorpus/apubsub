@@ -94,7 +94,7 @@ function notification_page_user_list($form, &$form_state, $account) {
     'preferences' => array(
       '#type'  => 'link',
       '#title' => t("Preferences"),
-      '#href'  => 'user/' . $account->uid . '/notifications/settings',
+      '#href'  => 'user/' . $account->uid . '/notifications/subscriptions',
     ),
   );
 

@@ -270,6 +270,7 @@ function apb7_follow_menu() {
     'file'             => 'notification.pages.inc',
     'weight'           => 10,
   );
+  /*
   $items['user/%user/notifications/settings'] = array(
     'title'            => "Preferences",
     'page callback'    => 'drupal_get_form',
@@ -280,10 +281,10 @@ function apb7_follow_menu() {
     'file'             => 'notification.pages.inc',
     'weight'           => 20,
   );
+   */
 
   // AJAX stuff.
   $items['notification/ajax/user'] = array(
-    'title'            => "Preferences",
     'page callback'    => 'apb7_follow_ajax_user_notifications',
     'access callback'  => 'notification_user_access',
     'type'             => MENU_CALLBACK,
@@ -761,6 +762,6 @@ function template_preprocess_notification_block(&$variables) {
     'title'        => $data['#title'],
     'list'         => $data['#list'],
     'all_link'     => l(t("See all"), 'user/' . $user->uid . '/notifications', array('attributes' => array('class' => array('all-link')))),
-    'pref_link'    => l(t("Preferences"), 'user/' . $user->uid . '/notifications/settings', array('attributes' => array('class' => array('pref-link')))),
+    'pref_link'    => l(t("Preferences"), 'user/' . $user->uid . '/notifications/subscriptions', array('attributes' => array('class' => array('pref-link')))),
   );
 }
