@@ -410,7 +410,8 @@ class D7PubSub extends AbstractObject implements PubSubInterface
         $subscription = new D7Subscription($this->context,
             (int)$record->chan_id, (int)$record->id,
             (int)$record->created, (int)$record->activated,
-            (int)$record->deactivated, (bool)$record->status);
+            (int)$record->deactivated, (bool)$record->status,
+            (array)unserialize($record->extra));
 
         $this->context->cache->addSubscription($subscription);
 
@@ -459,7 +460,8 @@ class D7PubSub extends AbstractObject implements PubSubInterface
             $subscription = new D7Subscription($this->context,
                 (int)$record->chan_id, $id,
                 (int)$record->created, (int)$record->activated,
-                (int)$record->deactivated, (bool)$record->status);
+                (int)$record->deactivated, (bool)$record->status,
+                (array)unserialize($record->extra));
 
             $ret[$id] = $subscription;
 
