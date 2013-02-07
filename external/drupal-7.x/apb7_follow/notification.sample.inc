@@ -44,6 +44,19 @@ function apb7_follow_notification_channel_info() {
 }
 
 /**
+ * Tell if the entity type follow operation is supported.
+ *
+ * @param string $type
+ *   Entity type.
+ *
+ * @return bool
+ *   True if supported.
+ */
+function apb7_follow_entity_type_is_supported($type) {
+  return 'node' === $type;
+}
+
+/**
  * Implements hook_entity_insert().
  */
 function apb7_follow_entity_insert($entity, $entityType) {

@@ -7,10 +7,6 @@
  * User notifications will be fetched using a subscriber instance. Everything
  * will happen with this instance, and almost never using directly subscriptions
  * instead (except for some rare edge case needs).
- *
- * Because the APubSub API deletes everything once messages have been fetched,
- * the user notifications will be stored into an LRU like persistent cache,
- * either directly in a cache bin, either in a persistent database table.
  */
 
 use APubSub\CursorInterface;
@@ -233,7 +229,7 @@ function apb7_follow_permission() {
 /**
  * Menu access callback.
  */
-function apb7_notification_user_access($account = null) {
+function notification_user_access($account = null) {
   global $user;
 
   if (!isset($account)) {
@@ -254,7 +250,7 @@ function apb7_follow_menu() {
     'title'            => "Notifications",
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('apb7_notification_page_user_list', 1),
-    'access callback'  => 'apb7_notification_user_access',
+    'access callback'  => 'notification_user_access',
     'access arguments' => array(1),
     'type'             => MENU_CALLBACK | MENU_VISIBLE_IN_BREADCRUMB,
     'file'             => 'notification.pages.inc',
@@ -263,7 +259,7 @@ function apb7_follow_menu() {
     'title'            => "Preferences",
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('apb7_notification_page_user_settings', 1),
-    'access callback'  => 'apb7_notification_user_access',
+    'access callback'  => 'notification_user_access',
     'access arguments' => array(1),
     'type'             => MENU_CALLBACK | MENU_VISIBLE_IN_BREADCRUMB,
     'file'             => 'notification.pages.inc',
@@ -273,7 +269,7 @@ function apb7_follow_menu() {
   $items['notification/ajax/user'] = array(
     'title'            => "Preferences",
     'page callback'    => 'apb7_follow_ajax_user_notifications',
-    'access callback'  => 'apb7_notification_user_access',
+    'access callback'  => 'notification_user_access',
     'type'             => MENU_CALLBACK,
     'file'             => 'notification.ajax.inc',
   );
@@ -457,19 +453,6 @@ function apb7_follow_image_default_styles() {
       ),
     ),
   );
-}
-
-/**
- * Tell if the entity type follow operation is supported.
- *
- * @param string $type
- *   Entity type.
- *
- * @return bool
- *   True if supported.
- */
-function apb7_follow_entity_type_is_supported($type) {
-  return 'node' === $type;
 }
 
 /**
