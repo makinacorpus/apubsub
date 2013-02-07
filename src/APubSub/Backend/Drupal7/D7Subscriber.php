@@ -31,17 +31,28 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
     private $lastAccessTime = 0;
 
     /**
+     * @var array
+     */
+    private $extraData = array();
+
+    /**
      * Default constructor
      *
      * @param D7Context $context  Backend that owns this instance
      * @param scalar $id          User set identifier
      * @param int $lastAccessTime Last access time
+     * @param array $extraData    Extra data
      */
-    public function __construct(D7Context $context, $id, $lastAccessTime = 0)
+    public function __construct(
+        D7Context $context,
+        $id,
+        $lastAccessTime = 0,
+        array $extraData = array())
     {
         $this->id = $id;
         $this->context = $context;
         $this->lastAccessTime = $lastAccessTime;
+        $this->extraData = $extraData;
 
         // Get subscription identifiers list, with channel mapping
         $this->idList = $this
@@ -364,5 +375,33 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
     public function delete()
     {
         $this->context->getBackend()->deleteSubscriptions($this->idList);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::getExtraData()
+     */
+    public function getExtraData()
+    {
+        return $this->extraData;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::setExtraData()
+     */
+    public function setExtraData(array $data)
+    {
+        $this->extraData = $data;
+
+        $this
+            ->context
+            ->dbConnection
+            ->update('apb_sub_map')
+            ->condition('name', $this->id)
+            ->fields(array(
+                'extra' => serialize($this->extraData),
+            ))
+            ->execute();
     }
 }

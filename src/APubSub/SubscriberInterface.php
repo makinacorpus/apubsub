@@ -108,4 +108,18 @@ interface SubscriberInterface extends
      * Delete all subscriptions related to this subscriber
      */
     public function delete();
+
+    /**
+     * Get extra data
+     *
+     * @return array Extra data
+     */
+    public function getExtraData();
+
+    /**
+     * Set extra data
+     *
+     * @param array $data Extra data
+     */
+    public function setExtraData(array $data);
 }

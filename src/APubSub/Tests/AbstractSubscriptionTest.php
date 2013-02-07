@@ -59,6 +59,16 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         }
     }
 
+    public function testExtraData()
+    {
+        $subscription = $this->channel->subscribe();
+
+        $subscription->setExtraData(array('test' => 42));
+
+        $data = $subscription->getExtraData();
+        $this->assertSame(42, $data['test']);
+    }
+
     public function testFetch()
     {
         $subscription = $this->channel->subscribe();

@@ -30,6 +30,15 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
         $this->assertInstanceOf('\APubSub\SubscriberInterface', $subscriber);
     }
 
+    public function testExtraData()
+    {
+        $subscriber = $this->backend->getSubscriber('foo');
+        $subscriber->setExtraData(array('test' => 42));
+
+        $data = $subscriber->getExtraData();
+        $this->assertSame(42, $data['test']);
+    }
+
     public function testLastAccess()
     {
         $subA = $this->backend->getSubscriber('A');

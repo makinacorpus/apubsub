@@ -109,4 +109,18 @@ interface SubscriptionInterface extends
      * @return \APubSub\ChannelInterface
      */
     public function getChannel();
+
+    /**
+     * Get extra data
+     *
+     * @return array Extra data
+     */
+    public function getExtraData();
+
+    /**
+     * Set extra data
+     *
+     * @param array $data Extra data
+     */
+    public function setExtraData(array $data);
 }

@@ -160,6 +160,11 @@ function apb7_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+      'extra' => array(
+        'description' => "Extra data for business layer",
+        'type' => 'blob',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
@@ -198,6 +203,11 @@ function apb7_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+      ),
+      'extra' => array(
+        'description' => "Extra data for business layer",
+        'type' => 'blob',
+        'not null' => FALSE,
       ),
     ),
     // Subscription can be owned by only one subscriber
@@ -313,6 +323,16 @@ function apb7_schema() {
  * Adds a few missing fields.
  */
 function apb7_update_7001() {
+  db_add_field('apb_sub', 'extra', array(
+    'description' => "Extra data for business layer",
+    'type' => 'blob',
+    'not null' => FALSE,
+  ));
+  db_add_field('apb_sub_map', 'extra', array(
+    'description' => "Extra data for business layer",
+    'type' => 'blob',
+    'not null' => FALSE,
+  ));
   db_add_field('apb_sub_map', 'accessed', array(
     'description' => "Last time a queued job accessed this subscriber",
     'type' => 'int',

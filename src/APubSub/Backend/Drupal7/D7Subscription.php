@@ -58,6 +58,11 @@ class D7Subscription extends AbstractObject implements SubscriptionInterface
     private $deactivatedTime;
 
     /**
+     * @var array
+     */
+    private $extraData = array();
+
+    /**
      * Default constructor
      *
      * @param D7Context $context   Context
@@ -67,9 +72,17 @@ class D7Subscription extends AbstractObject implements SubscriptionInterface
      * @param int $activatedTime   Latest activation UNIX timestamp
      * @param int $deactivatedTime Latest deactivation UNIX timestamp
      * @param bool $isActive       Is this subscription active
+     * @param array $extraData     Extra data
      */
-    public function __construct(D7Context $context, $chanDbId, $id,
-        $created, $activatedTime, $deactivatedTime, $isActive)
+    public function __construct(
+        D7Context $context,
+        $chanDbId,
+        $id,
+        $created,
+        $activatedTime,
+        $deactivatedTime,
+        $isActive,
+        array $extraData = array())
     {
         $this->id = $id;
         $this->chanDbId = $chanDbId;
@@ -78,6 +91,7 @@ class D7Subscription extends AbstractObject implements SubscriptionInterface
         $this->deactivatedTime = $deactivatedTime;
         $this->active = $isActive;
         $this->context = $context;
+        $this->extraData = $extraData;
     }
 
     /**
@@ -95,7 +109,6 @@ class D7Subscription extends AbstractObject implements SubscriptionInterface
      */
     public function getChannelId()
     {
-        // FIXME: return $this->chanId;
         return $this->getChannel()->getId();
     }
 
@@ -343,5 +356,33 @@ class D7Subscription extends AbstractObject implements SubscriptionInterface
         }
 
         return iterator_to_array($cursor);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriptionInterface::getExtraData()
+     */
+    public function getExtraData()
+    {
+        return $this->extraData;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriptionInterface::setExtraData()
+     */
+    public function setExtraData(array $data)
+    {
+        $this->extraData = $data;
+
+        $this
+            ->context
+            ->dbConnection
+            ->update('apb_sub')
+            ->condition('id', $this->id)
+            ->fields(array(
+                'extra' => serialize($this->extraData),
+            ))
+            ->execute();
     }
 }
