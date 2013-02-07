@@ -249,20 +249,36 @@ function apb7_follow_menu() {
   $items['user/%user/notifications'] = array(
     'title'            => "Notifications",
     'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('apb7_notification_page_user_list', 1),
+    'page arguments'   => array('notification_page_user_list', 1),
     'access callback'  => 'notification_user_access',
     'access arguments' => array(1),
     'type'             => MENU_CALLBACK | MENU_VISIBLE_IN_BREADCRUMB,
     'file'             => 'notification.pages.inc',
   );
+  $items['user/%user/notifications/all'] = array(
+    'title'            => "Notifications",
+    'type'             => MENU_DEFAULT_LOCAL_TASK,
+    'weight'           => 0,
+  );
+  $items['user/%user/notifications/subscriptions'] = array(
+    'title'            => "Following",
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('notification_page_user_subscriptions', 1),
+    'access callback'  => 'notification_user_access',
+    'access arguments' => array(1),
+    'type'             => MENU_LOCAL_TASK,
+    'file'             => 'notification.pages.inc',
+    'weight'           => 10,
+  );
   $items['user/%user/notifications/settings'] = array(
     'title'            => "Preferences",
     'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('apb7_notification_page_user_settings', 1),
+    'page arguments'   => array('notification_page_user_settings', 1),
     'access callback'  => 'notification_user_access',
     'access arguments' => array(1),
-    'type'             => MENU_CALLBACK | MENU_VISIBLE_IN_BREADCRUMB,
+    'type'             => MENU_LOCAL_TASK,
     'file'             => 'notification.pages.inc',
+    'weight'           => 20,
   );
 
   // AJAX stuff.

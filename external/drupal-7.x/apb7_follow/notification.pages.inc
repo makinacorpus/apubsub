@@ -16,7 +16,7 @@ use Apb\Notification\NotificationManager;
 /**
  * User notifications page.
  */
-function apb7_notification_page_user_list($form, &$form_state, $account) {
+function notification_page_user_list($form, &$form_state, $account) {
 
   $manager     = notification_manager_get();
   $backend     = $manager->getBackend();
@@ -84,12 +84,12 @@ function apb7_notification_page_user_list($form, &$form_state, $account) {
     'unread' => array(
       '#type'   => 'submit',
       '#value'  => t("Mark as unread"),
-      '#submit' => array('apb7_notification_page_user_list_submit_unread'),
+      '#submit' => array('notification_page_user_list_submit_unread'),
     ),
     'delete' => array(
       '#type'  => 'submit',
       '#value' => t("Delete"),
-      '#submit' => array('apb7_notification_page_user_list_submit_delete'),
+      '#submit' => array('notification_page_user_list_submit_delete'),
     ),
     'preferences' => array(
       '#type'  => 'link',
@@ -104,7 +104,7 @@ function apb7_notification_page_user_list($form, &$form_state, $account) {
 /**
  * User notifications page mark as unread submit handler.
  */
-function apb7_notification_page_user_list_submit_unread($form, &$form_state) {
+function notification_page_user_list_submit_unread($form, &$form_state) {
 
   $manager    = notification_manager_get();
   $subscriber = $manager->getSubscriberFor($form_state['values']['uid']);
@@ -132,7 +132,7 @@ function apb7_notification_page_user_list_submit_unread($form, &$form_state) {
 /**
  * User notifications page delete submit handler.
  */
-function apb7_notification_page_user_list_submit_delete($form, &$form_state) {
+function notification_page_user_list_submit_delete($form, &$form_state) {
 
   $manager    = notification_manager_get();
   $subscriber = $manager->getSubscriberFor($form_state['values']['uid']);
@@ -154,9 +154,9 @@ function apb7_notification_page_user_list_submit_delete($form, &$form_state) {
 }
 
 /**
- * User notifications preference page.
+ * User notifications subscriptions page.
  */
-function apb7_notification_page_user_settings($form, &$form_state, $account) {
+function notification_page_user_subscriptions($form, &$form_state, $account) {
 
   $manager             = notification_manager_get();
   $channelTypeRegistry = $manager->getChannelTypeRegistry();
@@ -210,19 +210,19 @@ function apb7_notification_page_user_settings($form, &$form_state, $account) {
   $form['actions']['enable'] = array(
     '#type'     => 'submit',
     '#value'    => t("Enable"),
-    '#submit'   => array('apb7_notification_page_user_settings_submit_enable'),
+    '#submit'   => array('notification_page_user_subscriptions_submit_enable'),
     '#disabled' => empty($options),
   );
   $form['actions']['disable'] = array(
     '#type'     => 'submit',
     '#value'    => t("Disable"),
-    '#submit'   => array('apb7_notification_page_user_settings_submit_disable'),
+    '#submit'   => array('notification_page_user_subscriptions_submit_disable'),
     '#disabled' => empty($options),
   );
   $form['actions']['delete'] = array(
     '#type'     => 'submit',
     '#value'    => t("Unfollow"),
-    '#submit'   => array('apb7_notification_page_user_settings_submit_delete'),
+    '#submit'   => array('notification_page_user_subscriptions_submit_delete'),
     '#disabled' => empty($options),
   );
 
@@ -232,7 +232,7 @@ function apb7_notification_page_user_settings($form, &$form_state, $account) {
 /**
  * User notifications preference page enable submit handler.
  */
-function apb7_notification_page_user_settings_submit_enable($form, &$form_state) {
+function notification_page_user_subscriptions_submit_enable($form, &$form_state) {
 
   $manager    = notification_manager_get();
   $uid        = $form_state['values']['uid'];
@@ -266,7 +266,7 @@ function apb7_notification_page_user_settings_submit_enable($form, &$form_state)
 /**
  * User notifications preference page disable submit handler.
  */
-function apb7_notification_page_user_settings_submit_disable($form, &$form_state) {
+function notification_page_user_subscriptions_submit_disable($form, &$form_state) {
 
   $manager    = notification_manager_get();
   $uid        = $form_state['values']['uid'];
@@ -300,7 +300,7 @@ function apb7_notification_page_user_settings_submit_disable($form, &$form_state
 /**
  * User notifications preference page delete submit handler.
  */
-function apb7_notification_page_user_settings_submit_delete($form, &$form_state) {
+function notification_page_user_subscriptions_submit_delete($form, &$form_state) {
 
   $manager    = notification_manager_get();
   $uid        = $form_state['values']['uid'];
@@ -324,6 +324,13 @@ function apb7_notification_page_user_settings_submit_delete($form, &$form_state)
   }
 
   drupal_set_message(t("Subscriptions where unfollowed successfully."));
+}
+
+/**
+ * User settings for subscriptions
+ */
+function notification_page_user_settings($form, &$form_state, $account) {
+  return $form;
 }
 
 /**
