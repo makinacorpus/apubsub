@@ -2,6 +2,9 @@
 
 namespace Apb\Notification;
 
+use Apb\Notification\Registry\ChannelTypeRegistry;
+use Apb\Notification\Registry\FormatterRegistry;
+
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\MessageInterface;
 use APubSub\PubSubInterface;
@@ -17,12 +20,12 @@ class NotificationManager
     protected $backend;
 
     /**
-     * @var \Apb\Notification\FormatterRegistry
+     * @var \Apb\Notification\RegistryInterface
      */
     protected $formatterRegistry;
 
     /**
-     * @var \Apb\Notification\ChannelTypeRegistry
+     * @var \Apb\Notification\RegistryInterface
      */
     protected $channelTypeRegistry;
 
@@ -67,6 +70,11 @@ class NotificationManager
 
         if (null !== $disabledTypes) {
             $this->disabledTypes = array_flip($disabledTypes);
+        }
+
+        if (!$this->silentMode) {
+            $this->formatterRegistry->setDebugMode();
+            $this->channelTypeRegistry->setDebugMode();
         }
     }
 
@@ -145,7 +153,7 @@ class NotificationManager
     /**
      * Get type registry
      *
-     * @return \Apb\Notification\FormatterRegistry Type registry
+     * @return \Apb\Notification\Registry\FormatterRegistry Type registry
      */
     public function getFormatterRegistry()
     {
@@ -155,7 +163,7 @@ class NotificationManager
     /**
      * Get channel type registry
      *
-     * @return \Apb\Notification\ChannelTypeRegistry Type registry
+     * @return \Apb\Notification\Registry\ChannelTypeRegistry Type registry
      */
     public function getChannelTypeRegistry()
     {

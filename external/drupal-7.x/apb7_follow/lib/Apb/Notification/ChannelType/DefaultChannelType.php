@@ -5,7 +5,7 @@ namespace Apb\Notification\ChannelType;
 use Apb\Notification\ChannelTypeInterface;
 
 /**
- * Default implementation as a null implementation.
+ * Default implementation
  */
 class DefaultChannelType implements ChannelTypeInterface
 {

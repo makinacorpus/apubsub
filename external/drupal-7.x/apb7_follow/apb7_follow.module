@@ -47,6 +47,16 @@ const APB_TYPE_USER = 'u';
 const APB_TYPE_ENTITY= 'e';
 
 /**
+ * Type instance info
+ */
+const APB_INFO_TYPE = 1;
+
+/**
+ * Channel instance info
+ */
+const APB_INFO_CHAN = 2;
+
+/**
  * Enable AJAX for notification block variable name.
  */
 const APB_VAR_ENABLE_AJAX = 'apb_follow_enable_ajax';
@@ -153,7 +163,7 @@ function apb7_follow_notification_type_info() {
 }
 
 /**
- * Build notification type info using the Drupal Way (TM).
+ * Build component type info using the Drupal Way (TM).
  *
  * This should never be called manually: use the manager instead.
  *
@@ -162,10 +172,28 @@ function apb7_follow_notification_type_info() {
  * @return array
  *   Notification types info as an internal and very specific array.
  */
-function notification_type_info_get() {
+function notification_type_info_get($target = APB_INFO_TYPE) {
   $ret  = array();
 
-  $hook  = 'notification_type_info';
+  switch ($target) {
+
+    case APB_INFO_TYPE:
+      $hook     = 'notification_type_info';
+      $defaults = array();
+      break;
+
+    case APB_INFO_CHAN:
+      $hook     = 'notification_channel_info';
+      $defaults = array(
+        'visible' => true,
+      );
+      break;
+
+    default:
+      watchdog('apb_follow', "Wrong info asked, type was: @type", array('@type' => $target), WATCHDOG_ERROR);
+      return array();
+  }
+
   $bin   = 'cache_bootstrap';
   $cache = variable_get(APB_VAR_CACHE_TYPES, APB_DEF_CACHE_TYPES);
 
@@ -199,69 +227,7 @@ function notification_type_info_get() {
         $info['description'] = $key;
       }
 
-      $ret[$key] = $info;
-    }
-  }
-
-  // Allow other modules to alter definition (aKa "The Drupal Way").
-  drupal_alter($hook, $ret);
-
-  if ($cache) {
-    cache_set($hook, $ret, $bin);
-  }
-
-  return $ret;
-}
-
-/**
- * Build channel type info using the Drupal Way (TM).
- *
- * This should never be called manually: use the manager instead.
- *
- * @see notification_manager_get()
- *
- * @return array
- *   Notification types info as an internal and very specific array.
- */
-function notification_channel_info_get() {
-  $ret  = array();
-
-  $hook  = 'notification_channel_info';
-  $bin   = 'cache_bootstrap';
-  $cache = variable_get(APB_VAR_CACHE_TYPES, APB_DEF_CACHE_TYPES);
-
-  if ($cache && ($cached = cache_get($hook, $bin))) {
-    return $cached->data;
-  }
-
-  // Fetch module-driven definitions.
-  foreach (module_implements($hook) as $module) {
-    foreach (module_invoke($module, $hook) as $key => $info) {
-
-      // Avoid duplicates and wild overrides.
-      if (isset($types[$key])) {
-        watchdog('apb_follow', "Module @module overrides the @key notification type, dropping", array(
-          '@module' => $module,
-          '@key'    => $key,
-        ), WATCHDOG_WARNING);
-        continue;
-      }
-
-      if (!class_exists($info['class'])) {
-        watchdog('apb_follow', "Module @module provides @key notification type using unknown class @class, dropping", array(
-          '@module' => $module,
-          '@key'    => $key,
-          '@class'  => $info['class'],
-        ), WATCHDOG_WARNING);
-        continue;
-      }
-
-      if (!isset($info['description'])) {
-        $info['description'] = $key;
-      }
-      if (!isset($info['visible'])) {
-        $info['visible'] = true;
-      }
+      $info += $defaults;
 
       $ret[$key] = $info;
     }
@@ -332,7 +298,7 @@ function apb7_follow_menu() {
     'file'             => 'notification.pages.inc',
   );
 
-  // AJAX stuff
+  // AJAX stuff.
   $items['notification/ajax/user'] = array(
     'title'            => "Preferences",
     'page callback'    => 'apb7_follow_ajax_user_notifications',
@@ -426,21 +392,14 @@ function notification_manager_get() {
 
     // Register all "Drupal Way (TM)" notification types.
     $formatterRegistry = $instance->getFormatterRegistry();
-    foreach (notification_type_info_get() as $type => $info) {
-      $formatterRegistry->registerType(
-          $type,
-          $info['class'],
-          $info['description']);
+    foreach (notification_type_info_get(APB_INFO_TYPE) as $type => $info) {
+      $formatterRegistry->registerType($type, $info);
     }
 
     // Register all "Drupal Way (TM)" channel types.
     $channelTypeRegistry = $instance->getChannelTypeRegistry();
-    foreach (notification_channel_info_get() as $type => $info) {
-      $channelTypeRegistry->registerType(
-          $type,
-          $info['class'],
-          $info['description'],
-          $info['visible']);
+    foreach (notification_type_info_get(APB_INFO_CHAN) as $type => $info) {
+      $channelTypeRegistry->registerType($type, $info);
     }
   }
 
@@ -724,11 +683,9 @@ function notification_image_render($uri, $size = null) {
     switch ($size) {
 
       case 32:
-        $style = 'icon-32';
-        break;
-
+      case 48:
       case 64:
-        $style = 'icon-64';
+        $style = 'icon-' . $size;
         break;
 
       default:

@@ -1,13 +1,13 @@
 <?php
 
-namespace Apb\Notification;
+namespace Apb\Notification\Registry;
 
-use Apb\Notification\Formatter\NullFormatter;
+use Apb\Notification\RegistryInterface;
 
 /**
- * FIXME: Redundancies between FormatterRegistry and ChannelTypeRegistry
+ * Base implementation
  */
-class FormatterRegistry
+abstract class AbstractRegistry implements RegistryInterface
 {
     /**
      * Stored known formatters
@@ -38,61 +38,49 @@ class FormatterRegistry
     private $nullInstance;
 
     /**
-     * Default constructor
-     *
-     * @param string $debug Debug mode toggle, true to enable
+     * (non-PHPdoc)
+     * @see \Apb\Notification\RegistryInterface::setDebugMode()
      */
-    public function __construct($debug = false)
+    final public function setDebugMode($toggle = true)
     {
-        $this->debug = $debug;
+        $this->deubg = $toggle;
     }
 
     /**
-     * Tell if the given type exists
-     *
-     * @param string $type Type
-     *
-     * @return boolean     True if type exists false otherwise
+     * (non-PHPdoc)
+     * @see \Apb\Notification\RegistryInterface::typeExists()
      */
-    public function typeExists($type)
+    final public function typeExists($type)
     {
         return isset($this->data[$type]);
     }
 
     /**
-     * Register single type
-     *
-     * Existing definition will be overriden
-     *
-     * @param string $type        Type
-     * @param string $class       Class to use
-     * @param string $description Human readable description
+     * (non-PHPdoc)
+     * @see \Apb\Notification\RegistryInterface::registerType()
      */
-    public function registerType($type, $class, $description = null)
+    public function registerType($type, array $options)
     {
-        if (!class_exists($class)) {
+        if (!isset($options['class'])) {
+            throw new \InvalidArgumentException(sprintf("Class is not set"));
+        }
+        if (!class_exists($options['class'])) {
             throw new \InvalidArgumentException(sprintf(
-                "Class '%s' does not exist", $class));
+                "Class '%s' does not exist", $options['class']));
         }
 
         if (isset($this->instances[$type])) {
             unset($this->instances[$type]);
         }
 
-        $this->data[$type] = array(
-            'class'       => $class,
-            'description' => $description,
-        );
+        $this->data[$type] = $options;
     }
 
     /**
-     * Register single formatter instance
-     *
-     * Existing definition will be overriden
-     *
-     * @param FormatterInterface $instance Instance to register
+     * (non-PHPdoc)
+     * @see \Apb\Notification\RegistryInterface::registerInstance()
      */
-    public function registerInstance(FormatterInterface $instance)
+    public function registerInstance($instance)
     {
         $type = $instance->getType();
 
@@ -106,16 +94,23 @@ class FormatterRegistry
     /**
      * Get null implementation instance singleton
      *
-     * @return \Apb\Notification\Formatter\NullFormatter
+     * @return mixed Null instance
      */
     final private function getNullInstance()
     {
         if (null === $this->nullInstance) {
-            $this->nullInstance = new NullFormatter();
+            $this->nullInstance = $this->createNullInstance();
         }
 
         return $this->nullInstance;
     }
+
+    /**
+     * Get null implementation instance singleton
+     *
+     * @return mixed Null instance
+     */
+    abstract protected function createNullInstance();
 
     /**
      * Overridable method that creates the real instance
@@ -147,11 +142,8 @@ class FormatterRegistry
     }
 
     /**
-     * Get instance
-     *
-     * @param string $type                           Type identifier
-     *
-     * @return \Apb\Follow\NotificationTypeInterface Type instance
+     * (non-PHPdoc)
+     * @see \Apb\Notification\RegistryInterface::getInstance()
      */
     final public function getInstance($type)
     {
@@ -177,12 +169,8 @@ class FormatterRegistry
     }
 
     /**
-     * Get a list of all types instances
-     *
-     * Do not use this at runtime, only do it when necessary in administration
-     * screens or whatever that will not be hit often
-     *
-     * @return \Apb\Follow\NotificationTypeInterface[] All know types instances
+     * (non-PHPdoc)
+     * @see \Apb\Notification\RegistryInterface::getAllInstances()
      */
     final public function getAllInstances()
     {

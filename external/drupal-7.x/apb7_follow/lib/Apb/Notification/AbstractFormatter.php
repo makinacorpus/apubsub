@@ -2,6 +2,9 @@
 
 namespace Apb\Notification;
 
+/**
+ * Abstract base implementation for formatter interface suitable for most needs
+ */
 abstract class AbstractFormatter implements FormatterInterface
 {
     /**
