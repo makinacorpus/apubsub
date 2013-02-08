@@ -15,14 +15,33 @@ use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\Notification\NotificationService;
 
 /**
+ * Register custom autoloader for the Apb\Notification namespace.
+ */
+spl_autoload_register(function ($className) {
+  if (false !== strpos($className, '\\')) {
+    $parts = explode('\\', $className);
+    if ('Apb' === $parts[0] && 'Notification' === $parts[1]) {
+      $filename = __DIR__ . '/lib/' . implode('/', $parts) . '.php';
+      return (bool)include_once $filename;
+    }
+  }
+  return false;
+});
+
+/**
  * Type instance info
  */
-const APB_INFO_TYPE = 1;
+const APB_INFO_FORMATTER = 1;
 
 /**
  * Channel instance info
  */
 const APB_INFO_CHAN = 2;
+
+/**
+ * Channel instance info
+ */
+const APB_INFO_QUEUE = 2;
 
 /**
  * Enable AJAX for notification block variable name.
@@ -124,12 +143,12 @@ const APB_DEF_CACHE_TYPES = false;
  * @return array
  *   Notification types info as an internal and very specific array.
  */
-function notification_type_info_get($target = APB_INFO_TYPE) {
+function notification_type_info_get($target = APB_INFO_FORMATTER) {
   $ret  = array();
 
   switch ($target) {
 
-    case APB_INFO_TYPE:
+    case APB_INFO_FORMATTER:
       $hook     = 'notification_type_info';
       $defaults = array();
       break;
@@ -138,6 +157,13 @@ function notification_type_info_get($target = APB_INFO_TYPE) {
       $hook     = 'notification_channel_info';
       $defaults = array(
         'class'   => '\APubSub\Notification\ChanType\DefaultChanType',
+        'visible' => true,
+      );
+      break;
+
+    case APB_INFO_CHAN:
+      $hook     = 'notification_queue_info';
+      $defaults = array(
         'visible' => true,
       );
       break;
@@ -279,7 +305,7 @@ function apb7_follow_menu() {
 
   // Site wide administration pages.
   $items['admin/config/people/notification'] = array(
-    'title'            => "Notifications types",
+    'title'            => "Notifications",
     'description'      => "Enable or disable notifications globally and configuration the notifications behavior.",
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('apb7_follow_admin_notification_notification_types'),
@@ -287,14 +313,22 @@ function apb7_follow_menu() {
     'type'             => MENU_NORMAL_ITEM,
     'file'             => 'notification.admin.inc',
   );
-  $items['admin/config/people/notification/overview'] = array(
-    'title'            => "Overview",
+  $items['admin/config/people/notification/formatters'] = array(
+    'title'            => "Formatters",
     'type'             => MENU_DEFAULT_LOCAL_TASK,
   );
-  $items['admin/config/people/notification/channel-type'] = array(
+  $items['admin/config/people/notification/chan-type'] = array(
     'title'            => "Channel types",
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('apb7_follow_admin_notification_channel_types'),
+    'access arguments' => array('administer site configuration'),
+    'type'             => MENU_LOCAL_TASK,
+    'file'             => 'notification.admin.inc',
+  );
+  $items['admin/config/people/notification/queues'] = array(
+    'title'            => "Queues",
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('apb7_follow_admin_notification_queues'),
     'access arguments' => array('administer site configuration'),
     'type'             => MENU_LOCAL_TASK,
     'file'             => 'notification.admin.inc',
@@ -362,13 +396,19 @@ function notification_service_get() {
 
     // Register all "Drupal Way (TM)" notification types.
     $formatterRegistry = $instance->getFormatterRegistry();
-    foreach (notification_type_info_get(APB_INFO_TYPE) as $type => $info) {
+    foreach (notification_type_info_get(APB_INFO_FORMATTER) as $type => $info) {
       $formatterRegistry->registerType($type, $info);
     }
 
     // Register all "Drupal Way (TM)" channel types.
     $chanTypeRegistry = $instance->getChanTypeRegistry();
     foreach (notification_type_info_get(APB_INFO_CHAN) as $type => $info) {
+      $chanTypeRegistry->registerType($type, $info);
+    }
+
+    // Register all "Drupal Way (TM)" channel types.
+    $chanTypeRegistry = $instance->getQueueRegistry();
+    foreach (notification_type_info_get(APB_INFO_QUEUE) as $type => $info) {
       $chanTypeRegistry->registerType($type, $info);
     }
   }

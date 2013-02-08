@@ -16,9 +16,14 @@ use APubSub\PubSubInterface;
 class NotificationService
 {
     /**
-     * Default subscriber type
+     * User subscriber prefix
      */
-    const TYPE_USER = 'u';
+    const SUBSCRIBER_USER = 'u';
+
+    /**
+     * Queue subscriber prefix
+     */
+    const SUBSCRIBER_QUEUE = 'q';
 
     /**
      * Notify method has been called.
@@ -67,11 +72,6 @@ class NotificationService
     private $silentMode = false;
 
     /**
-     * @var callable[][]
-     */
-    private $listeners = array();
-
-    /**
      * Default constructor
      *
      * @param PubSubInterface $backend Backend
@@ -105,37 +105,6 @@ class NotificationService
     }
 
     /**
-     * Register an event listener
-     *
-     * @param callable $callback Callable
-     * @param int $event         Event
-     */
-    public function registerListener($callback, $event = self::EVENT_NOTIFY)
-    {
-        $this->listeners[$event][] = $callback;
-    }
-
-    /**
-     * Raise event
-     *
-     * @param int $event Event
-     * @param ...        Event parameters
-     */
-    private function raiseEvent($event)
-    {
-        if (isset($this->listeners[$event])) {
-
-            $args = func_get_args();
-            array_shift($args);
-            array_unshift($args, $this);
-
-            foreach ($this->listeners[$event] as $callback) {
-                call_user_func_array($callback, $args);
-            }
-        }
-    }
-
-    /**
      * Get channel identifier from input parameters
      *
      * @param string $type Source object type
@@ -149,19 +118,31 @@ class NotificationService
     }
 
     /**
-     * Get subscriber for object
+     * Get subscriber
      *
-     * @param int $id              Object identifier
-     * @param string $type         Type identifier, if none given assume
-     *                             user account
+     * @param scalar $id           Susbcriber identifier
+     * @param string $type         Susbcriber type identifier
      *
      * @return SubscriberInterface Subscriber
      */
-    public function getSubscriber($id, $type = self::TYPE_USER)
+    public function getSubscriber($id, $type = self::SUBSCRIBER_USER)
     {
         return $this
             ->backend
-            ->getSubscriber($this->getChanId($type, $id));
+            ->getSubscriber($type . ':' . $id);
+    }
+
+    /**
+     * Get queue subscriber
+     *
+     * @param scalar $id        Susbcriber identifier
+     * @param string $type      Subscriber type
+     */
+    public function getQueueSubscriber($id, $type = self::SUBSCRIBER_USER)
+    {
+        return $this
+            ->backend
+            ->getSubscriber($type . ':' . self::SUBSCRIBER_QUEUE . ':' . $id);
     }
 
     /**
@@ -171,7 +152,7 @@ class NotificationService
      * @param scalar $id     Subscriber object identifier
      * @param string $type   Subscriber object type
      */
-    public function subscribe($chanId, $id, $type = self::TYPE_USER)
+    public function subscribe($chanId, $id, $type = self::SUBSCRIBER_USER)
     {
         $subscriber = $this->getSubscriber($id, $type);
 
@@ -190,11 +171,23 @@ class NotificationService
      * @param scalar $id     Subscriber object identifier
      * @param string $type   Subscriber object type
      */
-    public function unsubscribe($chanId, $id, $type = self::TYPE_USER)
+    public function unsubscribe($chanId, $id, $type = self::SUBSCRIBER_USER)
     {
         $subscriber = $this
             ->getSubscriber($id, $type)
             ->unsubscribe($chanId);
+    }
+
+    /**
+     * Delete all subscriber information
+     *
+     * @param scalar $id        Susbcriber identifier
+     * @param string $type      Subscriber type
+     */
+    public function deleteSubscriber($id, $type = self::SUBSCRIBER_USER)
+    {
+        $this->getSubscriber($id, $type)->delete();
+        $this->getQueueSubscriber($id, $type)->delete();
     }
 
     /**
@@ -300,10 +293,6 @@ class NotificationService
                 ->getBackend()
                 ->getChannel($chanId)
                 ->send($contents, $type, $level);
-
-            $this->raiseEvent(
-                self::EVENT_NOTIFY,
-                $this->getNotification($message));
 
         } catch (ChannelDoesNotExistException $e) {
             // Nothing to do, no channel means no subscription

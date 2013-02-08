@@ -103,29 +103,4 @@ to store the user settings.
 
 ### Registering routes
 
-## Event sending
-
-The *APubSub* library only provide methods for mass messenging, all operations
-are supposed to be aggregate operations. This is built around the relational
-model. Main downside for notification management is that we cannot operate over
-each single queued message (one message attached to one subscription) making it
-impossible to manage simple things such as sending one mail for one subscriber.
-
-In order to solve that problem, the *NotificationService* instance provides the
-ability to register listeners throught the *registerListener* method, allowing
-to catch the notify event.
-
-For example, consider that you want to push a mail for each user receiving the
-message:
-
-    use APubSub\Notification\Notification;
-    use APubSub\Notification\NotificationService;
-
-    $service = get_my_service(); // Returns a NotificationService instance
-
-    $service->registerListener(
-        function(NotificationService $service, Notification $notification) {
-            // Do you business here
-        },
-        NotificationService::EVENT_NOTIFY);
 

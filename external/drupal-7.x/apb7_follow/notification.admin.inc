@@ -7,6 +7,7 @@
 
 use APubSub\Notification\FormatterInterface;
 use APubSub\Notification\ChanTypeInterface;
+use APubSub\Notification\QueueInterface;
 
 /**
  * Notification types admin form.
@@ -130,6 +131,42 @@ function apb7_follow_admin_notification_channel_types($form, &$form_state) {
   $options = array();
   foreach ($instances as $type => $instance) {
     if ($instance instanceof ChanTypeInterface) {
+      $type = $instance->getType();
+
+      $options[$type]['description'] = $instance->getDescription();
+      $options[$type]['type']        = $type;
+      $options[$type]['visible']     = $instance->isVisible() ? $label_yes : $label_no;
+    }
+  }
+
+  $form['types'] = array(
+    '#type'    => 'tableselect',
+    '#header'  => array(
+      'type'        => t("Type"),
+      'description' => t("Description"),
+      'visible'     => t("Visible for user"),
+    ),
+    '#options' => $options,
+  );
+
+  return $form;
+}
+
+/**
+ * Channel types admin form.
+ */
+function apb7_follow_admin_notification_queues($form, &$form_state) {
+
+  $service   = notification_service_get();
+  $instances = $service->getQueueRegistry()->getAllInstances(true);
+
+  $label_disabled = t("Disabled");
+  $label_yes      = t("Yes");
+  $label_no       = t("No");
+
+  $options = array();
+  foreach ($instances as $type => $instance) {
+    if ($instance instanceof QueueInterface) {
       $type = $instance->getType();
 
       $options[$type]['description'] = $instance->getDescription();
