@@ -79,7 +79,7 @@ interface MessageInterface extends ObjectInterface
      * Use this method rather than getSubscription() whenever possible, in
      * order to avoid backends lookup in most implementations
      *
-     * @return mixed Subscription identiifer
+     * @return mixed Subscription identifier
      */
     public function getSubscriptionId();
 
