@@ -24,29 +24,35 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
     {
         foreach ($conditions as $key => $value) {
 
-            $value = null;
+            $local = null;
 
             switch ($key) {
 
                 case CursorInterface::FIELD_CHAN_ID:
-                    $value = $a->getChannelId();
+                    $local = $a->getChannelId();
                     break;
 
                 case CursorInterface::FIELD_MSG_SENT:
-                    $value = $a->getSendTimestamp();
+                    $local = $a->getSendTimestamp();
                     break;
 
                 case CursorInterface::FIELD_SUB_ID:
-                    $value = $a->getSubscriptionId();
+                    $local = $a->getSubscriptionId();
                     break;
 
                 case CursorInterface::FIELD_MSG_ID:
-                    $value = $a->isUnread();
+                    $local = $a->isUnread();
                     break;
             }
 
-            if (null === $key && $value !== null || $key != $value) {
-                return false;
+            if (is_array($value)) {
+                if (!in_array($local, $value)) {
+                    return false;
+                }
+            } else {
+                if (null === $local && $value !== null || $local != $value) {
+                    return false;
+                }
             }
         }
 

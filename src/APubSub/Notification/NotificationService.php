@@ -5,7 +5,7 @@ namespace APubSub\Notification;
 use APubSub\Backend\VolatileMessage;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\MessageInterface;
-use APubSub\Notification\Registry\ChannelTypeRegistry;
+use APubSub\Notification\Registry\ChanTypeRegistry;
 use APubSub\Notification\Registry\FormatterRegistry;
 use APubSub\PubSubInterface;
 
@@ -41,7 +41,7 @@ class NotificationService
     /**
      * @var \APubSub\Notification\RegistryInterface
      */
-    private $channelTypeRegistry;
+    private $chanTypeRegistry;
 
     /**
      * Disabled types. Keys are type names and values are any non null value
@@ -81,11 +81,11 @@ class NotificationService
         $silentMode     = false,
         $disabledTypes  = null)
     {
-        $this->backend             = $backend;
-        $this->storeFormatted      = $storeFormatted;
-        $this->silentMode          = $silentMode;
-        $this->formatterRegistry   = new FormatterRegistry();
-        $this->channelTypeRegistry = new ChannelTypeRegistry();
+        $this->backend           = $backend;
+        $this->storeFormatted    = $storeFormatted;
+        $this->silentMode        = $silentMode;
+        $this->formatterRegistry = new FormatterRegistry();
+        $this->chaTypeRegistry   = new ChanTypeRegistry();
 
         if (null !== $disabledTypes) {
             $this->disabledTypes = array_flip($disabledTypes);
@@ -93,7 +93,7 @@ class NotificationService
 
         if (!$this->silentMode) {
             $this->formatterRegistry->setDebugMode();
-            $this->channelTypeRegistry->setDebugMode();
+            $this->chanTypeRegistry->setDebugMode();
         }
     }
 
@@ -213,11 +213,11 @@ class NotificationService
     /**
      * Get channel type registry
      *
-     * @return \APubSub\Notification\Registry\ChannelTypeRegistry Type registry
+     * @return \APubSub\Notification\Registry\ChanTypeRegistry Type registry
      */
-    public function getChannelTypeRegistry()
+    public function getChanTypeRegistry()
     {
-        return $this->channelTypeRegistry;
+        return $this->chanTypeRegistry;
     }
 
     /**

@@ -115,7 +115,7 @@ class CursorWorker
                 }
             }
 
-            if (!$this->process()) {
+            if (!$this->processSingle()) {
                 return true;
             }
         } while (true);

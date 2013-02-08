@@ -2,12 +2,12 @@
 
 namespace APubSub\Notification\Registry;
 
-use APubSub\Notification\ChannelType\NullChannelType;
+use APubSub\Notification\ChanType\NullChanType;
 
 /**
  * Channel type registry
  */
-class ChannelTypeRegistry extends AbstractRegistry
+class ChanTypeRegistry extends AbstractRegistry
 {
     /**
      * (non-PHPdoc)
@@ -15,7 +15,7 @@ class ChannelTypeRegistry extends AbstractRegistry
      */
     protected function createNullInstance()
     {
-        return new NullChannelType();
+        return new NullChanType();
     }
 
     /**

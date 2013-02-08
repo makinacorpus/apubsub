@@ -6,7 +6,7 @@
  */
 
 use APubSub\Notification\FormatterInterface;
-use APubSub\Notification\ChannelTypeInterface;
+use APubSub\Notification\ChanTypeInterface;
 
 /**
  * Notification types admin form.
@@ -121,7 +121,7 @@ function apb7_follow_admin_notification_overview_submit_disable($form, &$form_st
 function apb7_follow_admin_notification_channel_types($form, &$form_state) {
 
   $service   = notification_service_get();
-  $instances = $service->getChannelTypeRegistry()->getAllInstances(true);
+  $instances = $service->getChanTypeRegistry()->getAllInstances(true);
 
   $label_disabled = t("Disabled");
   $label_yes      = t("Yes");
@@ -129,7 +129,7 @@ function apb7_follow_admin_notification_channel_types($form, &$form_state) {
 
   $options = array();
   foreach ($instances as $type => $instance) {
-    if ($instance instanceof ChannelTypeInterface) {
+    if ($instance instanceof ChanTypeInterface) {
       $type = $instance->getType();
 
       $options[$type]['description'] = $instance->getDescription();

@@ -5,7 +5,7 @@ namespace APubSub\Notification;
 /**
  * Notification formatter
  */
-interface ChannelTypeInterface
+interface ChanTypeInterface
 {
     /**
      * Get internal type

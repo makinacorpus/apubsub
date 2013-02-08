@@ -64,12 +64,51 @@ class D7MessageCursor extends AbstractCursor implements
     }
 
     /**
+     * Apply conditions from the given input
+     *
+     * @param array $conditions Array of condition compatible with the fetch()
+     *                          method of both Subscriber and Subscription
+     */
+    public function applyConditions(array $conditions)
+    {
+        if (null !== $this->iterator) {
+            throw new \LogicException("Cursor already run");
+        }
+
+        foreach ($conditions as $field => $value) {
+            switch ($field) {
+
+                case CursorInterface::FIELD_MSG_ID:
+                    $this->query->condition('q.msg_id', $value);
+                    break;
+
+                case CursorInterface::FIELD_MSG_UNREAD:
+                    $this->query->condition('q.unread', $value);
+                    break;
+
+                case CursorInterface::FIELD_SUB_ID:
+                    $this->query->condition('q.sub_id', $value);
+                    break;
+
+                default:
+                    trigger_error(sprintf("% does not support filter %d yet",
+                        get_class($this), $field));
+                    break;
+            }
+        }
+    }
+
+    /**
      * The queue table suffers from timestamp imprecision and message id serial
      * non predictability: we therefore need to apply multiple sorts at once in
      * most cases, which are specific to this table
      */
     protected function applySorts()
     {
+        if (null !== $this->iterator) {
+            throw new \LogicException("Cursor already run");
+        }
+
         if (!$sorts = $this->getSorts()) {
             // Messages need a default ordering for fetching. If time for
             // more than one message is the same, ordering by message

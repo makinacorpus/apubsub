@@ -1,13 +1,13 @@
 <?php
 
-namespace APubSub\Notification\ChannelType;
+namespace APubSub\Notification\ChanType;
 
-use APubSub\Notification\ChannelTypeInterface;
+use APubSub\Notification\ChanTypeInterface;
 
 /**
  * Default implementation
  */
-class DefaultChannelType implements ChannelTypeInterface
+class DefaultChanType implements ChanTypeInterface
 {
     /**
      * @var string
@@ -33,7 +33,7 @@ class DefaultChannelType implements ChannelTypeInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\Notification\ChannelTypeInterface::getType()
+     * @see \APubSub\Notification\ChanTypeInterface::getType()
      */
     public function getType()
     {
@@ -42,7 +42,7 @@ class DefaultChannelType implements ChannelTypeInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\Notification\ChannelTypeInterface::getDescription()
+     * @see \APubSub\Notification\ChanTypeInterface::getDescription()
      */
     public function getDescription()
     {
@@ -51,7 +51,7 @@ class DefaultChannelType implements ChannelTypeInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\Notification\ChannelTypeInterface::isVisible()
+     * @see \APubSub\Notification\ChanTypeInterface::isVisible()
      */
     public function isVisible()
     {
@@ -60,7 +60,7 @@ class DefaultChannelType implements ChannelTypeInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\Notification\ChannelTypeInterface::getSubscriptionLabel()
+     * @see \APubSub\Notification\ChanTypeInterface::getSubscriptionLabel()
      */
     public function getSubscriptionLabel($id)
     {

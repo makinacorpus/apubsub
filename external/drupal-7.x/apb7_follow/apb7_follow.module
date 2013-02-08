@@ -137,7 +137,7 @@ function notification_type_info_get($target = APB_INFO_TYPE) {
     case APB_INFO_CHAN:
       $hook     = 'notification_channel_info';
       $defaults = array(
-        'class'   => '\APubSub\Notification\ChannelType\DefaultChannelType',
+        'class'   => '\APubSub\Notification\ChanType\DefaultChanType',
         'visible' => true,
       );
       break;
@@ -367,7 +367,7 @@ function notification_service_get() {
     }
 
     // Register all "Drupal Way (TM)" channel types.
-    $channelTypeRegistry = $instance->getChannelTypeRegistry();
+    $channelTypeRegistry = $instance->getChanTypeRegistry();
     foreach (notification_type_info_get(APB_INFO_CHAN) as $type => $info) {
       $channelTypeRegistry->registerType($type, $info);
     }

@@ -158,7 +158,7 @@ function notification_page_user_list_submit_delete($form, &$form_state) {
 function notification_page_user_subscriptions($form, &$form_state, $account) {
 
   $service             = notification_service_get();
-  $channelTypeRegistry = $service->getChannelTypeRegistry();
+  $channelTypeRegistry = $service->getChanTypeRegistry();
   $subscriber          = $service->getSubscriber($account->uid);
 
   $options = array();

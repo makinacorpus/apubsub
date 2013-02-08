@@ -202,23 +202,13 @@ class D7Subscription extends AbstractObject implements SubscriptionInterface
             ->fields('q')
             ->condition('q.sub_id', $this->id);
 
+        $cursor = new D7MessageCursor($this->context, $query);
+
         if (null !== $conditions) {
-            foreach ($conditions as $field => $value) {
-                switch ($field) {
-
-                    case CursorInterface::FIELD_MSG_ID:
-                        $query->condition('q.msg_id', $value);
-                        break;
-
-                    default:
-                        trigger_error(sprintf("% does not support filter %d yet",
-                            get_class($this), $field));
-                        break;
-                }
-            }
+            $cursor->applyConditions($conditions);
         }
 
-        return new D7MessageCursor($this->context, $query);
+        return $cursor;
     }
 
     /**
