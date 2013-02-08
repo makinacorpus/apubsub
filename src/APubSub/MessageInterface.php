@@ -6,6 +6,10 @@ use APubSub\ObjectInterface;
 
 /**
  * Represent a specific message tied to a subscription
+ *
+ * In some rare case, you can fetch the message outside of the subscription
+ * context, case where you should not attempt to get the subscription or you
+ * would receive nasty exception.
  */
 interface MessageInterface extends ObjectInterface
 {
