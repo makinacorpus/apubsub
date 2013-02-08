@@ -1,7 +1,0 @@
-name = "Follow comments"
-description = "Allow users to receive notifications about comment thread changes"
-core = 7.x
-package = Utility
-php = 5.3
-dependencies[] = apb7_follow
-dependencies[] = comment

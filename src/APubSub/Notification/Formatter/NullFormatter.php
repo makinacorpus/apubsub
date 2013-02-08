@@ -1,9 +1,9 @@
 <?php
 
-namespace Apb\Notification\Formatter;
+namespace APubSub\Notification\Formatter;
 
-use Apb\Notification\Notification;
-use Apb\Notification\FormatterInterface;
+use APubSub\Notification\Notification;
+use APubSub\Notification\FormatterInterface;
 
 /**
  * Null implementation
@@ -12,7 +12,7 @@ class NullFormatter implements FormatterInterface
 {
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\FormatterInterface::getType()
+     * @see \APubSub\Notification\FormatterInterface::getType()
      */
     public function getType()
     {
@@ -21,7 +21,7 @@ class NullFormatter implements FormatterInterface
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\FormatterInterface::getDescription()
+     * @see \APubSub\Notification\FormatterInterface::getDescription()
      */
     public function getDescription()
     {
@@ -30,7 +30,7 @@ class NullFormatter implements FormatterInterface
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Follow\NotificationTypeInterface::format()
+     * @see \APubSub\Follow\NotificationTypeInterface::format()
      */
     public function format(Notification $notification)
     {
@@ -39,7 +39,7 @@ class NullFormatter implements FormatterInterface
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Follow\NotificationTypeInterface::getImageURI()
+     * @see \APubSub\Follow\NotificationTypeInterface::getImageURI()
      */
     public function getImageURI(Notification $notification)
     {

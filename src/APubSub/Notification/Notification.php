@@ -1,10 +1,12 @@
 <?php
 
-namespace Apb\Notification;
+namespace APubSub\Notification;
 
 use APubSub\MessageInterface;
 
 /**
+ * Represent a single notification, embedding a message
+ *
  * Single notification is tied to its container: modification of its read
  * status must change the modified status of the container so that it can
  * be saved.
@@ -27,9 +29,9 @@ class Notification
     const LEVEL_WARNING = 10;
 
     /**
-     * @var NotificationManager
+     * @var NotificationService
      */
-    private $manager;
+    private $service;
 
     /**
      * Contents from message.
@@ -75,14 +77,14 @@ class Notification
     /**
      * Build instance from message
      *
-     * @param NotificationManager $manager    Notification manager
+     * @param NotificationService $service    Notification service
      * @param array|MessageInterface $message Message instance or contents
      */
     public function __construct(
-        NotificationManager $manager,
+        NotificationService $service,
         $message)
     {
-        $this->manager = $manager;
+        $this->service = $service;
 
         if ($message instanceof MessageInterface &&
             ($contents = $message->getContents()) &&
@@ -188,7 +190,7 @@ class Notification
             return $this->formatted;
         } else {
             return $this
-                ->manager
+                ->service
                 ->getFormatterRegistry()
                 ->getInstance($this->type)
                 ->format($this);
@@ -203,7 +205,7 @@ class Notification
     public function getImageUri()
     {
         return $this
-            ->manager
+            ->service
             ->getFormatterRegistry()
             ->getInstance($this->type)
             ->getImageURI($this);

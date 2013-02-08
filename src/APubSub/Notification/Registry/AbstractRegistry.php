@@ -1,8 +1,8 @@
 <?php
 
-namespace Apb\Notification\Registry;
+namespace APubSub\Notification\Registry;
 
-use Apb\Notification\RegistryInterface;
+use APubSub\Notification\RegistryInterface;
 
 /**
  * Base implementation
@@ -33,13 +33,13 @@ abstract class AbstractRegistry implements RegistryInterface
     /**
      * Null object implementation
      *
-     * @var \Apb\Follow\NotificationTypeInterface
+     * @var \APubSub\Notification\FormatterInterface
      */
     private $nullInstance;
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\RegistryInterface::setDebugMode()
+     * @see \APubSub\Notification\RegistryInterface::setDebugMode()
      */
     final public function setDebugMode($toggle = true)
     {
@@ -48,7 +48,7 @@ abstract class AbstractRegistry implements RegistryInterface
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\RegistryInterface::typeExists()
+     * @see \APubSub\Notification\RegistryInterface::typeExists()
      */
     final public function typeExists($type)
     {
@@ -57,7 +57,7 @@ abstract class AbstractRegistry implements RegistryInterface
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\RegistryInterface::registerType()
+     * @see \APubSub\Notification\RegistryInterface::registerType()
      */
     public function registerType($type, array $options)
     {
@@ -78,7 +78,7 @@ abstract class AbstractRegistry implements RegistryInterface
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\RegistryInterface::registerInstance()
+     * @see \APubSub\Notification\RegistryInterface::registerInstance()
      */
     public function registerInstance($instance)
     {
@@ -143,7 +143,7 @@ abstract class AbstractRegistry implements RegistryInterface
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\RegistryInterface::getInstance()
+     * @see \APubSub\Notification\RegistryInterface::getInstance()
      */
     final public function getInstance($type)
     {
@@ -170,7 +170,7 @@ abstract class AbstractRegistry implements RegistryInterface
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\RegistryInterface::getAllInstances()
+     * @see \APubSub\Notification\RegistryInterface::getAllInstances()
      */
     final public function getAllInstances()
     {

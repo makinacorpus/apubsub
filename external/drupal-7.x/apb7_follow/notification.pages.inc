@@ -8,19 +8,18 @@
 use APubSub\CursorInterface;
 use APubSub\Error\MessageDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
+use APubSub\Notification\NotificationService;
 use APubSub\SubscriberInterface;
 use APubSub\SubscriptionInterface;
-
-use Apb\Notification\NotificationManager;
 
 /**
  * User notifications page.
  */
 function notification_page_user_list($form, &$form_state, $account) {
 
-  $manager     = notification_manager_get();
-  $backend     = $manager->getBackend();
-  $subscriber  = $manager->getSubscriberFor($account->uid);
+  $service     = notification_service_get();
+  $backend     = $service->getBackend();
+  $subscriber  = $service->getSubscriber($account->uid);
   $displayed   = 0;
   $total       = 0;
   $limit       = variable_get(APB_VAR_USER_PAGER_LIMIT, APB_DEF_USER_PAGER_LIMIT);
@@ -49,7 +48,7 @@ function notification_page_user_list($form, &$form_state, $account) {
   );
 
   foreach ($cursor as $message) {
-    $notification = $manager->getNotification($message);
+    $notification = $service->getNotification($message);
 
     if (!$notification->isValid()) {
       continue;
@@ -106,8 +105,8 @@ function notification_page_user_list($form, &$form_state, $account) {
  */
 function notification_page_user_list_submit_unread($form, &$form_state) {
 
-  $manager    = notification_manager_get();
-  $subscriber = $manager->getSubscriberFor($form_state['values']['uid']);
+  $service    = notification_service_get();
+  $subscriber = $service->getSubscriber($form_state['values']['uid']);
   $count      = 0;
 
   foreach ($form_state['values']['list'] as $msgid => $enabled) {
@@ -134,8 +133,8 @@ function notification_page_user_list_submit_unread($form, &$form_state) {
  */
 function notification_page_user_list_submit_delete($form, &$form_state) {
 
-  $manager    = notification_manager_get();
-  $subscriber = $manager->getSubscriberFor($form_state['values']['uid']);
+  $service    = notification_service_get();
+  $subscriber = $service->getSubscriber($form_state['values']['uid']);
   $count      = 0;
   $list       = array();
 
@@ -158,9 +157,9 @@ function notification_page_user_list_submit_delete($form, &$form_state) {
  */
 function notification_page_user_subscriptions($form, &$form_state, $account) {
 
-  $manager             = notification_manager_get();
-  $channelTypeRegistry = $manager->getChannelTypeRegistry();
-  $subscriber          = $manager->getSubscriberFor($account->uid);
+  $service             = notification_service_get();
+  $channelTypeRegistry = $service->getChannelTypeRegistry();
+  $subscriber          = $service->getSubscriber($account->uid);
 
   $options = array();
   foreach ($subscriber->getSubscriptions() as $subscription) {
@@ -234,9 +233,9 @@ function notification_page_user_subscriptions($form, &$form_state, $account) {
  */
 function notification_page_user_subscriptions_submit_enable($form, &$form_state) {
 
-  $manager    = notification_manager_get();
+  $service    = notification_service_get();
   $uid        = $form_state['values']['uid'];
-  $subscriber = $manager->getSubscriberFor($uid);
+  $subscriber = $service->getSubscriber($uid);
 
   $selected   = array();
 
@@ -268,9 +267,9 @@ function notification_page_user_subscriptions_submit_enable($form, &$form_state)
  */
 function notification_page_user_subscriptions_submit_disable($form, &$form_state) {
 
-  $manager    = notification_manager_get();
+  $service    = notification_service_get();
   $uid        = $form_state['values']['uid'];
-  $subscriber = $manager->getSubscriberFor($uid);
+  $subscriber = $service->getSubscriber($uid);
 
   $selected   = array();
 
@@ -302,9 +301,9 @@ function notification_page_user_subscriptions_submit_disable($form, &$form_state
  */
 function notification_page_user_subscriptions_submit_delete($form, &$form_state) {
 
-  $manager    = notification_manager_get();
+  $service    = notification_service_get();
   $uid        = $form_state['values']['uid'];
-  $subscriber = $manager->getSubscriberFor($uid);
+  $subscriber = $service->getSubscriber($uid);
 
   $selected   = array();
 

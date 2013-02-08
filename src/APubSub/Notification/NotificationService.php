@@ -1,18 +1,17 @@
 <?php
 
-namespace Apb\Notification;
-
-use Apb\Notification\Registry\ChannelTypeRegistry;
-use Apb\Notification\Registry\FormatterRegistry;
+namespace APubSub\Notification;
 
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\MessageInterface;
+use APubSub\Notification\Registry\ChannelTypeRegistry;
+use APubSub\Notification\Registry\FormatterRegistry;
 use APubSub\PubSubInterface;
 
 /**
  * Single entry point for notification handling
  */
-class NotificationManager
+class NotificationService
 {
     /**
      * Default subscriber type
@@ -25,12 +24,12 @@ class NotificationManager
     protected $backend;
 
     /**
-     * @var \Apb\Notification\RegistryInterface
+     * @var \APubSub\Notification\RegistryInterface
      */
     protected $formatterRegistry;
 
     /**
-     * @var \Apb\Notification\RegistryInterface
+     * @var \APubSub\Notification\RegistryInterface
      */
     protected $channelTypeRegistry;
 
@@ -99,13 +98,13 @@ class NotificationManager
     /**
      * Get subscriber for object
      *
-     * @param int $id      Object identifier
-     * @param string $type Type identifier, if none given assume
-     *                     user account
+     * @param int $id              Object identifier
+     * @param string $type         Type identifier, if none given assume
+     *                             user account
      *
-     * @return \APubSub\SubscriberInterface
+     * @return SubscriberInterface Subscriber
      */
-    public function getSubscriberFor($id, $type = self::TYPE_USER)
+    public function getSubscriber($id, $type = self::TYPE_USER)
     {
         return $this
             ->backend
@@ -121,7 +120,7 @@ class NotificationManager
      */
     public function subscribe($chanId, $id, $type = self::TYPE_USER)
     {
-        $subscriber = $this->getSubscriberFor($id, $type);
+        $subscriber = $this->getSubscriber($id, $type);
 
         try {
             $subscriber->subscribe($chanId);
@@ -141,14 +140,14 @@ class NotificationManager
     public function unsubscribe($chanId, $id, $type = self::TYPE_USER)
     {
         $subscriber = $this
-            ->getSubscriberFor($id, $type)
+            ->getSubscriber($id, $type)
             ->unsubscribe($chanId);
     }
 
     /**
      * Get backend
      *
-     * @return \APubSub\PubSubInterface Backend
+     * @return PubSubInterface Backend
      */
     public function getBackend()
     {
@@ -158,7 +157,7 @@ class NotificationManager
     /**
      * Get type registry
      *
-     * @return \Apb\Notification\Registry\FormatterRegistry Type registry
+     * @return \APubSub\Notification\Registry\FormatterRegistry Type registry
      */
     public function getFormatterRegistry()
     {
@@ -168,7 +167,7 @@ class NotificationManager
     /**
      * Get channel type registry
      *
-     * @return \Apb\Notification\Registry\ChannelTypeRegistry Type registry
+     * @return \APubSub\Notification\Registry\ChannelTypeRegistry Type registry
      */
     public function getChannelTypeRegistry()
     {
@@ -248,9 +247,9 @@ class NotificationManager
     /**
      * Get notification instance from message
      *
-     * @param MessageInterface $message       Message
+     * @param MessageInterface $message Message
      *
-     * @return \Apb\Notification\Notification Notification
+     * @return Notification             Notification
      */
     public function getNotification(MessageInterface $message)
     {

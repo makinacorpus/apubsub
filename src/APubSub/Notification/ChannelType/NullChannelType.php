@@ -1,8 +1,8 @@
 <?php
 
-namespace Apb\Notification\ChannelType;
+namespace APubSub\Notification\ChannelType;
 
-use Apb\Notification\ChannelTypeInterface;
+use APubSub\Notification\ChannelTypeInterface;
 
 /**
  * Null implementation
@@ -11,7 +11,7 @@ class NullChannelType implements ChannelTypeInterface
 {
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\ChannelTypeInterface::getType()
+     * @see \APubSub\Notification\ChannelTypeInterface::getType()
      */
     public function getType()
     {
@@ -20,7 +20,7 @@ class NullChannelType implements ChannelTypeInterface
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\ChannelTypeInterface::getDescription()
+     * @see \APubSub\Notification\ChannelTypeInterface::getDescription()
      */
     public function getDescription()
     {
@@ -29,7 +29,7 @@ class NullChannelType implements ChannelTypeInterface
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\ChannelTypeInterface::isVisible()
+     * @see \APubSub\Notification\ChannelTypeInterface::isVisible()
      */
     public function isVisible()
     {
@@ -38,7 +38,7 @@ class NullChannelType implements ChannelTypeInterface
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\ChannelTypeInterface::getSubscriptionLabel()
+     * @see \APubSub\Notification\ChannelTypeInterface::getSubscriptionLabel()
      */
     public function getSubscriptionLabel($id)
     {

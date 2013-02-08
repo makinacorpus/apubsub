@@ -1,8 +1,8 @@
 <?php
 
-namespace Apb\Notification;
+namespace APubSub\Notification;
 
-use Apb\Notification\Formatter\NullFormatter;
+use APubSub\Notification\Formatter\NullFormatter;
 
 /**
  * Simple component registry

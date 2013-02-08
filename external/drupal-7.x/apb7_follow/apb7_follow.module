@@ -12,21 +12,7 @@
 use APubSub\CursorInterface;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
-
-use Apb\Notification\NotificationManager;
-
-// This module exists for sample purposes: register a PSR-0 autoloader
-// for our own library.
-spl_autoload_register(function ($className) {
-  if (false !== strpos($className, '\\')) {
-    $parts = explode('\\', $className);
-    if ('Apb' === $parts[0] && 'Notification' === $parts[1]) {
-      $filename = __DIR__ . '/lib/' . implode('/', $parts) . '.php';
-      return (bool)include_once $filename;
-    }
-  }
-  return false;
-});
+use APubSub\Notification\NotificationService;
 
 /**
  * Type instance info
@@ -133,7 +119,7 @@ const APB_DEF_CACHE_TYPES = false;
  *
  * This should never be called manually: use the manager instead.
  *
- * @see notification_manager_get()
+ * @see notification_service_get()
  *
  * @return array
  *   Notification types info as an internal and very specific array.
@@ -151,7 +137,7 @@ function notification_type_info_get($target = APB_INFO_TYPE) {
     case APB_INFO_CHAN:
       $hook     = 'notification_channel_info';
       $defaults = array(
-        'class'   => '\Apb\Notification\ChannelType\DefaultChannelType',
+        'class'   => '\APubSub\Notification\ChannelType\DefaultChannelType',
         'visible' => true,
       );
       break;
@@ -353,14 +339,14 @@ function apb7_follow_init() {
 /**
  * Get notification manager.
  *
- * @return \Apb\Notification\NotificationManager
+ * @return \APubSub\Notification\NotificationService
  */
-function notification_manager_get() {
+function notification_service_get() {
   $instance = &drupal_static(__FUNCTION__);
 
   if (NULL === $instance) {
 
-    $instance = new NotificationManager(
+    $instance = new NotificationService(
         apb7_backend_get(variable_get(
             APB_VAR_BACKEND,
             APB_DEF_BACKEND)),
@@ -527,9 +513,9 @@ function notification_follow_form(
 {
   global $user;
 
-  $manager    = notification_manager_get();
-  $chanId     = $manager->getChanId($targetType, $targetId);
-  $subscriber = $manager->getSubscriberFor($user->uid);
+  $service    = notification_service_get();
+  $chanId     = $service->getChanId($targetType, $targetId);
+  $subscriber = $service->getSubscriber($user->uid);
 
   $form['cid'] = array(
     '#type' => 'value',
@@ -566,8 +552,8 @@ function notification_follow_form_submit($form, &$form_state) {
 
   $chanId       = $form_state['values']['cid'];
   $subscriberId = $form_state['values']['sid'];
-  $manager      = notification_manager_get();
-  $backend      = $manager->getBackend();
+  $service      = notification_service_get();
+  $backend      = $service->getBackend();
   $subscriber   = $backend->getSubscriber($subscriberId);
 
   // FIXME: This needs fixing
@@ -663,8 +649,8 @@ function apb7_follow_notification_render_block($account) {
     '#list'  => array(),
   );
 
-  $manager     = notification_manager_get();
-  $subscriber  = $manager->getSubscriberFor($account->uid); 
+  $service     = notification_service_get();
+  $subscriber  = $service->getSubscriber($account->uid); 
   $unreadCount = 0;
   $totalCount  = 0;
   $limit       = variable_get(APB_VAR_USER_BLOCK_LIMIT, APB_DEF_USER_BLOCK_LIMIT);
@@ -679,7 +665,7 @@ function apb7_follow_notification_render_block($account) {
 
   foreach ($cursor as $message) {
 
-    $notification = $manager->getNotification($message);
+    $notification = $service->getNotification($message);
 
     if (!$notification->isValid()) {
         continue;

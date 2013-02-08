@@ -1,15 +1,15 @@
 <?php
 
-namespace Apb\Notification\Formatter;
+namespace APubSub\Notification\Formatter;
 
-use Apb\Notification\AbstractFormatter;
-use Apb\Notification\Notification;
+use APubSub\Notification\AbstractFormatter;
+use APubSub\Notification\Notification;
 
 class RawTextFormatter extends AbstractFormatter
 {
     /**
      * (non-PHPdoc)
-     * @see \Apb\Follow\FormatterInterface::format()
+     * @see \APubSub\Notification\FormatterInterface::format()
      */
     public function format(Notification $notification)
     {
@@ -29,7 +29,7 @@ class RawTextFormatter extends AbstractFormatter
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Follow\FormatterInterface::getImageURI()
+     * @see \APubSub\Notification\FormatterInterface::getImageURI()
      */
     public function getImageURI(Notification $notification)
     {

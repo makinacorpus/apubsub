@@ -1,6 +1,6 @@
 <?php
 
-namespace Apb\Notification;
+namespace APubSub\Notification;
 
 /**
  * Notification formatter

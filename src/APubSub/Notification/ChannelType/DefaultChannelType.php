@@ -1,11 +1,13 @@
 <?php
 
-namespace Apb\Notification;
+namespace APubSub\Notification\ChannelType;
+
+use APubSub\Notification\ChannelTypeInterface;
 
 /**
- * Abstract base implementation for formatter interface suitable for most needs
+ * Default implementation
  */
-abstract class AbstractFormatter implements FormatterInterface
+class DefaultChannelType implements ChannelTypeInterface
 {
     /**
      * @var string
@@ -17,15 +19,21 @@ abstract class AbstractFormatter implements FormatterInterface
      */
     private $description;
 
-    public function __construct($type, $description)
+    /**
+     * @var boolean
+     */
+    private $isVisible;
+
+    public function __construct($type, $description, $isVisible = true)
     {
         $this->type        = $type;
         $this->description = $description;
+        $this->isVisible   = $isVisible;
     }
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\FormatterInterface::getType()
+     * @see \APubSub\Notification\ChannelTypeInterface::getType()
      */
     public function getType()
     {
@@ -34,7 +42,7 @@ abstract class AbstractFormatter implements FormatterInterface
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\FormatterInterface::getDescription()
+     * @see \APubSub\Notification\ChannelTypeInterface::getDescription()
      */
     public function getDescription()
     {
@@ -43,15 +51,16 @@ abstract class AbstractFormatter implements FormatterInterface
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\FormatterInterface::getImageURI()
+     * @see \APubSub\Notification\ChannelTypeInterface::isVisible()
      */
-    public function getImageURI(Notification $notification)
+    public function isVisible()
     {
+        return $this->isVisible;
     }
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\FormatterInterface::getSubscriptionLabel()
+     * @see \APubSub\Notification\ChannelTypeInterface::getSubscriptionLabel()
      */
     public function getSubscriptionLabel($id)
     {

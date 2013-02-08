@@ -5,16 +5,16 @@
  * Administration pages.
  */
 
-use Apb\Notification\FormatterInterface;
-use Apb\Notification\ChannelTypeInterface;
+use APubSub\Notification\FormatterInterface;
+use APubSub\Notification\ChannelTypeInterface;
 
 /**
  * Notification types admin form.
  */
 function apb7_follow_admin_notification_notification_types($form, &$form_state) {
 
-  $manager   = notification_manager_get();
-  $instances = $manager->getFormatterRegistry()->getAllInstances(true);
+  $service   = notification_service_get();
+  $instances = $service->getFormatterRegistry()->getAllInstances(true);
 
   $label_disabled = t("Disabled");
   $label_enabled  = '<strong>' . t("Enabled") . '</strong>';
@@ -26,7 +26,7 @@ function apb7_follow_admin_notification_notification_types($form, &$form_state) 
 
       $options[$type]['description'] = $instance->getDescription();
       $options[$type]['type']        = $type;
-      $options[$type]['status']      = $manager->isTypeEnabled($type) ? $label_enabled : $label_disabled;
+      $options[$type]['status']      = $service->isTypeEnabled($type) ? $label_enabled : $label_disabled;
     }
   }
 
@@ -120,8 +120,8 @@ function apb7_follow_admin_notification_overview_submit_disable($form, &$form_st
  */
 function apb7_follow_admin_notification_channel_types($form, &$form_state) {
 
-  $manager   = notification_manager_get();
-  $instances = $manager->getChannelTypeRegistry()->getAllInstances(true);
+  $service   = notification_service_get();
+  $instances = $service->getChannelTypeRegistry()->getAllInstances(true);
 
   $label_disabled = t("Disabled");
   $label_yes      = t("Yes");

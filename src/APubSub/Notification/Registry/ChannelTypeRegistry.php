@@ -1,8 +1,8 @@
 <?php
 
-namespace Apb\Notification\Registry;
+namespace APubSub\Notification\Registry;
 
-use Apb\Notification\ChannelType\NullChannelType;
+use APubSub\Notification\ChannelType\NullChannelType;
 
 /**
  * Channel type registry
@@ -11,7 +11,7 @@ class ChannelTypeRegistry extends AbstractRegistry
 {
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\Registry\AbstractRegistry::createNullInstance()
+     * @see \APubSub\Notification\Registry\AbstractRegistry::createNullInstance()
      */
     protected function createNullInstance()
     {
@@ -20,7 +20,7 @@ class ChannelTypeRegistry extends AbstractRegistry
 
     /**
      * (non-PHPdoc)
-     * @see \Apb\Notification\Registry\AbstractRegistry::getInstanceFromData()
+     * @see \APubSub\Notification\Registry\AbstractRegistry::getInstanceFromData()
      */
     protected function getInstanceFromData($type, $data)
     {
