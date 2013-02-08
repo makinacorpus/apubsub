@@ -2,6 +2,7 @@
 
 namespace APubSub\Notification;
 
+use APubSub\Backend\VolatileMessage;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\MessageInterface;
 use APubSub\Notification\Registry\ChannelTypeRegistry;
@@ -9,7 +10,7 @@ use APubSub\Notification\Registry\FormatterRegistry;
 use APubSub\PubSubInterface;
 
 /**
- * Single entry point for notification handling
+ * Notification service, single point of entry for the business layer
  */
 class NotificationService
 {
@@ -19,36 +20,50 @@ class NotificationService
     const TYPE_USER = 'u';
 
     /**
+     * Notify method has been called.
+     *
+     * Parameters of the callback are:
+     *  - NotificationService instance responsible for this action
+     *  - Notification instance
+     */
+    const EVENT_NOTIFY = 1;
+
+    /**
      * @var \APubSub\PubSubInterface
      */
-    protected $backend;
+    private $backend;
 
     /**
      * @var \APubSub\Notification\RegistryInterface
      */
-    protected $formatterRegistry;
+    private $formatterRegistry;
 
     /**
      * @var \APubSub\Notification\RegistryInterface
      */
-    protected $channelTypeRegistry;
+    private $channelTypeRegistry;
 
     /**
      * Disabled types. Keys are type names and values are any non null value
      *
      * @var array
      */
-    protected $disabledTypes = array();
+    private $disabledTypes = array();
 
     /**
      * @var boolean
      */
-    protected $storeFormatted = false;
+    private $storeFormatted = false;
 
     /**
      * @var boolean
      */
-    protected $silentMode = false;
+    private $silentMode = false;
+
+    /**
+     * @var callable[][]
+     */
+    private $listeners = array();
 
     /**
      * Default constructor
@@ -79,6 +94,37 @@ class NotificationService
         if (!$this->silentMode) {
             $this->formatterRegistry->setDebugMode();
             $this->channelTypeRegistry->setDebugMode();
+        }
+    }
+
+    /**
+     * Register an event listener
+     *
+     * @param callable $callback Callable
+     * @param int $event         Event
+     */
+    public function registerListener($callback, $event = self::EVENT_NOTIFY)
+    {
+        $this->listeners[$event][] = $callback;
+    }
+
+    /**
+     * Raise event
+     *
+     * @param int $event Event
+     * @param ...        Event parameters
+     */
+    private function raiseEvent($event)
+    {
+        if (isset($this->listeners[$event])) {
+
+            $args = func_get_args();
+            array_shift($args);
+            array_unshift($args, $this);
+
+            foreach ($this->listeners[$event] as $callback) {
+                call_user_func_array($callback, $args);
+            }
         }
     }
 
@@ -171,7 +217,7 @@ class NotificationService
      */
     public function getChannelTypeRegistry()
     {
-      return $this->channelTypeRegistry;
+        return $this->channelTypeRegistry;
     }
 
     /**
@@ -222,17 +268,25 @@ class NotificationService
             );
 
             if ($this->storeFormatted) {
-                // Quite a hack, but efficient
+                // Quite a hack, but efficient, we need a false message to
+                // exist in order to create a false notification, so we can
+                // force it to be rendered before the message exists
+                $message = new VolatileMessage($contents, $type);
+
                 $contents['f'] = $this
                     ->getFormatterRegistry()
                     ->getInstance($type)
-                    ->format(new Notification($this, $contents));
+                    ->format(new Notification($this, $message));
             }
 
-            $this
+            $message = $this
                 ->getBackend()
                 ->getChannel($chanId)
                 ->send($contents, $type, $level);
+
+            $this->raiseEvent(
+                self::EVENT_NOTIFY,
+                $this->getNotification($message));
 
         } catch (ChannelDoesNotExistException $e) {
             // Nothing to do, no channel means no subscription

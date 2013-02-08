@@ -34,6 +34,11 @@ class Notification
     private $service;
 
     /**
+     * @var MessageInterface
+     */
+    private $message;
+
+    /**
      * Contents from message.
      *
      * @var array
@@ -82,35 +87,23 @@ class Notification
      */
     public function __construct(
         NotificationService $service,
-        $message)
+        MessageInterface $message)
     {
         $this->service = $service;
+        $this->message = $message;
 
-        if ($message instanceof MessageInterface &&
-            ($contents = $message->getContents()) &&
+        if (($contents = $message->getContents()) &&
             is_array($contents) &&
             isset($contents['i']) &&
             isset($contents['d']))
         {
+            $this->message   = $message;
             $this->data      = $contents['d'];
             $this->sourceId  = $contents['i'];
-            $this->type      = $message->getType();
-            $this->messageId = $message->getId();
             $this->valid     = true;
-            $this->level     = $message->getLevel();
 
             if (isset($contents['f'])) {
                 $this->formatted = $contents['f'];
-            }
-        } else if (is_array($message) &&
-            isset($message['i']) &&
-            isset($message['d']))
-        {
-            $this->data      = $message['d'];
-            $this->sourceId  = $message['i'];
-
-            if (isset($message['f'])) {
-                $this->formatted = $message['f'];
             }
         }
     }
@@ -142,7 +135,7 @@ class Notification
      */
     public function getMessageId()
     {
-        return $this->messageId;
+        return $this->message->getId();
     }
 
     /**
@@ -162,7 +155,7 @@ class Notification
      */
     public function getType()
     {
-        return $this->type;
+        return $this->message->getType();
     }
 
     /**
@@ -186,15 +179,15 @@ class Notification
      */
     public function format()
     {
-        if (isset($this->formatted)) {
-            return $this->formatted;
-        } else {
-            return $this
+        if (null === $this->formatted) {
+            $this->formatted = $this
                 ->service
                 ->getFormatterRegistry()
                 ->getInstance($this->type)
                 ->format($this);
         }
+
+        return $this->formatted;
     }
 
     /**
@@ -218,6 +211,6 @@ class Notification
      */
     public function getLevel()
     {
-        return $this->level;
+        return $this->message->getLevel();
     }
 }

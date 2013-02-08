@@ -26,23 +26,22 @@ interface ChannelInterface extends
     /**
      * Send a new message
      *
-     * @param mixed $contents            Any kind of contents (will be
-     *                                   serialized if not a primitive type)
-     * @param string $type               Message type
-     * @param int $level                 Arbitrary business level
-     * @param int $sendTime              If set the creation/send timestamp will
-     *                                   be forced to the given value
+     * @param mixed $contents   Any kind of contents (will be serialized)
+     * @param string $type      Message type
+     * @param int $level        Arbitrary business level
+     * @param int $sendTime     If set the creation/send timestamp will be
+     *                          forced to the given value
      *
-     * @return \APubSub\MessageInterface The new message
+     * @return MessageInterface The new message
      */
     public function send($contents, $type = null, $level = 0, $sendTime = null);
 
     /**
      * Create a new subscription to this channel.
      *
-     * @return \APubSub\SubscriptionInterface The new subscription object, which
-     *                                        is not active per default and whose
-     *                                        identifier has been generated
+     * @return SubscriptionInterface The new subscription object, which is not
+     *                               active per default and whose identifier
+     *                               has been generated
      */
     public function subscribe();
 }
