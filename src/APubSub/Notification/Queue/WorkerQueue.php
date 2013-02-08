@@ -28,5 +28,7 @@ abstract class AbstractWorkerQueue extends AbstractQueue
     final public function process(CursorInterface $cursor)
     {
         $worker = new MessageWorker($cursor, array($this, 'processSingle'));
+
+        return $worker->process();
     }
 }
