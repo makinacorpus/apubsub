@@ -74,6 +74,8 @@ abstract class AbstractRegistry implements RegistryInterface
         }
 
         $this->data[$type] = $options;
+
+        return $this;
     }
 
     /**
@@ -89,6 +91,8 @@ abstract class AbstractRegistry implements RegistryInterface
         }
 
         $this->instances[$type] = $instance;
+
+        return $this;
     }
 
     /**

@@ -5,22 +5,8 @@ namespace APubSub\Notification;
 /**
  * Notification formatter
  */
-interface FormatterInterface
+interface FormatterInterface extends RegistryItemInterface
 {
-    /**
-     * Get internal type
-     *
-     * @return string
-     */
-    public function getType();
-
-    /**
-     * Get type description
-     *
-     * @return string Human readable string
-     */
-    public function getDescription();
-
     /**
      * Format notification as HTML code, if any link has to be set, set it
      * into this text

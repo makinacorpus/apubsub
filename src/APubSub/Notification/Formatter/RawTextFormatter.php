@@ -2,7 +2,6 @@
 
 namespace APubSub\Notification\Formatter;
 
-use APubSub\Notification\AbstractFormatter;
 use APubSub\Notification\Notification;
 
 class RawTextFormatter extends AbstractFormatter

@@ -3,11 +3,15 @@
 namespace APubSub\Helper;
 
 use APubSub\CursorInterface;
+use APubSub\MessageInterface;
 
 /**
- * Applies a worker callback to each item of a cursor
+ * Queue cursor worker
+ *
+ * Walks over a complete cursor and applies a specific callback over each
+ * found items. This can be useful for applying batches over sets of messages.
  */
-class CursorWorker
+class MessageWorker
 {
     /**
      * Number of iterations to do whithout checking for ram or time limit
@@ -17,12 +21,17 @@ class CursorWorker
     /**
      * @var callable
      */
-    private $workerCallback;
+    protected $workerCallback;
 
     /**
      * @var CursorInterface
      */
-    private $cursor;
+    protected $cursor;
+
+    /**
+     * @var boolean
+     */
+    protected $deleteOnConsume;
 
     /**
      * Default constructor
@@ -32,17 +41,22 @@ class CursorWorker
      * @param callable $workerCallback Callback that processes each item, this
      *                                 callback must take at least one parameter
      *                                 which will be the cursor returned item
+     * @param boolean $deleteOnConsume Deletes the message once consumed
      */
-    public function __construct(CursorInterface $cursor, $workerCallback)
+    public function __construct(
+        CursorInterface $cursor,
+        $workerCallback,
+        $deleteOnConsume = false)
     {
-        $this->cursor = $cursor;
-
         if (is_callable($workerCallback)) {
             $this->workerCallback = $workerCallback;
         } else {
             throw new \InvalidArgumentException(
                 "Given worker callback is not callable");
         }
+
+        $this->cursor          = $cursor;
+        $this->deleteOnConsume = $deleteOnConsume;
     }
 
     /**
@@ -53,8 +67,18 @@ class CursorWorker
      */
     public function processSingle()
     {
-        if ($item = next($this->cursor)) {
-            call_user_func($this->workerCallback, $item);
+        if ($message = next($this->cursor)) {
+            if ($message instanceof MessageInterface) {
+
+                call_user_func($this->workerCallback, $message);
+
+                if ($this->deleteOnConsume) {
+                    $message
+                        ->getSubscription()
+                        ->deleteMessage(
+                              $message->getId());
+                }
+            }
             return true;
         } else {
             return false;

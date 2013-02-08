@@ -33,9 +33,11 @@ interface RegistryInterface
      *
      * Existing definition will be overriden
      *
-     * @param string $type    Type
-     * @param array  $options Type options, must contain at least 'class' and
-     *                        'description' keys
+     * @param string $type       Type
+     * @param array  $options    Type options, must contain at least 'class'
+     *                           and 'description' keys
+     *
+     * @return RegistryInterface Self reference for chaining
      */
     public function registerType($type, array $options);
 
@@ -44,7 +46,9 @@ interface RegistryInterface
      *
      * Existing definition will be overriden
      *
-     * @param mixed $instance Instance to register
+     * @param mixed $instance    Instance to register
+     *
+     * @return RegistryInterface Self reference for chaining
      */
     public function registerInstance($instance);
 

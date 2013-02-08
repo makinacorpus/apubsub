@@ -6,6 +6,7 @@ use APubSub\Backend\VolatileMessage;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\MessageInterface;
 use APubSub\Notification\Registry\ChanTypeRegistry;
+use APubSub\Notification\Registry\QueueRegistry;
 use APubSub\Notification\Registry\FormatterRegistry;
 use APubSub\PubSubInterface;
 
@@ -34,14 +35,19 @@ class NotificationService
     private $backend;
 
     /**
-     * @var \APubSub\Notification\RegistryInterface
+     * @var RegistryInterface
      */
     private $formatterRegistry;
 
     /**
-     * @var \APubSub\Notification\RegistryInterface
+     * @var RegistryInterface
      */
     private $chanTypeRegistry;
+
+    /**
+     * @var RegistryInterface
+     */
+    private $queueRegistry;
 
     /**
      * Disabled types. Keys are type names and values are any non null value
@@ -85,7 +91,8 @@ class NotificationService
         $this->storeFormatted    = $storeFormatted;
         $this->silentMode        = $silentMode;
         $this->formatterRegistry = new FormatterRegistry();
-        $this->chaTypeRegistry   = new ChanTypeRegistry();
+        $this->chanTypeRegistry  = new ChanTypeRegistry();
+        $this->queueRegistry     = new QueueRegistry();
 
         if (null !== $disabledTypes) {
             $this->disabledTypes = array_flip($disabledTypes);
@@ -218,6 +225,16 @@ class NotificationService
     public function getChanTypeRegistry()
     {
         return $this->chanTypeRegistry;
+    }
+
+    /**
+     * Get communiation queue registry
+     *
+     * @return \APubSub\Notification\Registry\QueueRegistry Type registry
+     */
+    public function getQueueRegistry()
+    {
+        return $this->queueRegistry;
     }
 
     /**

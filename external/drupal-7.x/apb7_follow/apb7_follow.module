@@ -367,9 +367,9 @@ function notification_service_get() {
     }
 
     // Register all "Drupal Way (TM)" channel types.
-    $channelTypeRegistry = $instance->getChanTypeRegistry();
+    $chanTypeRegistry = $instance->getChanTypeRegistry();
     foreach (notification_type_info_get(APB_INFO_CHAN) as $type => $info) {
-      $channelTypeRegistry->registerType($type, $info);
+      $chanTypeRegistry->registerType($type, $info);
     }
   }
 
