@@ -183,7 +183,7 @@ class Notification
             $this->formatted = $this
                 ->service
                 ->getFormatterRegistry()
-                ->getInstance($this->type)
+                ->getInstance($this->message->getType())
                 ->format($this);
         }
 
@@ -200,7 +200,7 @@ class Notification
         return $this
             ->service
             ->getFormatterRegistry()
-            ->getInstance($this->type)
+            ->getInstance($this->message->getType())
             ->getImageURI($this);
     }
 
