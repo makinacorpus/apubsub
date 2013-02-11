@@ -13,7 +13,47 @@
         </div>
       </li>
       <?php else: ?>
+      <?php 
+      $today = new DateTime('today');
+      $delta = null;
+      ?>
       <?php foreach ($list as $item): ?>
+      <?php
+        // Determine day.
+        $itemDate = new DateTime('@' . $item['time']);
+        $interval = $today->diff($itemDate);
+        if (!$interval->invert) {
+          // Today.
+          $currentdelta = 0;
+        } else {
+          $currentdelta = (int)1 + $interval->d;
+        }
+
+        if ($currentdelta !== $delta) {
+          $delta = $currentdelta;
+          // We need to create a new title.
+          switch ($delta) {
+            case 0:
+              $title = t("Today");
+              break;
+            case 1:
+              $title = t("Yesterday");
+              break;
+            default:
+              $title = format_plural($delta, "@count day ago", "@count days ago");
+              break;
+          }
+        } else {
+          $title = null;
+        }
+      ?>
+      <?php if ($title): ?>
+      <li>
+        <div class="text">
+          <h2><?php echo $title; ?></h2>
+        </div>
+      </li>
+      <?php endif; ?>
       <li>
         <div class="image">
           <?php echo render($item['image']); ?>

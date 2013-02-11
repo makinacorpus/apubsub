@@ -46,7 +46,14 @@
 #notifications-page .list li,
 #notifications .list li {
   padding: 1.3em 1.7em;
+}
+
+#notifications .list li {
   border-bottom: 1px solid #ccc;
+}
+
+#notifications-page .list li h2 {
+  border-bottom: 3px solid #ccc;
 }
 
 #notifications-page .list .time,
