@@ -54,6 +54,7 @@
 
 #notifications-page .list li h2 {
   border-bottom: 3px solid #ccc;
+  margin: 0;
 }
 
 #notifications-page .list .time,
