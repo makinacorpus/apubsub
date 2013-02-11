@@ -93,7 +93,7 @@ function notification_page_user_list($form, &$form_state, $account) {
     'preferences' => array(
       '#type'  => 'link',
       '#title' => t("Preferences"),
-      '#href'  => 'user/' . $account->uid . '/notifications/subscriptions',
+      '#href'  => 'user/' . $account->uid . '/notifications/settings',
     ),
   );
 
@@ -329,6 +329,20 @@ function notification_page_user_subscriptions_submit_delete($form, &$form_state)
  * User settings for subscriptions
  */
 function notification_page_user_settings($form, &$form_state, $account) {
+
+  $form['uid'] = array(
+    '#type'  => 'value',
+    '#value' => $account->uid,
+  );
+
+  $form['actions'] = array(
+    '#type'   => 'actions',
+  );
+  $form['actions']['save'] = array(
+    '#type'   => 'submit',
+    '#value'  => t("Save"),
+  );
+
   return $form;
 }
 

@@ -27,6 +27,15 @@ class NullQueue implements QueueInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\Notification\RegistryItemInterface::getGroupId()
+     */
+    public function getGroupId()
+    {
+        return null;
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\Notification\QueueInterface::process()
      */
     public function process(CursorInterface $cursor)

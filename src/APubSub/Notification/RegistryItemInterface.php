@@ -20,4 +20,11 @@ interface RegistryItemInterface
      * @return string Human readable string
      */
     public function getDescription();
+
+    /**
+     * Get type group
+     *
+     * @return string Group identifier
+     */
+    public function getGroupId();
 }

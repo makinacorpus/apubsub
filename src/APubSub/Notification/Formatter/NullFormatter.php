@@ -30,6 +30,15 @@ class NullFormatter implements FormatterInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\Notification\RegistryItemInterface::getGroupId()
+     */
+    public function getGroupId()
+    {
+        return null;
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\Follow\NotificationTypeInterface::format()
      */
     public function format(Notification $notification)

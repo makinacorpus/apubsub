@@ -144,6 +144,7 @@ const APB_DEF_CACHE_TYPES = false;
  *   Notification types info as an internal and very specific array.
  */
 function notification_type_info_get($target = APB_INFO_FORMATTER) {
+
   $ret  = array();
 
   switch ($target) {
@@ -156,7 +157,6 @@ function notification_type_info_get($target = APB_INFO_FORMATTER) {
     case APB_INFO_CHAN:
       $hook     = 'notification_channel_info';
       $defaults = array(
-        'class'   => '\APubSub\Notification\ChanType\DefaultChanType',
         'visible' => true,
       );
       break;
@@ -173,11 +173,12 @@ function notification_type_info_get($target = APB_INFO_FORMATTER) {
       return array();
   }
 
-  $bin   = 'cache_bootstrap';
-  $cache = variable_get(APB_VAR_CACHE_TYPES, APB_DEF_CACHE_TYPES);
-
-  if ($cache && ($cached = cache_get($hook, $bin))) {
-    return $cached->data;
+  $bin = 'cache_bootstrap';
+  if ($cache = variable_get(APB_VAR_CACHE_TYPES, APB_DEF_CACHE_TYPES)) {
+    $cid = $hook . ':' . $GLOBALS['language']->language;
+    if ($cached = cache_get($cid, $bin)) {
+      return $cached->data;
+    }
   }
 
   // Fetch module-driven definitions.
@@ -195,15 +196,6 @@ function notification_type_info_get($target = APB_INFO_FORMATTER) {
         continue;
       }
 
-      if (!class_exists($info['class'])) {
-        watchdog('apb_follow', "Module @module provides @key notification type using unknown class @class, dropping", array(
-          '@module' => $module,
-          '@key'    => $key,
-          '@class'  => $info['class'],
-        ), WATCHDOG_WARNING);
-        continue;
-      }
-
       if (!isset($info['description'])) {
         $info['description'] = $key;
       }
@@ -216,7 +208,7 @@ function notification_type_info_get($target = APB_INFO_FORMATTER) {
   drupal_alter($hook, $ret);
 
   if ($cache) {
-    cache_set($hook, $ret, $bin);
+    cache_set($cid , $ret, $bin);
   }
 
   return $ret;
@@ -282,7 +274,6 @@ function apb7_follow_menu() {
     'file'             => 'notification.pages.inc',
     'weight'           => 10,
   );
-  /*
   $items['user/%user/notifications/settings'] = array(
     'title'            => "Preferences",
     'page callback'    => 'drupal_get_form',
@@ -293,7 +284,6 @@ function apb7_follow_menu() {
     'file'             => 'notification.pages.inc',
     'weight'           => 20,
   );
-   */
 
   // AJAX stuff.
   $items['notification/ajax/user'] = array(
@@ -788,6 +778,6 @@ function template_preprocess_notification_block(&$variables) {
     'title'        => $data['#title'],
     'list'         => $data['#list'],
     'all_link'     => l(t("See all"), 'user/' . $user->uid . '/notifications', array('attributes' => array('class' => array('all-link')))),
-    'pref_link'    => l(t("Preferences"), 'user/' . $user->uid . '/notifications/subscriptions', array('attributes' => array('class' => array('pref-link')))),
+    'pref_link'    => l(t("Preferences"), 'user/' . $user->uid . '/notifications/settings', array('attributes' => array('class' => array('pref-link')))),
   );
 }

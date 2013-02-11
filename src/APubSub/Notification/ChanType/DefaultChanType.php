@@ -20,14 +20,20 @@ class DefaultChanType implements ChanTypeInterface
     private $description;
 
     /**
+     * @var string
+     */
+    private $groupId;
+
+    /**
      * @var boolean
      */
     private $isVisible;
 
-    public function __construct($type, $description, $isVisible = true)
+    public function __construct($type, $description, $groupId = null, $isVisible = true)
     {
         $this->type        = $type;
         $this->description = $description;
+        $this->groupId     = $groupId;
         $this->isVisible   = $isVisible;
     }
 
@@ -47,6 +53,15 @@ class DefaultChanType implements ChanTypeInterface
     public function getDescription()
     {
         return $this->description;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\Notification\RegistryItemInterface::getGroupId()
+     */
+    public function getGroupId()
+    {
+        return $this->groupId;
     }
 
     /**

@@ -20,6 +20,15 @@ class QueueRegistry extends AbstractRegistry
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\Notification\Registry\AbstractRegistry::getDefaultClass()
+     */
+    protected function getDefaultClass()
+    {
+        return null;
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\Notification\Registry\AbstractRegistry::getInstanceFromData()
      */
     protected function getInstanceFromData($type, $data)
@@ -43,6 +52,9 @@ class QueueRegistry extends AbstractRegistry
                 "Class '%s' does not exist for type '%s'", $class, $type));
         }
 
-        return new $class($type, $description);
+        return new $class(
+            $type,
+            $description,
+            isset($data['group']) ? $data['group'] : null);
     }
 }

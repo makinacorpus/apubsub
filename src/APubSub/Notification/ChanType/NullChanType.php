@@ -29,6 +29,15 @@ class NullChanType implements ChanTypeInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\Notification\RegistryItemInterface::getGroupId()
+     */
+    public function getGroupId()
+    {
+        return null;
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\Notification\ChanTypeInterface::isVisible()
      */
     public function isVisible()

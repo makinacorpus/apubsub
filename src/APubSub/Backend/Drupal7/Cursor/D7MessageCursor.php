@@ -86,6 +86,21 @@ class D7MessageCursor extends AbstractCursor implements
                     $this->query->condition('q.unread', $value);
                     break;
 
+                case CursorInterface::FIELD_MSG_TYPE:
+
+                    $typeHelper = $this->getContext()->typeHelper;
+
+                    if (is_array($value)) {
+                        array_walk($value, function (&$value) use ($typeHelper) {
+                            $value = $typeHelper->getTypeId($value);
+                        });
+                    } else {
+                        $value = $typeHelper->getTypeId($value);
+                    }
+
+                    $this->query->condition('m.type_id', $value);
+                    break;
+
                 case CursorInterface::FIELD_SUB_ID:
                     $this->query->condition('q.sub_id', $value);
                     break;

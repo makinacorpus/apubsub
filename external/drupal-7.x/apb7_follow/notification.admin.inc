@@ -15,7 +15,9 @@ use APubSub\Notification\QueueInterface;
 function apb7_follow_admin_notification_notification_types($form, &$form_state) {
 
   $service   = notification_service_get();
-  $instances = $service->getFormatterRegistry()->getAllInstances(true);
+  $registry  = $service->getFormatterRegistry();
+  $instances = $registry->getAllInstances(true);
+  $groups    = $registry->getGroups();
 
   $label_disabled = t("Disabled");
   $label_enabled  = '<strong>' . t("Enabled") . '</strong>';
@@ -23,9 +25,11 @@ function apb7_follow_admin_notification_notification_types($form, &$form_state) 
   $options = array();
   foreach ($instances as $type => $instance) {
     if ($instance instanceof FormatterInterface) {
-      $type = $instance->getType();
+      $type  = $instance->getType();
+      $group = $instance->getGroupId();
 
       $options[$type]['description'] = $instance->getDescription();
+      $options[$type]['group']       = isset($groups[$group]) ? $groups[$group] : '';
       $options[$type]['type']        = $type;
       $options[$type]['status']      = $service->isTypeEnabled($type) ? $label_enabled : $label_disabled;
     }
@@ -35,6 +39,7 @@ function apb7_follow_admin_notification_notification_types($form, &$form_state) 
     '#type'    => 'tableselect',
     '#header'  => array(
       'type'        => t("Type"),
+      'group'       => t("Group"),
       'description' => t("Description"),
       'status'      => t("Status"),
     ),
@@ -122,7 +127,9 @@ function apb7_follow_admin_notification_overview_submit_disable($form, &$form_st
 function apb7_follow_admin_notification_channel_types($form, &$form_state) {
 
   $service   = notification_service_get();
-  $instances = $service->getChanTypeRegistry()->getAllInstances(true);
+  $registry  = $service->getChanTypeRegistry();
+  $instances = $registry->getAllInstances(true);
+  $groups    = $registry->getGroups();
 
   $label_disabled = t("Disabled");
   $label_yes      = t("Yes");
@@ -134,6 +141,7 @@ function apb7_follow_admin_notification_channel_types($form, &$form_state) {
       $type = $instance->getType();
 
       $options[$type]['description'] = $instance->getDescription();
+      $options[$type]['group']       = isset($groups[$group]) ? $groups[$group] : '';
       $options[$type]['type']        = $type;
       $options[$type]['visible']     = $instance->isVisible() ? $label_yes : $label_no;
     }
@@ -143,6 +151,7 @@ function apb7_follow_admin_notification_channel_types($form, &$form_state) {
     '#type'    => 'tableselect',
     '#header'  => array(
       'type'        => t("Type"),
+      'group'       => t("Group"),
       'description' => t("Description"),
       'visible'     => t("Visible for user"),
     ),
@@ -158,7 +167,9 @@ function apb7_follow_admin_notification_channel_types($form, &$form_state) {
 function apb7_follow_admin_notification_queues($form, &$form_state) {
 
   $service   = notification_service_get();
-  $instances = $service->getQueueRegistry()->getAllInstances(true);
+  $registry  = $service->getQueueRegistry();
+  $instances = $registry->getAllInstances(true);
+  $groups    = $registry->getGroups();
 
   $label_disabled = t("Disabled");
   $label_yes      = t("Yes");
@@ -170,6 +181,7 @@ function apb7_follow_admin_notification_queues($form, &$form_state) {
       $type = $instance->getType();
 
       $options[$type]['description'] = $instance->getDescription();
+      $options[$type]['group']       = isset($groups[$group]) ? $groups[$group] : '';
       $options[$type]['type']        = $type;
     }
   }
@@ -178,6 +190,7 @@ function apb7_follow_admin_notification_queues($form, &$form_state) {
     '#type'    => 'tableselect',
     '#header'  => array(
       'type'        => t("Type"),
+      'group'       => t("Group"),
       'description' => t("Description"),
     ),
     '#options' => $options,

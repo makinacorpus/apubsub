@@ -3,6 +3,7 @@
 namespace APubSub\Notification\Registry;
 
 use APubSub\Notification\RegistryInterface;
+use APubSub\Notification\RegistryItemInterface;
 
 /**
  * Base implementation
@@ -38,6 +39,13 @@ abstract class AbstractRegistry implements RegistryInterface
     private $nullInstance;
 
     /**
+     * Known groups
+     *
+     * @var array
+     */
+    private $groups = array();
+
+    /**
      * (non-PHPdoc)
      * @see \APubSub\Notification\RegistryInterface::setDebugMode()
      */
@@ -61,10 +69,7 @@ abstract class AbstractRegistry implements RegistryInterface
      */
     public function registerType($type, array $options)
     {
-        if (!isset($options['class'])) {
-            throw new \InvalidArgumentException(sprintf("Class is not set"));
-        }
-        if (!class_exists($options['class'])) {
+        if (isset($options['class']) && !class_exists($options['class'])) {
             throw new \InvalidArgumentException(sprintf(
                 "Class '%s' does not exist", $options['class']));
         }
@@ -72,8 +77,18 @@ abstract class AbstractRegistry implements RegistryInterface
         if (isset($this->instances[$type])) {
             unset($this->instances[$type]);
         }
+        if (!isset($options['group'])) {
+            $options['group'] = null;
+        }
 
         $this->data[$type] = $options;
+
+        // Auto registering the group if it does not exist, note that this may
+        // lead to non human readable names being displayed, but is necessary
+        // for consistency
+        if (!isset($this->groups[$options['group']])) {
+            $this->groups[$options['group']] = $options['group'];
+        }
 
         return $this;
     }
@@ -82,12 +97,20 @@ abstract class AbstractRegistry implements RegistryInterface
      * (non-PHPdoc)
      * @see \APubSub\Notification\RegistryInterface::registerInstance()
      */
-    public function registerInstance($instance)
+    public function registerInstance(RegistryItemInterface $instance)
     {
         $type = $instance->getType();
 
-        if (isset($this->data[$type])) {
-            unset($this->data[$type]);
+        $this->data[$type] = array(
+            'description' => $instance->getDescription(),
+            'group'       => $instance->getGroupId(),
+        );
+
+        // Auto registering the group if it does not exist, note that this may
+        // lead to non human readable names being displayed, but is necessary
+        // for consistency
+        if ($group = $instance->getGroupId() && !isset($this->groups[$group])) {
+            $this->groups[$group] = $group;
         }
 
         $this->instances[$type] = $instance;
@@ -117,6 +140,13 @@ abstract class AbstractRegistry implements RegistryInterface
     abstract protected function createNullInstance();
 
     /**
+     * Get default class for items
+     *
+     * @return string PHP class
+     */
+    abstract protected function getDefaultClass();
+
+    /**
      * Overridable method that creates the real instance
      *
      * @param mixed $data Definition data
@@ -127,7 +157,11 @@ abstract class AbstractRegistry implements RegistryInterface
         $description = null;
 
         if (is_array($data)) {
-            $class       = $data['class'];
+            if (isset($data['class'])) {
+                $class   = $data['class'];
+            } else {
+                $class   = $this->getDefaultClass();
+            }
             $description = $data['description'];
         } else if (is_string($data)) {
             $class       = $data;
@@ -137,12 +171,19 @@ abstract class AbstractRegistry implements RegistryInterface
                 "Invalid data given for type '%s' does not exist", $type));
         }
 
+        if (null === $class) {
+            throw new \LogicException(sprintf(
+                "Could not find a class for type '%s'", $type));
+        }
         if (!class_exists($class)) {
             throw new \LogicException(sprintf(
                 "Class '%s' does not exist for type '%s'", $class, $type));
         }
 
-        return new $class($type, $description);
+        return new $class(
+            $type,
+            $description,
+            isset($data['group']) ? $data['group'] : null);
     }
 
     /**
@@ -170,6 +211,34 @@ abstract class AbstractRegistry implements RegistryInterface
         }
 
         return $this->instances[$type];
+    }
+
+    /**
+     * Get known groups
+     *
+     * @return array Keys are group internal names, values are human readable
+     *               labels
+     */
+    public function getGroups()
+    {
+        return $this->groups;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\Notification\RegistryInterface::getAllInstancesByGroup()
+     */
+    final public function getAllInstancesByGroup($group)
+    {
+        $ret = array();
+
+        foreach ($this->data as $type => $data) {
+            if (isset($data['group']) && $group === $data['group']) {
+                $ret[$type] = $this->getInstance($type);
+            }
+        }
+
+        return $ret;
     }
 
     /**

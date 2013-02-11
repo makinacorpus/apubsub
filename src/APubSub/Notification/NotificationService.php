@@ -119,20 +119,6 @@ class NotificationService
     }
 
     /**
-     * Get queue subscriber
-     *
-     * @param string $queueType Queue type
-     * @param scalar $id        Susbcriber identifier
-     * @param string $type      Subscriber type
-     */
-    public function getQueueSubscriber($queueType, $id, $type = self::SUBSCRIBER_USER)
-    {
-        return $this
-            ->backend
-            ->getSubscriber($type . ':' . $queueType . ':' . $id);
-    }
-
-    /**
      * Subscribe an object to a chan
      *
      * @param string $chanId Channel identifier
