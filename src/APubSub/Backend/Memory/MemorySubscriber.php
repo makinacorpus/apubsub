@@ -37,11 +37,6 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
     private $lastAccessTime = 0;
 
     /**
-     * @var array
-     */
-    private $extraData = array();
-
-    /**
      * Default constructor
      *
      * @param MemoryContext $context Context
@@ -69,6 +64,21 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
     public function getSubscriptions()
     {
         return $this->subscriptions;
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::hasSubscriptionFor()
+     */
+    public function hasSubscriptionFor($channelId)
+    {
+        foreach ($this->subscriptions as $subscription) {
+            if ($subscription->getChannel()->getId() === $channelId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -245,23 +255,5 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
         foreach ($this->getSubscriptions() as $subscription) {
             $subscription->delete();
         }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::getExtraData()
-     */
-    public function getExtraData()
-    {
-        return $this->extraData;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::setExtraData()
-     */
-    public function setExtraData(array $data)
-    {
-        $this->extraData = $data;
     }
 }

@@ -181,15 +181,7 @@ abstract class AbstractRegistry implements RegistryInterface
         $ret = array();
 
         foreach ($this->data as $type => $data) {
-            try {
-                $ret[$type] = $this->getInstanceFromData($type, $data);
-            } catch (\Exception $e) {
-                if ($this->debug) {
-                    throw $e;
-                } else {
-                    $ret[$type] = $this->getNullInstance();
-                }
-            }
+            $ret[$type] = $this->getInstance($type);
         }
 
         return $ret;

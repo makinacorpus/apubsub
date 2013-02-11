@@ -204,11 +204,6 @@ function apb7_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
-      'extra' => array(
-        'description' => "Extra data for business layer",
-        'type' => 'blob',
-        'not null' => FALSE,
-      ),
     ),
     // Subscription can be owned by only one subscriber
     'primary key' => array('sub_id'),
@@ -340,4 +335,11 @@ function apb7_update_7001() {
     'not null' => TRUE,
     'default' => 0,
   ));
+}
+
+/**
+ * Remove a useless field.
+ */
+function apb7_update_7002() {
+  db_drop_field('apb_sub_map', 'extra');
 }

@@ -5,7 +5,8 @@ namespace APubSub\Notification;
 use APubSub\CursorInterface;
 
 /**
- * Process a message queue
+ * Message queue processor, primarily designed in order to enable various
+ * alternative communication routes
  */
 interface QueueInterface extends RegistryItemInterface
 {

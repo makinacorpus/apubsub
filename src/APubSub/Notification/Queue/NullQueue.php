@@ -2,13 +2,14 @@
 
 namespace APubSub\Notification\Queue;
 
+use APubSub\CursorInterface;
 use APubSub\Notification\QueueInterface;
 
 class NullQueue implements QueueInterface
 {
     /**
      * (non-PHPdoc)
-     * @see \APubSub\Notification\FormatterInterface::getType()
+     * @see \APubSub\Notification\RegistryItemInterface::getType()
      */
     public function getType()
     {
@@ -17,10 +18,19 @@ class NullQueue implements QueueInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\Notification\FormatterInterface::getDescription()
+     * @see \APubSub\Notification\RegistryItemInterface::getDescription()
      */
     public function getDescription()
     {
         return t("Null");
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\Notification\QueueInterface::process()
+     */
+    public function process(CursorInterface $cursor)
+    {
+        return true;
     }
 }

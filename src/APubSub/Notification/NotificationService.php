@@ -21,20 +21,6 @@ class NotificationService
     const SUBSCRIBER_USER = 'u';
 
     /**
-     * Queue subscriber prefix
-     */
-    const SUBSCRIBER_QUEUE = 'q';
-
-    /**
-     * Notify method has been called.
-     *
-     * Parameters of the callback are:
-     *  - NotificationService instance responsible for this action
-     *  - Notification instance
-     */
-    const EVENT_NOTIFY = 1;
-
-    /**
      * @var \APubSub\PubSubInterface
      */
     private $backend;
@@ -135,14 +121,15 @@ class NotificationService
     /**
      * Get queue subscriber
      *
+     * @param string $queueType Queue type
      * @param scalar $id        Susbcriber identifier
      * @param string $type      Subscriber type
      */
-    public function getQueueSubscriber($id, $type = self::SUBSCRIBER_USER)
+    public function getQueueSubscriber($queueType, $id, $type = self::SUBSCRIBER_USER)
     {
         return $this
             ->backend
-            ->getSubscriber($type . ':' . self::SUBSCRIBER_QUEUE . ':' . $id);
+            ->getSubscriber($type . ':' . $queueType . ':' . $id);
     }
 
     /**
@@ -187,7 +174,10 @@ class NotificationService
     public function deleteSubscriber($id, $type = self::SUBSCRIBER_USER)
     {
         $this->getSubscriber($id, $type)->delete();
-        $this->getQueueSubscriber($id, $type)->delete();
+
+        foreach ($this->queueRegistry->getAllInstances() as $instance) {
+            $this->getQueueSubscriber($instance->getType(), $id, $type)->delete();
+        }
     }
 
     /**

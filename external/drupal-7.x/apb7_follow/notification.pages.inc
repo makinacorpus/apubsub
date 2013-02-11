@@ -157,9 +157,9 @@ function notification_page_user_list_submit_delete($form, &$form_state) {
  */
 function notification_page_user_subscriptions($form, &$form_state, $account) {
 
-  $service             = notification_service_get();
-  $channelTypeRegistry = $service->getChanTypeRegistry();
-  $subscriber          = $service->getSubscriber($account->uid);
+  $service          = notification_service_get();
+  $chanTypeRegistry = $service->getChanTypeRegistry();
+  $subscriber       = $service->getSubscriber($account->uid);
 
   $options = array();
   foreach ($subscriber->getSubscriptions() as $subscription) {
@@ -168,19 +168,19 @@ function notification_page_user_subscriptions($form, &$form_state, $account) {
       $channel     = $subscription->getChannel();
       $chan_name   = $channel->getId();
       $id          = null;
-      $channelType = null;
+      $chanType = null;
       $created     = $subscription->getCreationTime();
 
       if (FALSE !== strpos($chan_name, ':')) {
         list($type, $id)   = explode(':', $chan_name, 2);
-        $channelType = $channelTypeRegistry->getInstance($type);
+        $chanType = $chanTypeRegistry->getInstance($type);
       } else {
-        $channelType = $channelTypeRegistry->getInstance(null);
+        $chanType = $chanTypeRegistry->getInstance(null);
       }
 
-      if ($channelType->isVisible()) {
+      if ($chanType->isVisible()) {
         $options[$chan_name] = array(
-          'desc'   => $channelType->getSubscriptionLabel($id),
+          'desc'   => $chanType->getSubscriptionLabel($id),
           'since'  => format_date($created) . " / " . format_interval(time() - $created),
           'status' => $subscription->isActive() ? t("Enabled") : t("Disabled"),
         );

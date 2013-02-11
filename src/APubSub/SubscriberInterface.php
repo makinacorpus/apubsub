@@ -31,6 +31,13 @@ interface SubscriberInterface extends
     public function getSubscriptions();
 
     /**
+     * Has the current subscriber a subscription for the given channel.
+     *
+     * @param string $channelId Channel identifier
+     */
+    public function hasSubscriptionFor($channelId);
+
+    /**
      * Get the subscription for a specific channel if exists
      *
      * @param string $channelId               Channel identifier
@@ -108,18 +115,4 @@ interface SubscriberInterface extends
      * Delete all subscriptions related to this subscriber
      */
     public function delete();
-
-    /**
-     * Get extra data
-     *
-     * @return array Extra data
-     */
-    public function getExtraData();
-
-    /**
-     * Set extra data
-     *
-     * @param array $data Extra data
-     */
-    public function setExtraData(array $data);
 }

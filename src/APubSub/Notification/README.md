@@ -37,6 +37,16 @@ between the original subscriber (e.g. the human user of your system) and the
 various communication routes he can use. Each one of this *queue* will
 subscribe to the exact same channels the user has chosen.
 
+    +------------+ 1       N +------------------+
+    | Subscriber | <-------> | Queue subscriber |
+    +------------+           +------------------+ 
+         | 1                          | 1
+         |                            |
+         V N                          V < N
+    +--------------+ 1       0 +--------------+
+    | Subscription | --- = --- | Subscription |
+    +--------------+           +--------------+ 
+
 Now imagine a site where you have the web notifications (what this API brings)
 plus those other two communication routes:
 

@@ -67,7 +67,7 @@ interface RegistryInterface
      * Do not use this at runtime, only do it when necessary in administration
      * screens or whatever that will not be hit often
      *
-     * @return array All know types instances
+     * @return array All know types instances keyed by type
      */
     public function getAllInstances();
 }

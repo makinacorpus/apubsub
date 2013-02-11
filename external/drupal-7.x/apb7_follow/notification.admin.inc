@@ -171,7 +171,6 @@ function apb7_follow_admin_notification_queues($form, &$form_state) {
 
       $options[$type]['description'] = $instance->getDescription();
       $options[$type]['type']        = $type;
-      $options[$type]['visible']     = $instance->isVisible() ? $label_yes : $label_no;
     }
   }
 
@@ -180,7 +179,6 @@ function apb7_follow_admin_notification_queues($form, &$form_state) {
     '#header'  => array(
       'type'        => t("Type"),
       'description' => t("Description"),
-      'visible'     => t("Visible for user"),
     ),
     '#options' => $options,
   );

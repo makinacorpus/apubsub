@@ -2,6 +2,7 @@
 
 namespace APubSub\Notification\Queue;
 
+use APubSub\CursorInterface;
 use APubSub\MessageInterface;
 use APubSub\Notification\Queue\AbstractQueue;
 use APubSub\Helper\MessageWorker;
@@ -19,7 +20,7 @@ abstract class AbstractWorkerQueue extends AbstractQueue
      *
      * @param MessageInterface $message Message
      */
-    abstract public function processSingle(MessageInterface $message);
+    abstract protected function processSingle(MessageInterface $message);
 
     /**
      * (non-PHPdoc)

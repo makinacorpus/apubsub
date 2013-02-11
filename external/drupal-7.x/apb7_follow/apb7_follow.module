@@ -41,7 +41,7 @@ const APB_INFO_CHAN = 2;
 /**
  * Channel instance info
  */
-const APB_INFO_QUEUE = 2;
+const APB_INFO_QUEUE = 3;
 
 /**
  * Enable AJAX for notification block variable name.
@@ -161,7 +161,7 @@ function notification_type_info_get($target = APB_INFO_FORMATTER) {
       );
       break;
 
-    case APB_INFO_CHAN:
+    case APB_INFO_QUEUE:
       $hook     = 'notification_queue_info';
       $defaults = array(
         'visible' => true,
@@ -407,9 +407,9 @@ function notification_service_get() {
     }
 
     // Register all "Drupal Way (TM)" channel types.
-    $chanTypeRegistry = $instance->getQueueRegistry();
+    $queueRegistry = $instance->getQueueRegistry();
     foreach (notification_type_info_get(APB_INFO_QUEUE) as $type => $info) {
-      $chanTypeRegistry->registerType($type, $info);
+      $queueRegistry->registerType($type, $info);
     }
   }
 
