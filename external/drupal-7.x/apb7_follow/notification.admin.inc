@@ -214,9 +214,15 @@ function apb7_follow_admin_notification_settings($form, &$form_state) {
     '#description'   => t("Using AJAX for loading notification block will make your page rendering faster and allow the block to be cached globally for everyone."),
     '#default_value' => variable_get(APB_VAR_ENABLE_AJAX, APB_DEF_ENABLE_AJAX),
   );
+  $form['interface'][APB_VAR_UNREAD_UNFOLD] = array(
+    '#type'          => 'checkbox',
+    '#title'         => t("Auto unmark unread"),
+    '#description'   => t("Mark messages as read when unfolding the notification block or viewing the notifications page."),
+    '#default_value' => variable_get(APB_VAR_UNREAD_UNFOLD, APB_DEF_UNREAD_UNFOLD),
+  );
   $form['interface'][APB_VAR_ENABLE_AJAX . '.default'] = array(
-     '#type'         => 'value',
-     '#value'        => variable_get(APB_VAR_ENABLE_AJAX, APB_DEF_ENABLE_AJAX),
+   '#type'         => 'value',
+   '#value'        => variable_get(APB_VAR_ENABLE_AJAX, APB_DEF_ENABLE_AJAX),
   );
   $form['interface'][APB_VAR_USER_PAGER_LIMIT] = array(
     '#type'          => 'select',

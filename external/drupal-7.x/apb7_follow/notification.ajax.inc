@@ -1,5 +1,6 @@
 <?php
 
+use APubSub\CursorInterface;
 /**
  * @file
  * AJAX callbacks.
@@ -22,4 +23,17 @@ function apb7_follow_ajax_user_notifications() {
   drupal_page_footer();
 
   exit;
+}
+
+/**
+ * AJAX callback, unmark messages as unread when receiving this.
+ */
+function apb7_follow_ajax_unfold_notifications() {
+  global $user;
+
+  notification_service_get()
+    ->getSubscriber($user->uid)
+    ->update(array(
+      CursorInterface::FIELD_MSG_UNREAD => false,
+    ));
 }

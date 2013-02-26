@@ -187,4 +187,40 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
         }
         $this->assertEquals(3, $i - 3);
     }
+
+    public function testMassUpdate()
+    {
+        $subscriber = $this->backend->getSubscriber('baz');
+        $chan1      = $this->channel;
+
+        $chan1->send(1);
+        $chan1->send(2);
+        $chan1->send(3);
+        $chan1->send(4);
+        $chan1->send(5);
+        $chan1->send(6);
+
+        $subscriber->update(
+            array(
+                CursorInterface::FIELD_MSG_UNREAD => false,
+            ),
+            array(
+                CursorInterface::FIELD_MSG_ID => array(
+                    1,
+                    3,
+                    5,
+                ),
+            ));
+
+        $cursor = $subscriber->fetch();
+        foreach ($cursor as $message) {
+            $id = $message->getId();
+
+            if ($id % 2) { // 1, 2, 5
+                $this->assertFalse($message->isUnread());
+            } else { // 2, 4, 6
+                $this->assertTrue($message->isUnread());
+            }
+        }
+    }
 }

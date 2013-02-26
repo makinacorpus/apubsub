@@ -74,6 +74,16 @@ const APB_VAR_BACKEND = 'apb_follow_backend';
 const APB_DEF_BACKEND = 'default';
 
 /**
+ * Read messages when unfolding the block variable name.
+ */
+const APB_VAR_UNREAD_UNFOLD = 'apb_follow_unread_on_click';
+
+/**
+ * Read messages when unfolding the block default value.
+ */
+const APB_DEF_UNREAD_UNFOLD = true;
+
+/**
  * Store HTML inside messages variable name.
  */
 const APB_VAR_ENABLE_FORMATTED_CONTENT = 'apb_follow_enable_formatted_content';
@@ -288,6 +298,12 @@ function apb7_follow_menu() {
   // AJAX stuff.
   $items['notification/ajax/user'] = array(
     'page callback'    => 'apb7_follow_ajax_user_notifications',
+    'access callback'  => 'notification_user_access',
+    'type'             => MENU_CALLBACK,
+    'file'             => 'notification.ajax.inc',
+  );
+  $items['notification/ajax/unfold'] = array(
+    'page callback'    => 'apb7_follow_ajax_unfold_notifications',
     'access callback'  => 'notification_user_access',
     'type'             => MENU_CALLBACK,
     'file'             => 'notification.ajax.inc',
@@ -516,9 +532,11 @@ function apb7_follow_block_view($delta = '') {
 
       if (variable_get(APB_VAR_ENABLE_AJAX, APB_DEF_ENABLE_AJAX)) {
         drupal_add_js(array(
-          'notification' => array(
-            'enabled'    => TRUE,
-            'refreshUrl' => url('notification/ajax/user'),
+          'notification'   => array(
+            'enabled'      => true,
+            'refreshUrl'   => url('notification/ajax/user'),
+            'unfoldUrl'    => url('notification/ajax/unfold'),
+            'unfoldAction' => variable_get(APB_VAR_UNREAD_UNFOLD, APB_DEF_UNREAD_UNFOLD)
           ),
         ), 'setting');
         $block['content']['inside']['#markup'] = theme('notification_loader');
@@ -538,8 +556,8 @@ function notification_follow_form(
   &$form_state,
   $targetId,
   $targetType,
-  $followLabel   = NULL,
-  $unfollowLabel = NULL)
+  $followLabel   = null,
+  $unfollowLabel = null)
 {
   global $user;
 
@@ -680,7 +698,7 @@ function apb7_follow_notification_render_block($account) {
   );
 
   $service     = notification_service_get();
-  $subscriber  = $service->getSubscriber($account->uid); 
+  $subscriber  = $service->getSubscriber($account->uid);
   $unreadCount = 0;
   $totalCount  = 0;
   $limit       = variable_get(APB_VAR_USER_BLOCK_LIMIT, APB_DEF_USER_BLOCK_LIMIT);

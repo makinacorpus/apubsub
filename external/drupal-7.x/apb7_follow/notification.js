@@ -11,14 +11,16 @@ var NotificationBlockList = [];
  * @param string url     URL used for refreshing
  * @param object element DOM element that carries the block
  */
-var NotificationBlock = function (url, element) {
-    this.defaultDelay = 8;
-    this.delay        = 8;
-    this.threshold    = 320;
-    this.factor       = 1.5;
-    this.running      = false;
-    this.element      = element;
-    this.url          = url;
+var NotificationBlock = function (url, element, options) {
+    this.defaultDelay  = 8;
+    this.delay         = 8;
+    this.threshold     = 320;
+    this.factor        = 1.5;
+    this.running       = false;
+    this.element       = element;
+    this.url           = url;
+    this.options       = options || {};
+    this.neverUnfolded = true;
 };
 
 /**
@@ -65,7 +67,7 @@ NotificationBlock.prototype.stopTimer = function () {
     this.running = false;
     this.element.style.display = 'none';
     this.element.style.visibility = 'hidden';
-}
+};
 
 /**
  * Refresh current block content
@@ -79,6 +81,7 @@ NotificationBlock.prototype.refresh = function () {
         cache: false,
         success: function (data, textStatus, jqXHR) {
             self.element.innerHTML = data;
+            self.neverUnfolded = true;
             Drupal.behaviors.NotificationDropDown.attach(self.element.parentNode);
         },
         error: function () {
@@ -101,7 +104,8 @@ Drupal.behaviors.NotificationDropDown = {
             jList      = jContainer.find(".list"),
             displayed  = false,
             first      = true,
-            jDocument  = jQuery(document);
+            jDocument  = jQuery(document),
+            options    = Drupal.settings.notification;
 
         jList.hide();
 
@@ -127,6 +131,18 @@ Drupal.behaviors.NotificationDropDown = {
                 // Remove the unread (red color) status on the unread count
                 // on first display.
                 if (first) {
+
+                    if (options.unfoldAction && options.unfoldUrl) {
+                        jQuery.ajax({
+                            url: options.unfoldUrl,
+                            async: true,
+                            cache: false,
+                            success: function (data, textStatus, jqXHR) {},
+                            error: function () {},
+                            type: 'GET'
+                        });
+                    }
+
                     jTop.find(".unread").removeClass("unread");
                     first = false;
                 }
@@ -153,7 +169,7 @@ Drupal.behaviors.NotificationBlock = {
                 .each(function () {
                     element = this;
                     jQuery(element).once('notification', function () {
-                        notification = new NotificationBlock(url, element);
+                        notification = new NotificationBlock(url, element, Drupal.settings.notification);
                         notification.startTimer(true);
                         NotificationBlockList.push(notification);
                     });

@@ -86,6 +86,10 @@
   margin-left: 1em;
 }
 
+#notifications-page .list .unread {
+  font-weight: bold;
+}
+
 #notifications-page .form-actions * {
   float: right;
 }
@@ -102,6 +106,10 @@
 #notifications .list .pref-link {
   float: right;
   margin-right: 40px;
+}
+
+#notifications .list .unread {
+  font-weight: bold;
 }
 
 #notifications .top {

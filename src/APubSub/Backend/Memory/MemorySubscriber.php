@@ -174,6 +174,24 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::update()
+     */
+    public function update(array $values, array $conditions = null)
+    {
+        if (empty($values)) {
+            return;
+        }
+
+        $cursor  = $this->fetch($conditions);
+        $updater = new MemoryMessageUpdater();
+
+        foreach ($cursor as $message) {
+            $updater->apply($message, $values);
+        }
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\SubscriberInterface::flush()
      */
     public function flush()

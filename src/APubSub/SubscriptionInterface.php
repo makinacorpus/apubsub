@@ -67,6 +67,24 @@ interface SubscriptionInterface extends
     public function fetch(array $conditions = null);
 
     /**
+     * Mass update message queue
+     *
+     * Consider that it cannot update shared messages, but only the queue
+     * specific fields, which are:
+     *   - CursorInterface::FIELD_MSG_UNREAD
+     *   - CursorInterface::FIELD_MSG_READ_TS
+     *
+     * Warning: this might be an synchronous operation depending on the backend
+     *
+     * @param array $values      Array of values to change, keys are field names
+     *                           and values the value to set
+     * @param array $conditions  Array of key value pairs conditions, only the
+     *                           "equal" operation is supported. If value is an
+     *                           array, treat it as a "IN" operator
+     */
+    public function update(array $values, array $conditions = null);
+
+    /**
      * Deactivate this subscription, if it is already deactivated it will
      * remain silent
      */

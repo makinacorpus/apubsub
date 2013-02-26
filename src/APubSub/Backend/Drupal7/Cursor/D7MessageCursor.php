@@ -34,11 +34,11 @@ class D7MessageCursor extends AbstractCursor implements
      * Default constructor
      *
      * @param ContextInterface $context    Context
-     * @param \SelectQueryInterface $query Message query
+     * @param \QueryConditionInterface $query Message query
      */
     public function __construct(
         ContextInterface $context,
-        \SelectQueryInterface $query)
+        \QueryConditionInterface $query)
     {
         $this->query = $query;
 
@@ -257,5 +257,15 @@ class D7MessageCursor extends AbstractCursor implements
         }
 
         return $this->count;
+    }
+
+    /**
+     * Get query
+     *
+     * @return \SelectQueryInterface $query
+     */
+    final public function getQuery()
+    {
+        return $this->query;
     }
 }

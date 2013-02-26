@@ -43,10 +43,15 @@ class DrupalHelper
         } else {
             $variableName = 'DRUPAL_PATH_' . $versionMajor;
 
-            if ((($path = $GLOBALS[$variableName]) || ($path = getenv($variableName))) &&
-                is_dir($path) &&
-                file_exists($path . '/index.php'))
-            {
+            // Try to find out the right site root.
+            $path = null;
+            if (isset($GLOBALS[$variableName])) {
+                $path = $GLOBALS[$variableName];
+            } else if ($path = getenv($variableName)) {
+                // Ok.
+            }
+
+            if ($path && is_dir($path) && file_exists($path . '/index.php')) {
                 if ($versionMajor < 8) {
                     $includePath = 'includes';
                 } else {
@@ -98,6 +103,8 @@ class DrupalHelper
                         restore_error_handler();
                         restore_exception_handler();
                          */
+                        //_drupal_bootstrap_configuration();
+                        //_drupal_bootstrap_database();
                         drupal_bootstrap(DRUPAL_BOOTSTRAP_DATABASE);
                         return self::$databaseConnection = \Database::getConnection();
 

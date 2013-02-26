@@ -285,6 +285,76 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::update()
+     *
+     * // FIXME: Fix this (performance problem spotted)
+     */
+    public function update(array $values, array $conditions = null)
+    {
+        if (empty($values)) {
+            return;
+        }
+
+        $cx     = $this->context->dbConnection;
+        $fields = array();
+
+        foreach ($values as $field => $value) {
+            switch ($field) {
+
+                case CursorInterface::FIELD_MSG_UNREAD:
+                    if (!$fields['unread'] = $value ? 1 : 0) {
+                        // Also update the read timestamp if necessary
+                        $fields['read_timestamp'] = time();
+                    }
+                    break;
+
+                case CursorInterface::FIELD_MSG_READ_TS:
+                    $fields['read_timestamp'] = (int)$value;
+                    break;
+
+                default:
+                    trigger_error(sprintf("% does not support updating %d",
+                        get_class($this), $field));
+                    break;
+            }
+        }
+
+        $cursor = $this->fetch($conditions);
+        $query  = $cursor->getQuery();
+
+        // I am sorry but I have to be punished for I am writing this
+        $selectFields = &$query->getFields();
+        foreach ($selectFields as $key => $value) {
+            unset($selectFields[$key]);
+        }
+        // Again.
+        $tables = &$query->getTables();
+        foreach ($tables as $key => $table) {
+          unset($tables[$key]['all_fields']);
+        }
+        $query->fields('m', array('id'));
+
+        // Create a temp table containing identifiers to update: this is
+        // mandatory because you cannot use the apb_queue in the UPDATE
+        // query subselect
+        $tempTableName = $cx
+            ->queryTemporary((string)$query, $query->getArguments());
+
+        $select = $cx
+            ->select($tempTableName, 'tu')
+            ->fields('tu');
+
+        $update = $cx
+            ->update('apb_queue');
+
+        $update
+            ->fields($fields)
+            ->condition('msg_id', $select, 'IN')
+            ->execute();
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\SubscriberInterface::flush()
      */
     public function flush()
