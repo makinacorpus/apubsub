@@ -162,7 +162,7 @@ class NotificationService
         $this->getSubscriber($id, $type)->delete();
 
         foreach ($this->queueRegistry->getAllInstances() as $instance) {
-            $this->getQueueSubscriber($instance->getType(), $id, $type)->delete();
+            //$this->getQueueSubscriber($instance->getType(), $id, $type)->delete();
         }
     }
 
