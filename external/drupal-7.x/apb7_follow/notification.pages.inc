@@ -25,6 +25,7 @@ function notification_page_user_list($form, &$form_state, $account) {
   $limit       = variable_get(APB_VAR_USER_PAGER_LIMIT, APB_DEF_USER_PAGER_LIMIT);
   $element     = PagerDefault::$maxElement++;
   $offset      = pager_find_page($element) * $limit;
+  $unmark      = variable_get(APB_VAR_UNREAD_UNFOLD, APB_DEF_UNREAD_UNFOLD);
 
   $cursor = $subscriber
     ->fetch()
@@ -68,6 +69,10 @@ function notification_page_user_list($form, &$form_state, $account) {
       'unread' => $message->isUnread(),
       'text'   => $notification->format(),
     );
+
+    if ($unmark && $message->isUnread()) {
+      $message->setUnread(false);
+    }
   }
 
   $form['top']['#markup'] = format_plural(
