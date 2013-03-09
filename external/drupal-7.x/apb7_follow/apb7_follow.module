@@ -250,7 +250,12 @@ function notification_user_access($account = null) {
     $account = $user;
   }
 
-  return $account->uid != 0 && (user_access('see notifications of all users') || ($account->uid == $user->uid && user_access('follow other users')));
+  return $account->uid
+          && (
+           (user_access('see notifications of all users')
+           || ($account->uid == $user->uid)
+           || ($account->uid !== $user->uid && user_access('follow other users')))
+          );
 }
 
 /**
