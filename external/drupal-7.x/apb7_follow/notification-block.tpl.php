@@ -37,7 +37,7 @@
     </li>
     <?php else: ?>
     <?php foreach ($list as $item): ?>
-    <li class="notification-<?php echo $type; ?>">
+    <li class="notification-<?php echo $item['type']; ?>">
       <div class="image">
         <?php echo render($item['image']); ?>
       </div>
