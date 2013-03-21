@@ -744,6 +744,7 @@ function apb7_follow_notification_render_block($account) {
       'time'   => $message->getSendTimestamp(),
       'text'   => $notification->format(),
       'unread' => $message->isUnread(),
+      'type'   => $notification->getType(),
     );
   }
 

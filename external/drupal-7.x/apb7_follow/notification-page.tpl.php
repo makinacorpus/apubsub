@@ -54,7 +54,7 @@
         </div>
       </li>
       <?php endif; ?>
-      <li>
+      <li class="notification-<?php echo $type; ?>">
         <div class="image">
           <?php echo render($item['image']); ?>
         </div>

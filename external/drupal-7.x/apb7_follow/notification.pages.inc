@@ -68,6 +68,7 @@ function notification_page_user_list($form, &$form_state, $account) {
       'time'   => $message->getSendTimestamp(),
       'unread' => $message->isUnread(),
       'text'   => $notification->format(),
+      'type'   => $notification->getType(),
     );
 
     if ($unmark && $message->isUnread()) {
