@@ -109,7 +109,7 @@ Drupal.behaviors.NotificationDropDown = {
 
         jList.hide();
 
-        jTop.click(function () {
+        jTop.click(function (event) {
             if (displayed) {
                 jList.hide();
                 displayed = false;

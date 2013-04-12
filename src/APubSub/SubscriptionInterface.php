@@ -97,11 +97,6 @@ interface SubscriptionInterface extends
     public function activate();
 
     /**
-     * Delete everyting in this subscription queue
-     */
-    public function flush();
-
-    /**
      * Set the unread status of a specific message
      *
      * Method is silent if message does not exist in this subscription queue

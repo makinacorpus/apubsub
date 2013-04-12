@@ -29,6 +29,11 @@ interface MessageContainerInterface
     public function deleteMessages(array $idList);
 
     /**
+     * Delete all messages in this queue
+     */
+    public function deleteAllMessages();
+
+    /**
      * Get a single message
      *
      * @param scalar $id                 Message identifier
@@ -53,4 +58,9 @@ interface MessageContainerInterface
      *                                     in the current container
      */
     public function getMessages(array $idList);
+
+    /**
+     * Alias of deleteAllMessages()
+     */
+    public function flush();
 }

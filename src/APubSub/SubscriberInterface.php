@@ -125,11 +125,6 @@ interface SubscriberInterface extends
     public function update(array $values, array $conditions = null);
 
     /**
-     * Delete everyting in all of this subscriber's subscription queues
-     */
-    public function flush();
-
-    /**
      * Delete all subscriptions related to this subscriber
      */
     public function delete();

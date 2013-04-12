@@ -355,18 +355,6 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::flush()
-     */
-    public function flush()
-    {
-        $cx
-            ->delete('apb_queue')
-            ->condition('sub_id', $this->idList, 'IN')
-            ->execute();
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\MessageContainerInterface::deleteMessage()
      */
     public function deleteMessage($id)
@@ -387,6 +375,39 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
             ->condition('sub_id', $this->idList)
             ->condition('msg_id', $idList, 'IN')
             ->execute();
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::deleteAllMessages()
+     */
+    public function deleteAllMessages()
+    {
+        $cx = $this->context->dbConnection;
+        $tx = $cx->startTransaction();
+
+        try {
+            $cx
+              ->delete('apb_queue')
+              ->condition('sub_id', $this->idList)
+              ->execute();
+
+            unset($tx); // Excplicit commit
+
+        } catch (\Exception $e) {
+            $tx->rollback();
+
+            throw $e;
+        }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::flush()
+     */
+    public function flush()
+    {
+        $this->deleteAllMessages();
     }
 
     /**

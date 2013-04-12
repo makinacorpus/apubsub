@@ -151,6 +151,30 @@ class MemoryChannel extends AbstractObject implements ChannelInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::deleteAllMessages()
+     */
+    public function deleteAllMessages()
+    {
+        $idList = array();
+
+        foreach ($this->context->channelMessages[$this->id] as $id => $message) {
+            $idList[] = $id;
+        }
+
+        $this->deleteMessages($idList);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::flush()
+     */
+    public function flush()
+    {
+        $this->deleteAllMessages();
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\MessageContainerInterface::getMessage()
      */
     public function getMessage($id)

@@ -107,15 +107,21 @@ class NotificationService
      * Get subscriber
      *
      * @param scalar $id           Susbcriber identifier
-     * @param string $type         Susbcriber type identifier
+     * @param string $type         Susbcriber type identifier: pass a strict
+     *                             null if $id is already the complete
+     *                             identifier
      *
      * @return SubscriberInterface Subscriber
      */
     public function getSubscriber($id, $type = self::SUBSCRIBER_USER)
     {
-        return $this
-            ->backend
-            ->getSubscriber($type . ':' . $id);
+        if (null === $type) {
+            $subsciberId = $id;
+        } else {
+            $subsciberId = $type . ':' . $id;
+        }
+
+        return $this->backend->getSubscriber($subsciberId);
     }
 
     /**
@@ -123,7 +129,8 @@ class NotificationService
      *
      * @param string $chanId Channel identifier
      * @param scalar $id     Subscriber object identifier
-     * @param string $type   Subscriber object type
+     * @param string $type   Subscriber object type pass a strict null if $id
+     *                       is already the complete identifier
      */
     public function subscribe($chanId, $id, $type = self::SUBSCRIBER_USER)
     {

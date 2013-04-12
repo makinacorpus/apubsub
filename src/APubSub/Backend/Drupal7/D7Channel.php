@@ -235,6 +235,54 @@ class D7Channel extends AbstractObject implements ChannelInterface
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::deleteAllMessages()
+     */
+    public function deleteAllMessages()
+    {
+        $cx = $this->context->dbConnection;
+        $tx = $cx->startTransaction();
+
+        try {
+            $cx
+              ->query("
+                  DELETE FROM {apb_queue}
+                  WHERE msg_id IN (
+                      SELECT msg_id
+                      FROM {apb_msg}
+                      WHERE chan_id = :chanid
+                  )
+              ", array(
+                  ':chan_id' => $this->dbId,
+              ));
+
+            $cx
+              ->query("
+                  DELETE FROM {apb_msg}
+                  WHERE chan_id = :chanid
+              ", array(
+                  ':chan_id' => $this->dbId,
+              ));
+
+            unset($tx); // Excplicit commit
+
+        } catch (\Exception $e) {
+            $tx->rollback();
+
+            throw $e;
+        }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::flush()
+     */
+    public function flush()
+    {
+        $this->deleteAllMessages();
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\MessageContainerInterface::getMessage()
      */
     public function getMessage($id)
