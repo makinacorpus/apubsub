@@ -323,21 +323,6 @@ class D7Subscription extends AbstractObject implements SubscriptionInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::flush()
-     */
-    public function flush()
-    {
-        // Even de-activated, ensure a flush
-        $this
-            ->context
-            ->dbConnection
-            ->delete('apb_queue')
-            ->condition('sub_id', $this->id)
-            ->execute();
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\SubscriptionInterface::setUnread()
      */
     public function setUnread($messageId, $toggle = false)
