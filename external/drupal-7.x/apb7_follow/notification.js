@@ -12,8 +12,8 @@ var NotificationBlockList = [];
  * @param object element DOM element that carries the block
  */
 var NotificationBlock = function (url, element, options) {
-    this.defaultDelay  = 8;
-    this.delay         = 8;
+    this.defaultDelay  = 30;
+    this.delay         = 30;
     this.threshold     = 320;
     this.factor        = 1.5;
     this.running       = false;
