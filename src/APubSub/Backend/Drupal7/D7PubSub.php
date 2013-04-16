@@ -70,6 +70,10 @@ class D7PubSub extends AbstractObject implements PubSubInterface
      */
     public function getChannels(array $idList)
     {
+        if (empty($idList)) {
+            return array();
+        }
+
         $ret           = array();
         $missingIdList = array();
 

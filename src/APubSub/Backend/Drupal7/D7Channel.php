@@ -210,6 +210,10 @@ class D7Channel extends AbstractObject implements ChannelInterface
      */
     public function deleteMessages(array $idList)
     {
+        if (empty($idList)) {
+            return;
+        }
+
         $cx = $this->context->dbConnection;
         $tx = $cx->startTransaction();
 
@@ -319,6 +323,10 @@ class D7Channel extends AbstractObject implements ChannelInterface
      */
     public function getMessages(array $idList)
     {
+        if (empty($idList)) {
+            return array();
+        }
+
         $records = $this
             ->context
             ->dbConnection

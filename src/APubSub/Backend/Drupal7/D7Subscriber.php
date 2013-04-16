@@ -368,6 +368,10 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
      */
     public function deleteMessages(array $idList)
     {
+        if (empty($idList)) {
+            return;
+        }
+
         $this
             ->context
             ->dbConnection
