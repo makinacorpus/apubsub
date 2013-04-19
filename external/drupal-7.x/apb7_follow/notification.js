@@ -109,7 +109,7 @@ Drupal.behaviors.NotificationDropDown = {
 
         jList.hide();
 
-        jTop.click(function (event) {
+        jTop.mouseup(function (event) {
             if (displayed) {
                 jList.hide();
                 displayed = false;
@@ -118,12 +118,13 @@ Drupal.behaviors.NotificationDropDown = {
 
                 // Hide the list when clicking everywhere else
                 jDocument.mouseup(function (event) {
-                    if (jList.has(event.target).length === 0) {
-                        jList.hide();
-                    }
+                    event.stopPropagation();
 
-                    jDocument.mouseup(null);
-                    displayed = false;
+                    if (jList.has(event.target).length === 0 || jTop.has(event.target).length) {
+                        jList.hide();
+                        jDocument.mouseup(null);
+                        displayed = false;
+                    }
                 });
 
                 displayed = true;
@@ -147,6 +148,8 @@ Drupal.behaviors.NotificationDropDown = {
                     first = false;
                 }
             }
+
+            return false;
         });
     }
 };
