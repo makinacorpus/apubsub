@@ -119,7 +119,7 @@ Drupal.behaviors.NotificationDropDown = {
                 jList.show();
 
                 // Hide the list when clicking everywhere else
-                jDocument.unbind('mouseup').one('mouseup', function (event) {
+                jDocument.unbind('mouseup.notifications').one('mouseup.notifications', function (event) {
                     event.stopPropagation();
 
                     if (jList.has(event.target).length === 0 || jTop.has(event.target).length) {
