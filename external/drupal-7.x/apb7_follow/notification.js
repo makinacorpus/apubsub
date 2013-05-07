@@ -111,7 +111,7 @@ Drupal.behaviors.NotificationDropDown = {
 
         jTop.mouseup(function (event) {
             jTop.toggleClass('open');
-            
+
             if (displayed) {
                 jList.hide();
                 displayed = false;
@@ -119,13 +119,15 @@ Drupal.behaviors.NotificationDropDown = {
                 jList.show();
 
                 // Hide the list when clicking everywhere else
-                jDocument.unbind('mouseup.notifications').one('mouseup.notifications', function (event) {
+                jDocument.bind('mouseup.notifications', function (event) {
                     event.stopPropagation();
 
                     if (jList.has(event.target).length === 0 || jTop.has(event.target).length) {
                         jList.hide();
                         jTop.removeClass('open');
                         displayed = false;
+
+                        jDocument.unbind('mouseup.notifications');
                     }
                 });
 
