@@ -161,7 +161,7 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
      */
     public function getChannel()
     {
-        return $this->context->backend->getChannel($this->chanId);
+        return $this->context->getBackend()->getChannel($this->chanId);
     }
 
     /**
@@ -214,7 +214,7 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
      */
     public function delete()
     {
-        $this->context->backend->deleteSubscription($this->getId());
+        $this->context->getBackend()->deleteSubscription($this->getId());
     }
 
     /**

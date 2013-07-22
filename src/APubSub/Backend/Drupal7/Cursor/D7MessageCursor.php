@@ -26,9 +26,24 @@ class D7MessageCursor extends AbstractCursor implements
     private $query;
 
     /**
+     * @var boolean
+     */
+    private $queryOnSuber = false;
+
+    /**
      * @var int
      */
     private $count;
+
+    /**
+     * Internal conditions
+     */
+    private $conditions = array();
+
+    /**
+     * @var boolean
+     */
+    private $distinct = true;
 
     /**
      * Default constructor
@@ -36,13 +51,19 @@ class D7MessageCursor extends AbstractCursor implements
      * @param ContextInterface $context    Context
      * @param \QueryConditionInterface $query Message query
      */
-    public function __construct(
-        ContextInterface $context,
-        \QueryConditionInterface $query)
+    public function __construct(ContextInterface $context)
     {
-        $this->query = $query;
-
         parent::__construct($context);
+    }
+
+    /**
+     * Toggle the distinct mode
+     *
+     * @param boolean $toggle
+     */
+    public function setDistinct($toggle = true)
+    {
+        $this->distinct = $toggle;
     }
 
     /**
@@ -79,11 +100,11 @@ class D7MessageCursor extends AbstractCursor implements
             switch ($field) {
 
                 case CursorInterface::FIELD_MSG_ID:
-                    $this->query->condition('q.msg_id', $value);
+                    $this->conditions['q.msg_id'] = $value;
                     break;
 
                 case CursorInterface::FIELD_MSG_UNREAD:
-                    $this->query->condition('q.unread', $value);
+                    $this->conditions['q.unread'] = $value;
                     break;
 
                 case CursorInterface::FIELD_MSG_TYPE:
@@ -98,11 +119,26 @@ class D7MessageCursor extends AbstractCursor implements
                         $value = $typeHelper->getTypeId($value);
                     }
 
-                    $this->query->condition('m.type_id', $value);
+                    $this->conditions['m.type_id'] = $value;
                     break;
 
                 case CursorInterface::FIELD_SUB_ID:
-                    $this->query->condition('q.sub_id', $value);
+                    $this->conditions['q.sub_id'] = $value;
+                    break;
+
+                case CursorInterface::FIELD_SUBER_NAME:
+                    $this->conditions['mp.name'] = $value;
+                    $this->queryOnSuber = true;
+                    break;
+
+
+                case CursorInterface::FIELD_CHAN_ID:
+                    // FIXME: Find a better way
+                    $chan = $this
+                        ->context
+                        ->getBackend()
+                        ->getChannel($value);
+                    $this->conditions['m.chan_id'] = $chan->getDatabaseId();
                     break;
 
                 default:
@@ -124,6 +160,8 @@ class D7MessageCursor extends AbstractCursor implements
             throw new \LogicException("Cursor already run");
         }
 
+        $query = $this->getQuery();
+
         if (!$sorts = $this->getSorts()) {
             // Messages need a default ordering for fetching. If time for
             // more than one message is the same, ordering by message
@@ -131,13 +169,12 @@ class D7MessageCursor extends AbstractCursor implements
             // behavior chances to happen (still possible thought since
             // serial fields don't guarantee order, even thought in real
             // life they do until very high values)
-            $this
-                ->query
+            $query
                 ->orderBy('q.created', 'ASC')
                 ->orderBy('q.msg_id', 'ASC');
         }
 
-        foreach ($this->getSorts() as $sort => $order) {
+        foreach ($sorts as $sort => $order) {
 
             if ($order === CursorInterface::SORT_DESC) {
                 $direction = 'DESC';
@@ -154,30 +191,29 @@ class D7MessageCursor extends AbstractCursor implements
                 case CursorInterface::FIELD_SELF_ID:
                 case CursorInterface::FIELD_MSG_ID:
                 case CursorInterface::FIELD_MSG_SENT:
-                    $this
-                        ->query
+                    $query
                         ->orderBy('q.created', $direction)
                         ->orderBy('q.msg_id', $direction);
                     break;
 
                 case CursorInterface::FIELD_MSG_TYPE:
-                    $this->query->orderBy('m.type', $direction);
+                    $query->orderBy('m.type', $direction);
                     break;
 
                 case CursorInterface::FIELD_MSG_READ_TS:
-                    $this->query->orderBy('m.read_timestamp', $direction);
+                    $query->orderBy('m.read_timestamp', $direction);
                     break;
 
                 case CursorInterface::FIELD_MSG_UNREAD:
-                    $this->query->orderBy('q.msg_id', $direction);
+                    $query->orderBy('q.msg_id', $direction);
                     break;
 
                 case CursorInterface::FIELD_MSG_LEVEL:
-                    $this->query->orderBy('m.level', $direction);
+                    $query->orderBy('m.level', $direction);
                     break;
 
                 case CursorInterface::FIELD_SUB_ID:
-                    $this->query->orderBy('q.sub_id', $direction);
+                    $query->orderBy('q.sub_id', $direction);
                     break;
 
                 default:
@@ -197,14 +233,15 @@ class D7MessageCursor extends AbstractCursor implements
             $result  = array();
             $limit   = $this->getLimit();
             $context = $this->getContext();
+            $query   = $this->getQuery();
 
             if (CursorInterface::LIMIT_NONE !== $limit) {
-                $this->query->range($this->getOffset(), $limit);
+                $query->range($this->getOffset(), $limit);
             }
 
             $this->applySorts();
 
-            foreach ($this->query->execute() as $record) {
+            foreach ($query->execute() as $record) {
 
                 if ($record->read_timestamp) {
                     $readTime = (int)$record->read_timestamp;
@@ -247,7 +284,7 @@ class D7MessageCursor extends AbstractCursor implements
     final public function getTotalCount()
     {
         if (null === $this->count) {
-            $query = clone $this->query;
+            $query = clone $this->getQuery();
 
             $this->count = $query
                 ->range()
@@ -266,6 +303,90 @@ class D7MessageCursor extends AbstractCursor implements
      */
     final public function getQuery()
     {
+        if (null === $this->query) {
+
+            /*
+             * Targeted query: benchmarked along 4 different variants, including
+             * subqueries, different JOIN order, different indexes: this one
+             * is the one that will give you the best performances with MySQL.
+             *
+             * SELECT q.*, m.* FROM apb_sub_map mp
+             *     JOIN apb_queue q ON q.sub_id = mp.sub_id
+             *     JOIN apb_msg m ON m.id = q.msg_id
+             *     WHERE mp.name = 'user:9991'
+             *     ORDER BY m.id ASC;
+             *
+             * MySQL EXPLAIN was specific enough in all variants to say without
+             * any doubt this is the best one, fully using indexes, starting with
+             * a CONST index, and using only ref and eq_ref JOIN types on known
+             * INT32 indexes.
+             *
+             * On a poor box, with few CPU and few RAM this query runs in 0.01s
+             * (MySQL result) with no query cache and 5 millions of records in
+             * the apb_queue table and 300,000 in the apb_sub_map table.
+             *
+             * Note that for other DBMS' this will need to be tested, and a
+             * switch/case on the dbConnection class may proove itself to be very
+             * efficient if needed.
+             *
+             * Additionally, we need to apply some conditions over this query:
+             *
+             *     WHERE
+             *       [CONDITIONS]
+             *     ORDER BY [FIELD] [DIRECTION];
+             *
+             * Hopping those won't kill our queries.
+             *
+             * Note that if no conditions are set on the subscriber table the
+             * FROM table will be different.
+             */
+
+            if ($this->queryOnSuber) {
+
+                $this->query = $this
+                    ->context
+                    ->dbConnection
+                    ->select('apb_sub_map', 'mp');
+
+                // @todo Smart conditions for subscriber and subscription
+                $this->query
+                    ->join('apb_queue', 'q', 'q.sub_id = mp.sub_id');
+                $this->query
+                    ->join('apb_msg', 'm', 'm.id = q.msg_id');
+                $this->query
+                    ->fields('m')
+                    ->fields('q');
+            } else {
+
+              $this->query = $this
+                  ->context
+                  ->dbConnection
+                  ->select('apb_queue', 'q');
+              $this->query
+                  ->join('apb_msg', 'm', 'm.id = q.msg_id');
+              $this->query
+                  ->fields('m')
+                  ->fields('q');
+            }
+
+            // Disallow message duplicates, remember that trying to read the
+            // unread or read timestamp status when requesting from a channel
+            // makes no sense
+            // You'd also have to consider that when we're dealing with UPDATE
+            // or DELETE operations we want the full result list in order to
+            // correctly wipe out the queue
+            if ($this->distinct) {
+                $this
+                    ->query
+                    ->groupBy('q.msg_id');
+            }
+
+            // Apply conditions.
+            foreach ($this->conditions as $statement => $value) {
+                $this->query->condition($statement, $value);
+            }
+        }
+
         return $this->query;
     }
 }

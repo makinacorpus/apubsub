@@ -6,11 +6,11 @@ abstract class AbstractMessageTest extends AbstractBackendBasedTest
 {
     public function testMessageReadStatus()
     {
-        $channel    = $this->backend->createChannel("foo");
+        $chan       = $this->backend->createChannel("foo");
         $subscriber = $this->backend->getSubscriber("bar");
         $subscriber->subscribe("foo");
 
-        $channel->send("Hello, World!", "message");
+        $chan->send("Hello, World!", "message");
 
         // Test we can fetch the message
         $messages = $subscriber->fetch();

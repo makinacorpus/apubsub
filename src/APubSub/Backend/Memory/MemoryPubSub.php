@@ -8,12 +8,12 @@ use APubSub\CursorInterface;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
-use APubSub\PubSubInterface;
+use APubSub\BackendInterface;
 
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class MemoryPubSub extends AbstractObject implements PubSubInterface
+class MemoryPubSub extends AbstractObject implements BackendInterface
 {
     /**
      * Sort helper for messages
@@ -56,7 +56,7 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::setOptions()
+     * @see \APubSub\BackendInterface::setOptions()
      */
     public function setOptions(array $options)
     {
@@ -64,20 +64,20 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getChannel()
+     * @see \APubSub\BackendInterface::getChannel()
      */
     public function getChannel($id)
     {
-        if (!isset($this->context->channels[$id])) {
+        if (!isset($this->context->chans[$id])) {
             throw new ChannelDoesNotExistException();
         }
 
-        return $this->context->channels[$id];
+        return $this->context->chans[$id];
     }
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getChannels()
+     * @see \APubSub\BackendInterface::getChannels()
      */
     public function getChannels(array $idList)
     {
@@ -92,24 +92,24 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::createChannel()
+     * @see \APubSub\BackendInterface::createChannel()
      */
     public function createChannel($id, $ignoreErrors = false)
     {
-        if (isset($this->context->channels[$id])) {
+        if (isset($this->context->chans[$id])) {
             if ($ignoreErrors) {
                 return $this->getChannel($id);
             } else {
                 throw new ChannelAlreadyExistsException();
             }
         } else {
-            return $this->context->channels[$id] = new MemoryChannel($this->context, $id);
+            return $this->context->chans[$id] = new MemoryChannel($this->context, $id);
         }
     }
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::createChannels()
+     * @see \APubSub\BackendInterface::createChannels()
      */
     public function createChannels($idList, $ignoreErrors = false)
     {
@@ -120,7 +120,7 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
                 $ret[] = $this->createChannel($id, true);
             }
         } else {
-            $existing = array_intersect_key(array_flip($idList), $this->context->channels);
+            $existing = array_intersect_key(array_flip($idList), $this->context->chans);
 
             if (empty($existing)) {
                 foreach ($idList as $id) {
@@ -137,11 +137,11 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::deleteChannel()
+     * @see \APubSub\BackendInterface::deleteChannel()
      */
     public function deleteChannel($id)
     {
-        $channel = $this->getChannel($id);
+        $chan = $this->getChannel($id);
 
         foreach ($this->context->subscriptions as $index => $subscription) {
             if ($subscription->getChannel()->getId() === $id) {
@@ -150,13 +150,13 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
         }
         $this->context->subscriptions = array_filter($this->context->subscriptions);
 
-        unset($this->context->channels[$id]);
-        unset($this->context->channelMessages[$id]);
+        unset($this->context->chans[$id]);
+        unset($this->context->chanMessages[$id]);
     }
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getSubscription()
+     * @see \APubSub\BackendInterface::getSubscription()
      */
     public function getSubscription($id)
     {
@@ -169,7 +169,7 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getSubscriptions()
+     * @see \APubSub\BackendInterface::getSubscriptions()
      */
     public function getSubscriptions($idList)
     {
@@ -184,7 +184,7 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::deleteSubscription()
+     * @see \APubSub\BackendInterface::deleteSubscription()
      */
     public function deleteSubscription($id)
     {
@@ -196,7 +196,7 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::deleteSubscriptions()
+     * @see \APubSub\BackendInterface::deleteSubscriptions()
      */
     public function deleteSubscriptions($idList)
     {
@@ -207,7 +207,7 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::fetchSubscribers()
+     * @see \APubSub\BackendInterface::fetchSubscribers()
      */
     public function fetchSubscribers(array $conditions = null)
     {
@@ -228,7 +228,7 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getSubscriber()
+     * @see \APubSub\BackendInterface::getSubscriber()
      */
     public function getSubscriber($id)
     {
@@ -241,7 +241,7 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::flushCaches()
+     * @see \APubSub\BackendInterface::flushCaches()
      */
     public function flushCaches()
     {
@@ -249,7 +249,7 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::garbageCollection()
+     * @see \APubSub\BackendInterface::garbageCollection()
      */
     public function garbageCollection()
     {
@@ -260,7 +260,7 @@ class MemoryPubSub extends AbstractObject implements PubSubInterface
         // This is a pure implementation sample, there is no way you would ever
         // try to run this on a production environment
         return array(
-            "Number of chans" => count($this->context->channels),
+            "Number of chans" => count($this->context->chans),
             "Number of subscribers" => count($this->context->subscribers),
             "Number of subscriptions" => count($this->context->subscriptions),
         );

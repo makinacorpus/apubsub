@@ -12,13 +12,13 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
     /**
      * @var \APubSub\ChannelInterface
      */
-    protected $channel;
+    protected $chan;
 
     protected function setUp()
     {
         parent::setUp();
 
-        $this->channel = $this->backend->createChannel('foo');
+        $this->chan = $this->backend->createChannel('foo');
     }
 
     public function testGetSubscriber()
@@ -94,8 +94,8 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
         $subscription = $subscriber->subscribe('foo');
         $id = $subscription->getId();
 
-        $channel = $subscription->getChannel();
-        $this->assertSame($channel->getId(), $this->channel->getId());
+        $chan = $subscription->getChannel();
+        $this->assertSame($chan->getId(), $this->chan->getId());
 
         $subscription = $subscriber->getSubscriptionFor('foo');
         $this->assertSame($subscription->getId(), $id);
@@ -135,11 +135,41 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
         }
     }
 
+    public function testNoLeak()
+    {
+        $sub1 = $this->backend->getSubscriber('foo');
+        $sub2 = $this->backend->getSubscriber('bar');
+        $sub3 = $this->backend->getSubscriber('baz');
+
+        $chan1 = $this->backend->createChannel('a');
+        $chan2 = $this->backend->createChannel('b');
+
+        $sub1->subscribe('a');
+
+        $sub2->subscribe('b');
+
+        $sub3->subscribe('a');
+        $sub3->subscribe('b');
+
+        $chan1->send('test');
+        $chan2->send('test');
+        $chan2->send('test');
+
+        $cursor = $sub1->fetch();
+        $this->assertCount(1, $cursor);
+
+        $cursor = $sub2->fetch();
+        $this->assertCount(2, $cursor);
+
+        $cursor = $sub3->fetch();
+        $this->assertCount(3, $cursor);
+    }
+
     public function testFetchCursorOrder()
     {
         $subscriber = $this->backend->getSubscriber('baz');
 
-        $chan1 = $this->channel;
+        $chan1 = $this->chan;
         $chan2 = $this->backend->createChannel('bar');
         $chan3 = $this->backend->createChannel('baz');
 
@@ -191,7 +221,7 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
     public function testMassUpdate()
     {
         $subscriber = $this->backend->getSubscriber('baz');
-        $chan1      = $this->channel;
+        $chan1      = $this->chan;
 
         $chan1->send(1);
         $chan1->send(2);

@@ -19,14 +19,14 @@ class MemoryContext implements ContextInterface
      *
      * @var array
      */
-    public $channels = array();
+    public $chans = array();
 
     /**
      * Array of messages arrays, keyed by channel identifiers
      *
      * @var array
      */
-    public $channelMessages = array();
+    public $chanMessages = array();
 
     /**
      * Array of subscriptions

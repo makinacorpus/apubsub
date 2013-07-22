@@ -9,14 +9,14 @@ class InternalCache
      *
      * @var array
      */
-    private $channelCacheByDbId = array();
+    private $chanCacheByDbId = array();
 
     /**
      * Channel string id to database id mapping
      *
      * @var array
      */
-    private $channelIdMapping = array();
+    private $chanIdMapping = array();
 
     /**
      * Subscriptions cache (id is the key)
@@ -28,32 +28,32 @@ class InternalCache
 
     public function getChannelByDatabaseId($id)
     {
-        if (isset($this->channelCacheByDbId[$id])) {
-            return $this->channelCacheByDbId[$id];
+        if (isset($this->chanCacheByDbId[$id])) {
+            return $this->chanCacheByDbId[$id];
         }
     }
 
     public function getChannel($id)
     {
-        if (isset($this->channelIdMapping[$id])) {
+        if (isset($this->chanIdMapping[$id])) {
             return $this->getChannelByDatabaseId($id);
         }
     }
 
-    public function addChannel(D7Channel $channel)
+    public function addChannel(D7Channel $chan)
     {
-        $dbId = $channel->getDatabaseId();
-        $this->channelCacheByDbId[$dbId] = $channel;
-        $this->channelIdMapping[$channel->getId()] = $dbId;
+        $dbId = $chan->getDatabaseId();
+        $this->chanCacheByDbId[$dbId] = $chan;
+        $this->chanIdMapping[$chan->getId()] = $dbId;
     }
 
     public function removeChannel($id)
     {
-        if (isset($this->channelIdMapping[$id])) {
-            $dbId = $this->channelIdMapping[$id];
+        if (isset($this->chanIdMapping[$id])) {
+            $dbId = $this->chanIdMapping[$id];
             unset(
-                $this->channelCacheByDbId[$dbId],
-                $this->channelIdMapping[$id]
+                $this->chanCacheByDbId[$dbId],
+                $this->chanIdMapping[$id]
             );
         }
     }
@@ -77,8 +77,8 @@ class InternalCache
 
     public function flush()
     {
-        $this->channelCacheByDbId = array();
-        $this->channelIdMapping = array();
+        $this->chanCacheByDbId = array();
+        $this->chanIdMapping = array();
         $this->subscriptionCache = array();
     }
 }

@@ -70,10 +70,10 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
      * (non-PHPdoc)
      * @see \APubSub\SubscriberInterface::hasSubscriptionFor()
      */
-    public function hasSubscriptionFor($channelId)
+    public function hasSubscriptionFor($chanId)
     {
         foreach ($this->subscriptions as $subscription) {
-            if ($subscription->getChannel()->getId() === $channelId) {
+            if ($subscription->getChannel()->getId() === $chanId) {
                 return true;
             }
         }
@@ -85,10 +85,10 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
      * (non-PHPdoc)
      * @see \APubSub\SubscriberInterface::getSubscriptionFor()
      */
-    public function getSubscriptionFor($channelId)
+    public function getSubscriptionFor($chanId)
     {
         foreach ($this->subscriptions as $subscription) {
-            if ($subscription->getChannel()->getId() === $channelId) {
+            if ($subscription->getChannel()->getId() === $chanId) {
                 return $subscription;
             }
         }
@@ -100,14 +100,14 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
      * (non-PHPdoc)
      * @see \APubSub\SubscriberInterface::subscribe()
      */
-    public function subscribe($channelId)
+    public function subscribe($chanId)
     {
-        $channel = $this->context->backend->getChannel($channelId);
+        $chan = $this->context->getBackend()->getChannel($chanId);
 
         try {
-            return $this->getSubscriptionFor($channelId);
+            return $this->getSubscriptionFor($chanId);
         } catch (SubscriptionDoesNotExistException $e) {
-            $subscription = $channel->subscribe();
+            $subscription = $chan->subscribe();
             $subscription->activate();
 
             $this->subscriptions[$subscription->getId()] = $subscription;
@@ -120,10 +120,10 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
      * (non-PHPdoc)
      * @see \APubSub\SubscriberInterface::subscribe()
      */
-    public function unsubscribe($channelId)
+    public function unsubscribe($chanId)
     {
         try {
-            $this->getSubscriptionFor($channelId)->delete();
+            $this->getSubscriptionFor($chanId)->delete();
         } catch (SubscriptionDoesNotExistException $e) {
             return;
         }

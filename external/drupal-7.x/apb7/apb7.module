@@ -14,7 +14,7 @@ const APB_DEFAULT_CLASS = '\APubSub\Backend\Drupal7\D7PubSub';
  * Define a custom autoloader if non declared, this prerequisite that the
  * library lives under the same folder hierarchy than the composer package.
  */
-if (!class_exists('APubSub\PubSubInterface')) {
+if (!class_exists('APubSub\BackendInterface')) {
   // In case no custom autoloader is provided, use the composer one.
   // In order to use it, you need to run "composer install" in the
   // APubSub folder root.
@@ -103,7 +103,7 @@ function apb7_backend_list_select_options() {
 /**
  * Get the APubSub backend.
  *
- * @return \APubSub\PubSubInterface
+ * @return \APubSub\BackendInterface
  *   Pub/Sub backend.
  */
 function apb7_backend_get($name = 'default') {

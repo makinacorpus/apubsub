@@ -2,12 +2,13 @@
 
 namespace APubSub\Backend\Drupal7;
 
+use APubSub\Backend\DefaultContext;
 use APubSub\ContextInterface;
 
 /**
  * Context implementation for Drupal 7 objects
  */
-class D7Context implements ContextInterface
+class D7Context extends DefaultContext
 {
     /**
      * @var \DatabaseConnection
@@ -71,24 +72,11 @@ class D7Context implements ContextInterface
         D7PubSub $backend,
         $options = null)
     {
-        $this->dbConnection = $dbConnection;
-        $this->backend      = $backend;
+        parent::__construct($backend, $options);
 
+        $this->dbConnection = $dbConnection;
         $this->typeHelper   = new TypeHelper($this);
         $this->cache        = new InternalCache();
-
-        if (null !== $options) {
-            $this->setOptions($options);
-        }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ContextInterface::getBackend()
-     */
-    public function getBackend()
-    {
-        return $this->backend;
     }
 
     /**

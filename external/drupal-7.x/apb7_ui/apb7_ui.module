@@ -83,7 +83,7 @@ function apb7_ui_menu() {
 /**
  * Menu access helper.
  *
- * @param \APubSub\APubSubInterface $backend
+ * @param \APubSub\BackendInterface $backend
  *   Backend referenced in the menu.
  * @param string $page
  *   Page to access.
@@ -92,7 +92,7 @@ function apb7_ui_menu() {
  *   True for access false else.
  */
 function apb7_ui_access($backend = null, $page = null) {
-  if (($backend instanceof \APubSub\PubSubInterface) &&
+  if (($backend instanceof \APubSub\BackendInterface) &&
       user_access('access administration pages'))
   {
     // This try/catch statement is here to ensure that the given backend

@@ -2,14 +2,14 @@
 
 namespace APubSub\Backend;
 
+use APubSub\BackendInterface;
 use APubSub\ContextInterface;
 use APubSub\MessageInterface;
-use APubSub\PubSubInterface;
 
 /**
  * Default message implementation suitable for most backends
  */
-class DefaultMessage implements MessageInterface
+class DefaultMessage extends AbstractObject implements MessageInterface
 {
     /**
      * Message identifier
@@ -68,11 +68,6 @@ class DefaultMessage implements MessageInterface
     protected $subscriptionId;
 
     /**
-     * @var \APubSub\ContextInterface
-     */
-    protected $context;
-
-    /**
      * @var int
      */
     protected $level;
@@ -103,25 +98,17 @@ class DefaultMessage implements MessageInterface
         $readTimestamp = null,
         $level         = 0)
     {
+        parent::__construct($context);
+
         $this->id             = $id;
         $this->chanId         = $chanId;
         $this->subscriptionId = $subscriptionId;
         $this->contents       = $contents;
         $this->sendTime       = $sendTime;
         $this->type           = $type;
-        $this->context        = $context;
         $this->unread         = $isUnread;
         $this->readTimestamp  = $readTimestamp;
         $this->level          = $level;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ObjectInterface::getContext()
-     */
-    public function getContext()
-    {
-        return $this->context;
     }
 
     /**

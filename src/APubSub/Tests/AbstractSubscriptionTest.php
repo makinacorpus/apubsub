@@ -9,26 +9,26 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
     /**
      * @var \APubSub\ChannelInterface
      */
-    protected $channel;
+    protected $chan;
 
     protected function setUp()
     {
         parent::setUp();
-        $this->channel = $this->backend->createChannel('foo');
+        $this->chan = $this->backend->createChannel('foo');
     }
 
     public function testSubscribe()
     {
-        $subscription = $this->channel->subscribe();
+        $subscription = $this->chan->subscribe();
         $this->assertInstanceOf('\APubSub\SubscriptionInterface', $subscription);
 
         $id = $subscription->getId();
         $this->assertFalse(empty($id));
 
-        $channel = $subscription->getChannel();
+        $chan = $subscription->getChannel();
         // Depending on the implementation, the instance might not be the same
         // so only check for ids to be the same
-        $this->assertSame($channel->getId(), $this->channel->getId());
+        $this->assertSame($chan->getId(), $this->chan->getId());
 
         // Per definition a new subscription is always inactive
         $this->assertFalse($subscription->isActive());
@@ -47,8 +47,8 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         $this->assertSame($subscription->getId(), $loaded->getId());
         $this->assertFalse($loaded->isActive());
 
-        $this->assertSame($this->channel->getId(), $subscription->getChannel()->getId());
-        $this->assertSame($this->channel->getId(), $loaded->getChannel()->getId());
+        $this->assertSame($this->chan->getId(), $subscription->getChannel()->getId());
+        $this->assertSame($this->chan->getId(), $loaded->getChannel()->getId());
 
         $subscription->activate();
 
@@ -61,7 +61,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
 
     public function testExtraData()
     {
-        $subscription = $this->channel->subscribe();
+        $subscription = $this->chan->subscribe();
 
         $subscription->setExtraData(array('test' => 42));
 
@@ -71,10 +71,10 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
 
     public function testFetch()
     {
-        $subscription = $this->channel->subscribe();
-        $channel      = $subscription->getChannel();
+        $subscription = $this->chan->subscribe();
+        $chan         = $subscription->getChannel();
 
-        $channel->send(42);
+        $chan->send(42);
 
         $messages = $subscription->fetch();
         foreach ($messages as $message) {
@@ -82,7 +82,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         }
 
         $subscription->activate();
-        $channel->send(24);
+        $chan->send(24);
         $messages = $subscription->fetch();
         $this->assertNotEmpty($messages);
         $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
@@ -100,7 +100,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
 
         // Ensures we still have only one message after send
         $subscription->deactivate();
-        $channel->send(12);
+        $chan->send(12);
         $messages = $subscription->fetch();
         $this->assertNotEmpty($messages);
         $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
@@ -109,15 +109,15 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
 
     function testMultipleFetch()
     {
-        $sub1 = $this->channel->subscribe();
+        $sub1 = $this->chan->subscribe();
         $sub1->activate();
-        $sub2 = $this->channel->subscribe();
-        $msg1 = $this->channel->send(1);
+        $sub2 = $this->chan->subscribe();
+        $msg1 = $this->chan->send(1);
         $sub2->activate();
-        $msg2 = $this->channel->send(2);
-        $sub3 = $this->channel->subscribe();
+        $msg2 = $this->chan->send(2);
+        $sub3 = $this->chan->subscribe();
         $sub3->activate();
-        $msg3 = $this->channel->send(3);
+        $msg3 = $this->chan->send(3);
 
         $messages = $sub1->fetch();
         $this->assertCount(3, $messages, "Sub 1 message count is 3");
@@ -129,7 +129,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         // the delete behavior is not documented at the interface level, we
         // don't care about that anyway, at least ensure that non fully dequeued
         // messages are still here
-        $messages = $this->channel->getMessage($msg3->getId());
+        $messages = $this->chan->getMessage($msg3->getId());
 
         $messages = $sub3->fetch();
         $this->assertCount(1, $messages, "Sub 3 message count is 1");
@@ -138,7 +138,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
     public function testFetchCursorOrder()
     {
         $subscriber = $this->backend->getSubscriber('baz');
-        $chan1      = $this->channel;
+        $chan1      = $this->chan;
         $chan2      = $this->backend->createChannel('bar');
         $sub1       = $subscriber->subscribe('foo');
         $sub2       = $subscriber->subscribe('bar');
@@ -171,7 +171,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
     public function testMassUpdate()
     {
         $subscriber = $this->backend->getSubscriber('baz');
-        $chan1      = $this->channel;
+        $chan1      = $this->chan;
         $sub1       = $subscriber->subscribe($chan1->getId());
 
         $chan1->send(1);

@@ -171,8 +171,8 @@ function notification_page_user_subscriptions($form, &$form_state, $account) {
   foreach ($subscriber->getSubscriptions() as $subscription) {
     if ($subscription instanceof SubscriptionInterface) {
 
-      $channel     = $subscription->getChannel();
-      $chan_name   = $channel->getId();
+      $chan        = $subscription->getChannel();
+      $chan_name   = $chan->getId();
       $id          = null;
       $chanType = null;
       $created     = $subscription->getCreationTime();

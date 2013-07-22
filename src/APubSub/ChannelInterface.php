@@ -5,9 +5,7 @@ namespace APubSub;
 /**
  * Interface for all channels.
  */
-interface ChannelInterface extends
-    ObjectInterface,
-    MessageContainerInterface
+interface ChannelInterface extends MessageContainerInterface
 {
     /**
      * Get channel identifier
@@ -24,7 +22,9 @@ interface ChannelInterface extends
     public function getCreationTime();
 
     /**
-     * Send a new message
+     * Send a single message to this channel
+     *
+     * Alias of BackendInterface::send()
      *
      * @param mixed $contents   Any kind of contents (will be serialized)
      * @param string $type      Message type
@@ -38,6 +38,8 @@ interface ChannelInterface extends
 
     /**
      * Create a new subscription to this channel.
+     *
+     * Alias of BackendInterface::subscribe()
      *
      * @return SubscriptionInterface The new subscription object, which is not
      *                               active per default and whose identifier

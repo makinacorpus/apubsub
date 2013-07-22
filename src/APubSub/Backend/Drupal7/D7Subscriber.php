@@ -2,34 +2,19 @@
 
 namespace APubSub\Backend\Drupal7;
 
-use APubSub\Backend\AbstractObject;
-use APubSub\Backend\Drupal7\Cursor\D7MessageCursor;
-use APubSub\Error\MessageDoesNotExistException;
-use APubSub\Error\SubscriptionAlreadyExistsException;
-use APubSub\Error\SubscriptionDoesNotExistException;
+use APubSub\Backend\DefaultSubscriber;
 use APubSub\CursorInterface;
+use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\SubscriberInterface;
 
 /**
  * Drupal 7 simple subscriber implementation
+ *
+ * @todo Remove this class if possible
  */
-class D7Subscriber extends AbstractObject implements SubscriberInterface
+class D7Subscriber extends DefaultSubscriber implements
+    SubscriberInterface
 {
-    /**
-     * @var scalar
-     */
-    private $id;
-
-    /**
-     * @var array
-     */
-    private $idList = null;
-
-    /**
-     * @var int
-     */
-    private $lastAccessTime = 0;
-
     /**
      * Default constructor
      *
@@ -37,14 +22,9 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
      * @param scalar $id          User set identifier
      * @param int $lastAccessTime Last access time
      */
-    public function __construct(
-        D7Context $context,
-        $id,
-        $lastAccessTime = 0)
+    public function __construct(D7Context $context, $id, $lastAccessTime = 0)
     {
-        $this->id = $id;
-        $this->context = $context;
-        $this->lastAccessTime = $lastAccessTime;
+        parent::__construct($id, $context, $lastAccessTime);
 
         // Get subscription identifiers list, with channel mapping
         $this->idList = $this
@@ -60,66 +40,24 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
                     JOIN {apb_sub} s ON s.id = mp.sub_id
                     JOIN {apb_chan} c ON c.id = s.chan_id
                     WHERE mp.name = :name", array(
-                ':name' => $this->id,
+                ':name' => $this->getId(),
             ))
             ->fetchAllKeyed();
     }
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::getId()
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::getSubscriptions()
-     */
-    public function getSubscriptions()
-    {
-       return $this->context->backend->getSubscriptions($this->idList);
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::hasSubscriptionFor()
-     */
-    public function hasSubscriptionFor($channelId)
-    {
-        return isset($this->idList[$channelId]);
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::getSubscriptionFor()
-     */
-    public function getSubscriptionFor($channelId)
-    {
-        if (!isset($this->idList[$channelId])) {
-            throw new SubscriptionDoesNotExistException();
-        }
-
-        // If another piece of code effectively deleted the subscription, but
-        // we still work on an outdated cache, this should throw the same
-        // exception as upper. Don't think this cannot happen, this *will*
-        // happen, nothing prevent you from deleting a subscription using the
-        // backend after you loaded this subscriber instance
-        return $this->context->backend->getSubscription($this->idList[$channelId]);
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\SubscriberInterface::subscribe()
      */
-    public function subscribe($channelId)
+    public function subscribe($chanId)
     {
         try {
-            if (isset($this->idList[$channelId])) {
+            if (isset($this->idList[$chanId])) {
                 // See the getSubscriptionFor() implementation
-                return $this->context->backend->getSubscription($this->idList[$channelId]);
+                return $this
+                    ->context
+                    ->getBackend()
+                    ->getSubscription($this->idList[$chanId]);
             }
         } catch (SubscriptionDoesNotExistException $e) {
             // Someone else deleted this subscription and we have cached it in
@@ -130,19 +68,24 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
         $activated = time();
         $created   = $activated;
         $cx        = $this->context->dbConnection;
-        $tx        = $cx->startTransaction();
+        $tx        = null;
 
         try {
+            $tx = $cx->startTransaction();
+
             // Load the channel only once the subscription load has been attempted,
             // this ensures a few static caches may have been built ahead of us
-            $channel = $this->context->backend->getChannel($channelId);
+            $chan = $this
+                ->context
+                ->getBackend()
+                ->getChannel($chanId);
 
             $cx
                 ->insert('apb_sub')
                 ->fields(array(
-                    'chan_id' => $channel->getDatabaseId(),
-                    'status' => 1,
-                    'created' => $created,
+                    'chan_id'   => $chan->getDatabaseId(),
+                    'status'    => 1,
+                    'created'   => $created,
                     'activated' => $activated,
                 ))
                 ->execute();
@@ -152,7 +95,7 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
             $cx
                 ->insert('apb_sub_map')
                 ->fields(array(
-                    'name' => $this->id,
+                    'name' => $this->getId(),
                     'sub_id' => $id,
                 ))
                 ->execute();
@@ -160,47 +103,26 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
             unset($tx); // Explicit commit
 
             $subscription = new D7Subscription(
-                $this->context, $channel->getDatabaseId(),
-                $id, $created, $activated, 0, false);
+                $chanId, $id, $created,
+                $activated, 0, true, $this->context);
 
             // Also ensure a few static caches are setup in the global context:
             // this will be the only cache object instance direct access from
             // this class
             $this->context->cache->addSubscription($subscription);
-            $this->idList[$channelId] = $id;
+            $this->idList[$chanId] = $id;
 
             return $subscription;
 
         } catch (\Exception $e) {
-            $tx->rollback();
+            if (isset($tx)) {
+                try {
+                    $tx->rollback();
+                } catch (\Exception $e2) {}
+            }
 
             throw $e;
         }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::unsubscribe()
-     */
-    public function unsubscribe($channelId)
-    {
-        try {
-            if (isset($this->idList[$channelId])) {
-                // See the getSubscriptionFor() implementation
-                $this->context->backend->getSubscription($this->idList[$channelId])->delete();
-            }
-        } catch (SubscriptionDoesNotExistException $e) {
-            // All OK
-        }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::getLastAccessTime()
-     */
-    public function getLastAccessTime()
-    {
-        return $this->lastAccessTime;
     }
 
     /**
@@ -215,247 +137,10 @@ class D7Subscriber extends AbstractObject implements SubscriberInterface
             ->context
             ->dbConnection
             ->update('apb_sub_map')
-            ->condition('name', $this->id)
+            ->condition('name', $this->getId())
             ->fields(array(
                 'accessed' => $this->lastAccessTime,
             ))
             ->execute();
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::fetch()
-     */
-    public function fetch(array $conditions = null)
-    {
-        /*
-         * Targeted query: benchmarked along 4 different variants, including
-         * subqueries, different JOIN order, different indexes: this one
-         * is the one that will give you the best performances with MySQL.
-         *
-         * SELECT q.*, m.* FROM apb_sub_map mp
-         *     JOIN apb_queue q ON q.sub_id = mp.sub_id
-         *     JOIN apb_msg m ON m.id = q.msg_id
-         *     WHERE mp.name = 'user:9991'
-         *     ORDER BY m.id ASC;
-         *
-         * MySQL EXPLAIN was specific enough in all variants to say without
-         * any doubt this is the best one, fully using indexes, starting with
-         * a CONST index, and using only ref and eq_ref JOIN types on known
-         * INT32 indexes.
-         *
-         * On a poor box, with few CPU and few RAM this query runs in 0.01s
-         * (MySQL result) with no query cache and 5 millions of records in
-         * the apb_queue table and 300,000 in the apb_sub_map table.
-         *
-         * Note that for other DBMS' this will need to be tested, and a
-         * switch/case on the dbConnection class may proove itself to be very
-         * efficient if needed.
-         *
-         * Additionally, we need to apply some conditions over this query:
-         *
-         *     WHERE
-         *       [CONDITIONS]
-         *     ORDER BY [FIELD] [DIRECTION];
-         *
-         * Hopping those won't kill our queries.
-         */
-
-        $query = $this
-            ->context
-            ->dbConnection
-            ->select('apb_sub_map', 'mp');
-        $query
-            ->join('apb_queue', 'q', 'q.sub_id = mp.sub_id');
-        $query
-            ->join('apb_msg', 'm', 'm.id = q.msg_id');
-        $query
-            ->fields('m')
-            ->fields('q')
-            ->condition('mp.name', $this->id);
-
-        $cursor = new D7MessageCursor($this->context, $query);
-
-        if (null !== $conditions) {
-            $cursor->applyConditions($conditions);
-        }
-
-        return $cursor;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::update()
-     *
-     * // FIXME: Fix this (performance problem spotted)
-     */
-    public function update(array $values, array $conditions = null)
-    {
-        if (empty($values)) {
-            return;
-        }
-
-        $cx     = $this->context->dbConnection;
-        $fields = array();
-
-        foreach ($values as $field => $value) {
-            switch ($field) {
-
-                case CursorInterface::FIELD_MSG_UNREAD:
-                    if (!$fields['unread'] = $value ? 1 : 0) {
-                        // Also update the read timestamp if necessary
-                        $fields['read_timestamp'] = time();
-                    }
-                    break;
-
-                case CursorInterface::FIELD_MSG_READ_TS:
-                    $fields['read_timestamp'] = (int)$value;
-                    break;
-
-                default:
-                    trigger_error(sprintf("% does not support updating %d",
-                        get_class($this), $field));
-                    break;
-            }
-        }
-
-        $cursor = $this->fetch($conditions);
-        $query  = $cursor->getQuery();
-
-        // I am sorry but I have to be punished for I am writing this
-        $selectFields = &$query->getFields();
-        foreach ($selectFields as $key => $value) {
-            unset($selectFields[$key]);
-        }
-        // Again.
-        $tables = &$query->getTables();
-        foreach ($tables as $key => $table) {
-          unset($tables[$key]['all_fields']);
-        }
-        $query->fields('m', array('id'));
-
-        // Create a temp table containing identifiers to update: this is
-        // mandatory because you cannot use the apb_queue in the UPDATE
-        // query subselect
-        $tempTableName = $cx
-            ->queryTemporary((string)$query, $query->getArguments());
-
-        $select = $cx
-            ->select($tempTableName, 'tu')
-            ->fields('tu');
-
-        $update = $cx
-            ->update('apb_queue');
-
-        $update
-            ->fields($fields)
-            ->condition('msg_id', $select, 'IN')
-            ->execute();
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::deleteMessage()
-     */
-    public function deleteMessage($id)
-    {
-        $this->deleteMessages(array($id));
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::deleteMessages()
-     */
-    public function deleteMessages(array $idList)
-    {
-        if (empty($idList)) {
-            return;
-        }
-
-        $this
-            ->context
-            ->dbConnection
-            ->delete('apb_queue')
-            ->condition('sub_id', $this->idList)
-            ->condition('msg_id', $idList, 'IN')
-            ->execute();
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::deleteAllMessages()
-     */
-    public function deleteAllMessages()
-    {
-        $cx = $this->context->dbConnection;
-        $tx = $cx->startTransaction();
-
-        try {
-            $cx
-              ->delete('apb_queue')
-              ->condition('sub_id', $this->idList)
-              ->execute();
-
-            unset($tx); // Excplicit commit
-
-        } catch (\Exception $e) {
-            $tx->rollback();
-
-            throw $e;
-        }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::flush()
-     */
-    public function flush()
-    {
-        $this->deleteAllMessages();
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::getMessage()
-     */
-    public function getMessage($id)
-    {
-        $cursor = $this->fetch(array(
-            CursorInterface::FIELD_MSG_ID => $id,
-        ));
-
-        if (!count($cursor)) {
-            throw new MessageDoesNotExistException();
-        }
-
-        foreach ($cursor as $message) {
-            return $message;
-        }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::getMessages()
-     */
-    public function getMessages(array $idList)
-    {
-        $cursor = $this->fetch(array(
-            CursorInterface::FIELD_MSG_ID => $idList,
-        ));
-
-        if (count($cursor) !== count($idList)) {
-            throw new MessageDoesNotExistException();
-        }
-
-        return iterator_to_array($cursor);
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::delete()
-     */
-    public function delete()
-    {
-        $this->context->getBackend()->deleteSubscriptions($this->idList);
     }
 }

@@ -12,10 +12,10 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
 {
     public function testChannelCreation()
     {
-        $channel = $this->backend->createChannel('foo');
+        $chan = $this->backend->createChannel('foo');
         $loaded  = $this->backend->getChannel('foo');
 
-        $this->assertSame($channel->getId(), 'foo');
+        $this->assertSame($chan->getId(), 'foo');
         $this->assertSame($loaded->getId(), 'foo');
 
         // Test normal behavior (disallow accidental creation)
@@ -31,7 +31,7 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         try {
             $chan1 = $this->backend->createChannel('foo', true);
 
-            $this->assertSame($chan1->getId(), $channel->getId());
+            $this->assertSame($chan1->getId(), $chan->getId());
 
             $this->assertTrue(true, "Did not caught a ChannelAlreadyExistsException");
         } catch (ChannelAlreadyExistsException $e) {
@@ -44,8 +44,8 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
             'cisors',
             'rock',
         );
-        $channelList = $this->backend->createChannels($chanNames);
-        $this->assertCount(3, $channelList);
+        $chanList = $this->backend->createChannels($chanNames);
+        $this->assertCount(3, $chanList);
 
         // Test multiple creation with one existing, none should be created
         $chanNames = array(
@@ -63,7 +63,7 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         // Ensure none exist
         foreach (array('chair', 'banana', 'sisters') as $id) {
             try { 
-                $channel = $this->backend->getChannel($id);
+                $chan = $this->backend->getChannel($id);
                 $this->fail("Should have caught a ChannelDoesNotExistException");
             } catch (ChannelDoesNotExistException $e) {
                 $this->assertTrue(true, "Caught a ChannelDoesNotExistException");
@@ -71,37 +71,37 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         }
 
         // Now the same test with error ignored
-        $channelList = $this->backend->createChannels($chanNames, true);
-        $this->assertCount(4, $channelList);
+        $chanList = $this->backend->createChannels($chanNames, true);
+        $this->assertCount(4, $chanList);
         // Ensure all exist
         foreach (array('chair', 'banana', 'cisors', 'sisters') as $id) {
-            $channel = $this->backend->getChannel($id);
+            $chan = $this->backend->getChannel($id);
             // Just for fun, this won't hurt you
-            $this->assertSame($channel->getId(), $id);
+            $this->assertSame($chan->getId(), $id);
         }
     }
 
     public function testMessageCreation()
     {
-        $channel  = $this->backend->createChannel('bar');
+        $chan  = $this->backend->createChannel('bar');
         $contents = array('test' => 12);
 
-        $message = $channel->send($contents);
+        $message = $chan->send($contents);
 
         $this->assertSame($contents, $message->getContents());
     }
 
     public function testMessageSendToSubscriber()
     {
-        $channel  = $this->backend->createChannel('baz');
+        $chan  = $this->backend->createChannel('baz');
         $contents = array('test' => 12);
 
-        $subscriber = $channel->subscribe();
+        $subscriber = $chan->subscribe();
         $this->assertNotNull($subscriber->getId());
 
         $subscriber->activate();
 
-        $message = $channel->send($contents);
+        $message = $chan->send($contents);
 
         $id = $message->getId();
 
@@ -119,14 +119,14 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
     public function testDelete()
     {
         // Create a channel and populate with some junk
-        $channel = $this->backend->createChannel("delete_me");
-        $sub1 = $channel->subscribe();
+        $chan = $this->backend->createChannel("delete_me");
+        $sub1 = $chan->subscribe();
         $sub1->activate();
         $sub1Id = $sub1->getId();
-        $msg1 = $channel->send(1);
-        $sub2 = $channel->subscribe();
+        $msg1 = $chan->send(1);
+        $sub2 = $chan->subscribe();
         $sub2->activate();
-        $msg2 = $channel->send(2);
+        $msg2 = $chan->send(2);
 
         // Ok, first of all, deletion
         $this->backend->deleteChannel("delete_me");
@@ -148,11 +148,11 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
 
     public function testDeleteMessages()
     {
-        $channel = $this->backend->createChannel('some_channel');
+        $chan = $this->backend->createChannel('some_channel');
 
         // One left untouched, the other will delete a message
-        $sub1    = $channel->subscribe();
-        $sub2    = $channel->subscribe();
+        $sub1    = $chan->subscribe();
+        $sub2    = $chan->subscribe();
 
         // And also test with subscriber for coverage purpose
         $suber   = $this->backend->getSubscriber('foo');
@@ -163,9 +163,9 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         $sub2->activate();
         $sub3->activate();
 
-        $channel->send(42);
-        $channel->send(13);
-        $channel->send(11);
+        $chan->send(42);
+        $chan->send(13);
+        $chan->send(11);
         $messageId = null;
 
         $cursor = $sub1->fetch();
@@ -187,7 +187,7 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         $cursor = $suber->fetch();
         $this->assertCount(3, $cursor, "Sub 3 is still full");
 
-        $channel->deleteMessage($messageId);
+        $chan->deleteMessage($messageId);
 
         $cursor = $sub1->fetch();
         $this->assertCount(2, $cursor, "Sub 1 has now 2 messages");

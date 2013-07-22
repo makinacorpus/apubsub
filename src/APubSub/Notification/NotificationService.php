@@ -2,13 +2,13 @@
 
 namespace APubSub\Notification;
 
+use APubSub\BackendInterface;
 use APubSub\Backend\VolatileMessage;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\MessageInterface;
 use APubSub\Notification\Registry\ChanTypeRegistry;
 use APubSub\Notification\Registry\QueueRegistry;
 use APubSub\Notification\Registry\FormatterRegistry;
-use APubSub\PubSubInterface;
 
 /**
  * Notification service, single point of entry for the business layer
@@ -21,7 +21,7 @@ class NotificationService
     const SUBSCRIBER_USER = 'u';
 
     /**
-     * @var \APubSub\PubSubInterface
+     * @var \APubSub\BackendInterface
      */
     private $backend;
 
@@ -60,15 +60,15 @@ class NotificationService
     /**
      * Default constructor
      *
-     * @param PubSubInterface $backend Backend
-     * @param boolean $storeFormatted  If set to true formatted messages content
-     *                                 will be stored into messages
-     * @param boolean $silentMode      If set to true this object will never
-     *                                 predictible exceptions
-     * @param array $disabledTypes     List of disabled types
+     * @param BackendInterface $backend Backend
+     * @param boolean $storeFormatted   If set to true formatted messages content
+     *                                  will be stored into messages
+     * @param boolean $silentMode       If set to true this object will never
+     *                                  predictible exceptions
+     * @param array $disabledTypes      List of disabled types
      */
     public function __construct(
-        PubSubInterface $backend,
+        BackendInterface $backend,
         $storeFormatted = false,
         $silentMode     = false,
         $disabledTypes  = null)
@@ -176,7 +176,7 @@ class NotificationService
     /**
      * Get backend
      *
-     * @return PubSubInterface Backend
+     * @return BackendInterface Backend
      */
     public function getBackend()
     {

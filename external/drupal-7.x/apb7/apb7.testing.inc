@@ -405,7 +405,7 @@ function _apb7_testing_volume_batch_setup($storage, &$context) {
 
   // Number of chan per iteration, this is also the number of subscriptions
   // since a chan is also a user
-  $chanLimit   = 30;
+  $chanLimit   = 100;
   $subscribers = array();
   // First channel id for this iteration
   $startAt     = $sandbox['progress'] + 1;
@@ -424,22 +424,22 @@ function _apb7_testing_volume_batch_setup($storage, &$context) {
   for ($i = 0; $i < $chanLimit; ++$i) {
     $chanlist[] = $startAt + $i;
   }
-  $channels = $backend->createChannels($chanlist);
+  $chans = $backend->createChannels($chanlist);
 
   // Set the progress right away
   $sandbox['progress'] += $chanLimit;
 
   // Create subscribers
-  foreach ($channels as $channel) {
-    $subscribers[] = $backend->getSubscriber('user:' . $channel->getId());
+  foreach ($chans as $chan) {
+    $subscribers[] = $backend->getSubscriber('user:' . $chan->getId());
   }
   // Create a decal between channels and subscribers so that a channel
   // subscriber will never subscribe for himself
   array_unshift($subscribers, array_pop($subscribers));
 
   // Create subscriptions for channels
-  foreach ($channels as $channel) {
-    $chanId = $channel->getId();
+  foreach ($chans as $chan) {
+    $chanId = $chan->getId();
     for ($j = 0; $j < $subCount; ++$j) {
       // Select the right subscriber (anyone that is not the channel) and
       // make him subscribe to the channel
@@ -485,16 +485,16 @@ function _apb7_testing_volume_batch_messages($storage, &$context) {
 
     // Compute channel id, we will just proceed to an infinite rotation on
     // the known channels until we reached the max value.
-    $channelId = ((++$sandbox['progress']) % $totalChans);
-    if ($channelId === 0) {
-      $channelId = $limit;
+    $chanId = ((++$sandbox['progress']) % $totalChans);
+    if ($chanId === 0) {
+      $chanId = $limit;
     }
 
-    $channel = $backend->getChannel($channelId);
+    $chan = $backend->getChannel($chanId);
 
     // Send messages to the channel
     for ($j = 0; $j < $messagesPerChan; ++$j) {
-      $channel->send($j);
+      $chan->send($j);
     }
   }
 

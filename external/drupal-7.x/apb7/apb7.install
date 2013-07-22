@@ -224,6 +224,13 @@ function apb7_schema() {
   $schema['apb_queue'] = array(
     'description' => "APubSub subscriptions messages queues",
     'fields' => array(
+      'id' => array(
+        'description' => "Primary identifier for DELETE statements",
+        'type' => 'serial',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
       'msg_id' => array(
         'description' => "Message internal int32 identifier",
         'type' => 'int',
@@ -258,7 +265,10 @@ function apb7_schema() {
         'default' => NULL,
       ),
     ),
-    'primary key' => array('msg_id', 'sub_id'),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'apb_queue_sub_id_msg_id_key' => array('sub_id', 'msg_id'),
+    ),
     'indexes' => array(
       // Thought that having it in primary key was sufficient? Well, no: if you
       // try to JOIN with this field, without this index, MySQL will always do

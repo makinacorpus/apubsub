@@ -5,7 +5,7 @@
  * APubSub administration pages
  */
 
-use APubSub\PubSubInterface;
+use APubSub\BackendInterface;
 
 /**
  * List all known backends
@@ -40,7 +40,7 @@ function apb7_ui_content_backend_list() {
 /**
  * Display information about the given backend
  */
-function apb7_ui_content_backend_overview_page(PubSubInterface $backend) {
+function apb7_ui_content_backend_overview_page(BackendInterface $backend) {
   $build   = array();
 
   // Recap of backend capabilities, using some bit of introspection.
@@ -111,7 +111,7 @@ function apb7_ui_content_backend_overview_page(PubSubInterface $backend) {
 /**
  * Run backend analysis and display result.
  */
-function apb7_ui_content_backend_analysis(PubSubInterface $backend) {
+function apb7_ui_content_backend_analysis(BackendInterface $backend) {
 
   if (!$analysis = $backend->getAnalysis()) {
     return array(
@@ -147,7 +147,7 @@ function apb7_ui_content_backend_analysis(PubSubInterface $backend) {
 /**
  * Display backend channel list
  */
-function apb7_ui_content_backend_channel_list(PubSubInterface $backend) {
+function apb7_ui_content_backend_channel_list(BackendInterface $backend) {
   $build = array();
   $limit = 16;
 
@@ -166,10 +166,10 @@ function apb7_ui_content_backend_channel_list(PubSubInterface $backend) {
     $list->setOffset($limit * (int)$_GET['page']);
   }
 
-  foreach ($list as $channel) {
+  foreach ($list as $chan) {
     $rows[] = array(
-      $channel->getId(),
-      format_date($channel->getCreationTime()),
+      $chan->getId(),
+      format_date($chan->getCreationTime()),
       '',
     );
   }
@@ -187,7 +187,7 @@ function apb7_ui_content_backend_channel_list(PubSubInterface $backend) {
 /**
  * Display backend subscription list
  */
-function apb7_ui_content_backend_subscription_list(PubSubInterface $backend) {
+function apb7_ui_content_backend_subscription_list(BackendInterface $backend) {
   $build = array();
   $limit = 16;
   $yes   = t("Yes");
@@ -242,7 +242,7 @@ function apb7_ui_content_backend_subscription_list(PubSubInterface $backend) {
 /**
  * Display backend subscriber list
  */
-function apb7_ui_content_backend_subscriber_list(PubSubInterface $backend) {
+function apb7_ui_content_backend_subscriber_list(BackendInterface $backend) {
   $build = array();
   $limit = 16;
   $yes   = t("Yes");

@@ -3,16 +3,14 @@
 namespace APubSub;
 
 /**
- * The object context is only here to generalize common technical helpers the
- * API should provide to all their objects, but without making it part of the
- * public user API
+ * Backend dependent options container
  */
 interface ContextInterface
 {
     /**
-     * Backend the object is originating from
+     * Backend the object is tied to
      *
-     * @return \APubSub\PubSubInterface PubSub backend
+     * @return \APubSub\BackendInterface PubSub backend
      */
     public function getBackend();
 
@@ -30,4 +28,41 @@ interface ContextInterface
      * @return array|Traversable Options
      */
     public function getOptions();
+
+    /**
+     * Does this key exists
+     *
+     * @param string $key Key
+     *
+     * @return boolean    True if key exists
+     */
+    public function has($key);
+
+    /**
+     * Get single option value
+     *
+     * @param string $key    Key
+     *
+     * @return mixed         Variable value
+     */
+    public function get($key);
+
+    /**
+     * Alias of get()
+     *
+     * @param string $key    Key
+     * @param mixed $default Default value
+     *
+     * @return mixed         Variable value
+     */
+    public function __get($name);
+
+    /**
+     * Alias of has()
+     *
+     * @param string $key Key
+     *
+     * @return boolean    True if key exists
+     */
+    public function __isset($name);
 }

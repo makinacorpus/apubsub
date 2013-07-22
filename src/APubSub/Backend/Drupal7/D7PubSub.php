@@ -2,20 +2,28 @@
 
 namespace APubSub\Backend\Drupal7;
 
-use APubSub\Backend\AbstractObject;
+use APubSub\Backend\AbstractBackend;
+use APubSub\Backend\DefaultMessage;
 use APubSub\Backend\Drupal7\Cursor\D7ChannelCursor;
+use APubSub\Backend\Drupal7\Cursor\D7MessageCursor;
 use APubSub\Backend\Drupal7\Cursor\D7SubscriberCursor;
 use APubSub\Backend\Drupal7\Cursor\D7SubscriptionCursor;
+use APubSub\BackendInterface;
+use APubSub\CursorInterface;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
-use APubSub\PubSubInterface;
 
 /**
  * Drupal 7 backend implementation
  */
-class D7PubSub extends AbstractObject implements PubSubInterface
+class D7PubSub extends AbstractBackend implements BackendInterface
 {
+    /**
+     * @var D7Context
+     */
+    protected $context;
+
     /**
      * Default constructor
      *
@@ -24,26 +32,234 @@ class D7PubSub extends AbstractObject implements PubSubInterface
      */
     public function __construct(\DatabaseConnection $dbConnection, $options = null)
     {
-        $this->context = new D7Context($dbConnection, $this, $options);
+        parent::__construct(
+            new D7Context(
+                $dbConnection,
+                $this,
+                $options));
     }
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::setOptions()
+     * @see \APubSub\SubscriberInterface::fetch()
      */
-    public function setOptions(array $options)
+    public function fetch(array $conditions = null)
     {
-        $this->context->setOptions($options);
+        $cursor = new D7MessageCursor($this->context);
+
+        if (!empty($conditions)) {
+            $cursor->applyConditions($conditions);
+        }
+
+        return $cursor;
+    }
+
+    /**
+     * From the given conditions, store matching messages identifiers into
+     * a temporary table and return the standalong SELECT query for getting
+     * those identifiers.
+     */
+    private function getTempTableNameFrom(array $conditions)
+    {
+        $cx = $this
+            ->context
+            ->dbConnection;
+
+        $cursor = $this->fetch($conditions);
+        $cursor->setDistinct(false);
+        $query  = $cursor->getQuery();
+
+        // I am sorry but I have to be punished for I am writing this
+        $selectFields = &$query->getFields();
+        foreach ($selectFields as $key => $value) {
+            unset($selectFields[$key]);
+        }
+        // Again.
+        $tables = &$query->getTables();
+        foreach ($tables as $key => $table) {
+            unset($tables[$key]['all_fields']);
+        }
+
+        $query
+            ->fields('q', array('id', 'msg_id', 'sub_id'))
+            ->fields('m', array('chan_id'));
+
+        // Create a temp table containing identifiers to update: this is
+        // mandatory because you cannot use the apb_queue in the UPDATE
+        // query subselect
+        $tempTableName = $cx
+            ->queryTemporary(
+                (string)$query,
+                $query->getArguments());
+
+        return $tempTableName;
     }
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getChannel()
+     * @see \APubSub\SubscriberInterface::update()
+     *
+     * // FIXME: Fix this (performance problem spotted)
+     */
+    public function update(array $values, array $conditions = null)
+    {
+        if (empty($values)) {
+            return;
+        }
+
+        $cx     = $this->context->dbConnection;
+        $tx     = null;
+        $fields = array();
+
+        foreach ($values as $field => $value) {
+            switch ($field) {
+
+                case CursorInterface::FIELD_MSG_UNREAD:
+                    if (!$fields['unread'] = $value ? 1 : 0) {
+                        // Also update the read timestamp if necessary
+                        $fields['read_timestamp'] = time();
+                    }
+                    break;
+
+                case CursorInterface::FIELD_MSG_READ_TS:
+                    $fields['read_timestamp'] = (int)$value;
+                    break;
+
+                default:
+                    trigger_error(sprintf("% does not support updating %d",
+                        get_class($this), $field));
+                    break;
+            }
+        }
+
+        try {
+            $tx = $cx->startTransaction();
+
+            $tempTableName = $this->getTempTableNameFrom($conditions);
+
+            $select = $cx
+                ->select($tempTableName, 'tu')
+                ->fields('tu', array('msg_id'));
+
+            $update = $cx
+                ->update('apb_queue');
+
+            $update
+                ->fields($fields)
+                ->condition('msg_id', $select, 'IN')
+                ->execute();
+
+            unset($tx); // Explicit commit
+
+        } catch (\Exception $e) {
+            if ($tx) {
+                try {
+                    $tx->rollback();
+                } catch (\Exception $e2) {}
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::deleteMessages()
+     */
+    public function deleteMessages(array $conditions = null)
+    {
+        $cx = $this->context->dbConnection;
+        $tx = null;
+
+        try {
+            $tx = $cx->startTransaction();
+
+            $tempTableName = $this->getTempTableNameFrom($conditions);
+
+            $select = $cx
+                ->select($tempTableName, 'tu')
+                ->fields('tu', array('id'));
+
+            $cx
+                ->delete('apb_queue')
+                ->condition('id', $select, 'IN')
+                ->execute();
+
+            // This one can hurt very much, hope it wont in practical cases
+            $select = $cx
+                ->select('apb_queue', 'q')
+                ->fields('q', array('msg_id'));
+            $cx
+                ->delete('apb_msg')
+                ->condition('id', $select, 'NOT IN')
+                ->execute();
+
+            unset($tx); // Explicit commit
+
+        } catch (\Exception $e) {
+            if ($tx) {
+                try {
+                    $tx->rollback();
+                } catch (\Exception $e2) {}
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::flush()
+     */
+    public function flush()
+    {
+        $this->deleteAllMessages();
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::getMessage()
+     */
+    public function getMessage($id)
+    {
+        $cursor = $this->fetch(array(
+            CursorInterface::FIELD_MSG_ID => $id,
+        ));
+
+        if (!count($cursor)) {
+            throw new MessageDoesNotExistException();
+        }
+
+        foreach ($cursor as $message) {
+            return $message;
+        }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\MessageContainerInterface::getMessages()
+     */
+    public function getMessages(array $idList)
+    {
+        $cursor = $this->fetch(array(
+            CursorInterface::FIELD_MSG_ID => $idList,
+        ));
+
+        if (count($cursor) !== count($idList)) {
+            throw new MessageDoesNotExistException();
+        }
+
+        return iterator_to_array($cursor);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\BackendInterface::getChannel()
      */
     public function getChannel($id)
     {
-        if ($channel = $this->context->cache->getChannel($id)) {
-            return $channel;
+        if ($chan = $this->context->cache->getChannel($id)) {
+            return $chan;
         }
 
         $record = $this
@@ -56,17 +272,20 @@ class D7PubSub extends AbstractObject implements PubSubInterface
             throw new ChannelDoesNotExistException();
         }
 
-        $channel = new D7Channel($this->context, $record->name,
-            (int)$record->id, (int)$record->created);
+        $chan = new D7Channel(
+            (int)$record->id,
+            $record->name,
+            $this->context,
+            (int)$record->created);
 
-        $this->context->cache->addChannel($channel);
+        $this->context->cache->addChannel($chan);
 
-        return $channel;
+        return $chan;
     }
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getChannels()
+     * @see \APubSub\BackendInterface::getChannels()
      */
     public function getChannels(array $idList)
     {
@@ -79,8 +298,8 @@ class D7PubSub extends AbstractObject implements PubSubInterface
 
         // First populate cache from what we have
         foreach ($idList as $id) {
-            if ($channel = $this->context->cache->getChannel($id)) {
-                $ret[$id] = $channel;
+            if ($chan = $this->context->cache->getChannel($id)) {
+                $ret[$id] = $chan;
             } else {
                 $missingIdList[] = $id;
             }
@@ -106,12 +325,16 @@ class D7PubSub extends AbstractObject implements PubSubInterface
         }
 
         foreach ($recordList as $record) {
-            $channel = new D7Channel($this->context,
-                $record->name, (int)$record->id, (int)$record->created);
 
-            $ret[$record->name] = $channel;
+            $chan = new D7Channel(
+                (int)$record->id,
+                $record->name,
+                $this->context,
+                (int)$record->created);
 
-            $this->context->cache->addChannel($channel);
+            $ret[$record->name] = $chan;
+
+            $this->context->cache->addChannel($chan);
         }
 
         array_multisort($idList, $ret);
@@ -133,8 +356,8 @@ class D7PubSub extends AbstractObject implements PubSubInterface
 
         // First populate cache from what we have
         foreach ($idList as $id) {
-            if ($channel = $this->context->cache->getChannelByDatabaseId($id)) {
-                $ret[$id] = $channel;
+            if ($chan = $this->context->cache->getChannelByDatabaseId($id)) {
+                $ret[$id] = $chan;
             } else {
                 $missingIdList[] = $id;
             }
@@ -160,12 +383,16 @@ class D7PubSub extends AbstractObject implements PubSubInterface
         }
 
         foreach ($recordList as $record) {
-            $channel = new D7Channel($this->context,
-                $record->name, (int)$record->id, (int)$record->created);
 
-            $ret[$record->name] = $channel;
+            $chan = new D7Channel(
+                (int)$record->id,
+                $record->name,
+                $this->context,
+                (int)$record->created);
 
-            $this->context->cache->addChannel($channel);
+            $ret[$record->name] = $chan;
+
+            $this->context->cache->addChannel($chan);
         }
 
         array_multisort($idList, $ret);
@@ -187,8 +414,8 @@ class D7PubSub extends AbstractObject implements PubSubInterface
      */
     public function getChannelByDatabaseId($id)
     {
-        if ($channel = $this->context->cache->getChannel($id)) {
-            return $channel;
+        if ($chan = $this->context->cache->getChannel($id)) {
+            return $chan;
         }
 
         $record = $this
@@ -201,26 +428,32 @@ class D7PubSub extends AbstractObject implements PubSubInterface
             throw new ChannelDoesNotExistException();
         }
 
-        $channel = new D7Channel($this->context, $record->name, (int)$record->id, (int)$record->created);
+        $chan = new D7Channel(
+            (int)$record->id,
+            $record->name,
+            $this->context,
+            (int)$record->created);
 
-        $this->context->cache->addChannel($channel);
+        $this->context->cache->addChannel($chan);
 
-        return $channel;
+        return $chan;
     }
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::createChannel()
+     * @see \APubSub\BackendInterface::createChannel()
      */
     public function createChannel($id, $ignoreErrors = false)
     {
-        $channel = null;
+        $chan    = null;
         $created = time();
         $dbId    = null;
         $cx      = $this->context->dbConnection;
-        $tx      = $cx->startTransaction();
+        $tx      = null;
 
         try {
+            $tx = $cx->startTransaction();
+
             // Do not ever use cache here, we cannot afford to try to create
             // a channel that have been deleted by another thread
             $exists = $cx
@@ -231,7 +464,7 @@ class D7PubSub extends AbstractObject implements PubSubInterface
 
             if ($exists) {
                 if ($ignoreErrors) {
-                    $channel = $this->getChannel($id);
+                    $chan = $this->getChannel($id);
                 } else {
                     throw new ChannelAlreadyExistsException();
                 }
@@ -245,25 +478,30 @@ class D7PubSub extends AbstractObject implements PubSubInterface
                     ->execute();
 
                 $dbId = (int)$cx->lastInsertId();
-                $channel = new D7Channel($this->context, $id, $dbId, $created);
+                $chan = new D7Channel($dbId, $id, $this->context, $created);
 
                 // In case of success, populate internal static cache
-                $this->context->cache->addChannel($channel);
+                $this->context->cache->addChannel($chan);
             }
 
             unset($tx); // Explicit commit
+
         } catch (\Exception $e) {
-            $tx->rollback();
+            if ($tx) {
+                try {
+                    $tx->rollback();
+                } catch (\Exception $e2) {}
+            }
 
             throw $e;
         }
 
-        return $channel;
+        return $chan;
     }
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::createChannels()
+     * @see \APubSub\BackendInterface::createChannels()
      */
     public function createChannels($idList, $ignoreErrors = false)
     {
@@ -329,7 +567,7 @@ class D7PubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::deleteChannel()
+     * @see \APubSub\BackendInterface::deleteChannel()
      */
     public function deleteChannel($id)
     {
@@ -388,43 +626,7 @@ class D7PubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getSubscription()
-     */
-    public function getSubscription($id)
-    {
-        if ($subscription = $this->context->cache->getSubscription($id)) {
-            return $subscription;
-        }
-
-        $record = $this
-            ->context
-            ->dbConnection
-            ->query("SELECT * FROM {apb_sub} WHERE id = :id", array(
-                ':id' => $id,
-            ))
-            ->fetchObject();
-
-        // FIXME: Useless chan lookup?
-        if (!$record || !($channel = $this->getChannelByDatabaseId($record->chan_id))) {
-            // Subscription may exist, but channel does not anymore case in
-            // which we consider it should be dropped
-            throw new SubscriptionDoesNotExistException();
-        }
-
-        $subscription = new D7Subscription($this->context,
-            (int)$record->chan_id, (int)$record->id,
-            (int)$record->created, (int)$record->activated,
-            (int)$record->deactivated, (bool)$record->status,
-            (array)unserialize($record->extra));
-
-        $this->context->cache->addSubscription($subscription);
-
-        return $subscription;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getSubscriptions()
+     * @see \APubSub\BackendInterface::getSubscriptions()
      */
     public function getSubscriptions($idList)
     {
@@ -479,7 +681,7 @@ class D7PubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::deleteSubscription()
+     * @see \APubSub\BackendInterface::deleteSubscription()
      */
     public function deleteSubscription($id)
     {
@@ -523,22 +725,7 @@ class D7PubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::deleteSubscriptions()
-     */
-    public function deleteSubscriptions($idList)
-    {
-        // This doesn't sound revelant to optimize this method, subscriptions
-        // should not be to transcient, they have not been meant to anyway:
-        // deleting subscriptions will be a costy operation whatever the effort
-        // to make in deleting them faster
-        foreach ($idList as $id) {
-            $this->deleteSubscription($id);
-        }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::getSubscriber()
+     * @see \APubSub\BackendInterface::getSubscriber()
      */
     public function getSubscriber($id)
     {
@@ -548,7 +735,53 @@ class D7PubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::fetchSubscribers()
+     * @see \APubSub\BackendInterface::subscribe()
+     */
+    public function subscribe($chanId, $subscriberId = null)
+    {
+        $deactivated = time();
+        $created     = $deactivated;
+        $cx          = $this->context->dbConnection;
+        $tx          = null;
+        $chan        = $this->getChannel($chanId);
+
+        try {
+            $tx = $cx->startTransaction();
+
+            $cx
+                ->insert('apb_sub')
+                ->fields(array(
+                    'chan_id'     => $chan->getDatabaseId(),
+                    'status'      => 0,
+                    'created'     => $created,
+                    'deactivated' => $deactivated,
+                ))
+                ->execute();
+
+            $id = (int)$cx->lastInsertId();
+
+            $subscription = new D7Subscription(
+                $chanId, $id, $created, 0,
+                $deactivated, false, $this->context);
+
+            $this->context->cache->addSubscription($subscription);
+
+            return $subscription;
+
+        } catch (\Exception $e) {
+            if ($tx) {
+                try {
+                    $tx->rollback();
+                } catch (\Exception $e2) {}
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\BackendInterface::fetchSubscribers()
      */
     public function fetchSubscribers(array $conditions = null)
     {
@@ -556,8 +789,92 @@ class D7PubSub extends AbstractObject implements PubSubInterface
     }
 
     /**
+     * Send a single message to one or more channels
+     *
+     * @param string|string[] $chanId List of channels or single channel to send
+     *                                the message too
+     * @param string $type            Message type
+     * @param int $level              Arbitrary business level
+     * @param int $sendTime           If set the creation/send timestamp will be
+     *                                forced to the given value
+     */
+    public function send($chanId, $contents, $type = null, $level = 0, $sendTime = null)
+    {
+        $cx     = $this->context->dbConnection;
+        $tx     = null;
+        $id     = null;
+        $typeId = null;
+        $chan   = $this->getChannel($chanId);
+        $dbId   = $chan->getDatabaseId();
+
+        if (null !== $type) {
+            $typeId = $this
+                ->context
+                ->typeHelper
+                ->getTypeId($type);
+        }
+
+        if (null === $sendTime) {
+            $sendTime = time();
+        }
+
+        try {
+            $tx = $cx->startTransaction();
+
+            $cx
+                ->insert('apb_msg')
+                ->fields(array(
+                    'chan_id'  => $dbId,
+                    'created'  => $sendTime,
+                    'contents' => serialize($contents),
+                    'type_id'  => $typeId,
+                ))
+                ->execute();
+
+            $id = (int)$cx->lastInsertId();
+
+            // Send message to all subscribers
+            $cx
+                ->query("
+                    INSERT INTO {apb_queue} (msg_id, sub_id, unread, created)
+                        SELECT
+                            :msgId   AS msg_id,
+                            s.id     AS sub_id,
+                            1        AS unread,
+                            :created AS created
+                        FROM {apb_sub} s
+                        WHERE s.chan_id = :chanId
+                        AND s.status = 1
+                    ", array(
+                        ':msgId'   => $id,
+                        ':chanId'  => $dbId,
+                        ':created' => $sendTime,
+                    ));
+
+            unset($tx); // Excplicit commit
+
+            if (!$this->context->delayChecks) {
+                $this->context->getBackend()->cleanUpMessageQueue();
+                $this->context->getBackend()->cleanUpMessageLifeTime();
+            }
+        } catch (\Exception $e) {
+            if ($tx) {
+                try {
+                    $tx->rollback();
+                } catch (\Exception $e2) {}
+            }
+
+            throw $e;
+        }
+
+        return new DefaultMessage(
+            $this->context, $chanId, null, $contents, $id,
+            $sendTime, null, true, null, $level);
+    }
+
+    /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::flushCaches()
+     * @see \APubSub\BackendInterface::flushCaches()
      */
     public function flushCaches()
     {
@@ -566,7 +883,7 @@ class D7PubSub extends AbstractObject implements PubSubInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\PubSubInterface::garbageCollection()
+     * @see \APubSub\BackendInterface::garbageCollection()
      */
     public function garbageCollection()
     {

@@ -6,15 +6,10 @@ namespace APubSub;
  * Backend entry point: allows you to retrieve and create channels and
  * subscriptions.
  */
-interface PubSubInterface extends ObjectInterface
+interface BackendInterface extends
+    ObjectInterface,
+    MessageContainerInterface
 {
-    /**
-     * Set backend specific options
-     *
-     * @param array $options Options to set
-     */
-    public function setOptions(array $options);
-
     /**
      * Load an existing channel
      *
@@ -138,6 +133,28 @@ interface PubSubInterface extends ObjectInterface
     public function getSubscriber($id);
 
     /**
+     * Create a new subscription to the given channel
+     *
+     * @param string $chanId       Channel identifier
+     * @param string $subscriberId Subscriber identifier
+     *
+     * @return SubscriptionInterface The new subscription object, which is not
+     *                               active per default and whose identifier
+     *                               has been generated
+     */
+    public function subscribe($chanId, $subscriberId = null);
+
+    /**
+     * Remove subscription for the given channel and subscription
+     *
+     * @return SubscriptionInterface The new subscription object, which is not
+     *                               active per default and whose identifier
+     *                               has been generated
+     */
+    // @todo Implement this
+    //public function unsubscribe($chanId);
+
+    /**
      * Get subscriber list helper if this backend implements it
      *
      * @param array $conditions  Array of key value pairs conditions, only the
@@ -147,6 +164,18 @@ interface PubSubInterface extends ObjectInterface
      * @return CursorInterface   Cursor
      */
     public function fetchSubscribers(array $conditions = null);
+
+    /**
+     * Send a single message to one or more channels
+     *
+     * @param string|string[] $chanId List of channels or single channel to send
+     *                                the message too
+     * @param string $type            Message type
+     * @param int $level              Arbitrary business level
+     * @param int $sendTime           If set the creation/send timestamp will be
+     *                                forced to the given value
+     */
+    public function send($chanId, $contents, $type = null, $level = 0, $sendTime = null);
 
     /**
      * Flush any non essential internal cache this backend may hold. Backends
@@ -176,4 +205,11 @@ interface PubSubInterface extends ObjectInterface
      *               can be prone to translation attempts
      */
     public function getAnalysis();
+
+    /**
+     * Set backend specific options
+     *
+     * @param array $options Options to set
+     */
+    public function setOptions(array $options);
 }

@@ -12,9 +12,7 @@ namespace APubSub;
  * Subscriber identifiers are given by the business layer using this API and
  * will be ensured to be unique when creating it
  */
-interface SubscriberInterface extends
-    ObjectInterface,
-    MessageContainerInterface
+interface SubscriberInterface extends MessageContainerInterface
 {
     /**
      * Get identifier
@@ -33,14 +31,14 @@ interface SubscriberInterface extends
     /**
      * Has the current subscriber a subscription for the given channel.
      *
-     * @param string $channelId Channel identifier
+     * @param string $chanId Channel identifier
      */
-    public function hasSubscriptionFor($channelId);
+    public function hasSubscriptionFor($chanId);
 
     /**
      * Get the subscription for a specific channel if exists
      *
-     * @param string $channelId               Channel identifier
+     * @param string $chanId                  Channel identifier
      *
      * @return \APubSub\SubscriptionInterface Subscription instance
      *
@@ -48,7 +46,7 @@ interface SubscriberInterface extends
      *                                        If the subscriber did not
      *                                        subscribe to the given channel
      */
-    public function getSubscriptionFor($channelId);
+    public function getSubscriptionFor($chanId);
 
     /**
      * Create a new subscription for a specific channel
@@ -58,14 +56,14 @@ interface SubscriberInterface extends
      *
      * If subscription already exists, be silent about about it
      *
-     * @param string $channelId               Channel identifier
+     * @param string $chanId                  Channel identifier
      *
      * @return \APubSub\SubscriptionInterface New subscription instance
      *
      * @throws \APubSub\Error\ChannelDoesNotExistException
      *                                        If channel does not exist
      */
-    public function subscribe($channelId);
+    public function subscribe($chanId);
 
     /**
      * Create a new subscription for a specific channel
@@ -75,9 +73,9 @@ interface SubscriberInterface extends
      *
      * If subscription nor chan do not exist, be silent about it. 
      *
-     * @param string $channelId Channel identifier
+     * @param string $chanId Channel identifier
      */
-    public function unsubscribe($channelId);
+    public function unsubscribe($chanId);
 
     /**
      * Get latest access time
@@ -94,35 +92,6 @@ interface SubscriberInterface extends
      * Set this subscriber latest access time to now
      */
     public function touch();
-
-    /**
-     * Fetch current message queue
-     *
-     * @param array $conditions  Array of key value pairs conditions, only the
-     *                           "equal" operation is supported. If value is an
-     *                           array, treat it as a "IN" operator
-     *
-     * @return CursorInterface   Iterable object of messages
-     */
-    public function fetch(array $conditions = null);
-
-    /**
-     * Mass update message queue
-     *
-     * Consider that it cannot update shared messages, but only the queue
-     * specific fields, which are:
-     *   - CursorInterface::FIELD_MSG_UNREAD
-     *   - CursorInterface::FIELD_MSG_READ_TS
-     *
-     * Warning: this might be an synchronous operation depending on the backend
-     *
-     * @param array $values      Array of values to change, keys are field names
-     *                           and values the value to set
-     * @param array $conditions  Array of key value pairs conditions, only the
-     *                           "equal" operation is supported. If value is an
-     *                           array, treat it as a "IN" operator
-     */
-    public function update(array $values, array $conditions = null);
 
     /**
      * Delete all subscriptions related to this subscriber

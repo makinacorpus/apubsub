@@ -623,7 +623,7 @@ function notification_follow_form_submit($form, &$form_state) {
       drupal_set_message(t("You are now following this channel!"));
     } catch (ChannelDoesNotExistException $e) {
       // Lazy channel registration for this user account.
-      $channel = $backend->createChannel($chanId);
+      $chan = $backend->createChannel($chanId);
       $subscriber->subscribe($chanId);
       drupal_set_message(t("You are now following this channel!"));
     }

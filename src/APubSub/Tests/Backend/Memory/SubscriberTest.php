@@ -1,5 +1,7 @@
 <?php
 
+/*
+
 namespace APubSub\Tests\Backend\Memory;
 
 use APubSub\Backend\Memory\MemoryPubSub;
@@ -12,3 +14,5 @@ class SubscriberTest extends AbstractSubscriberTest
         return new MemoryPubSub();
     }
 }
+
+ */
