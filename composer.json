@@ -11,12 +11,7 @@
     ],
     "autoload": {
         "psr-0": {
-            "ApbX": "src/",
             "APubSub": "src/"
         }
     },
-    "suggest": {
-        "predis/predis": "Allows to use the Predis backend",
-        "pounard/stockicon": "Allows the Drupal modules to use Desktop icon themes"
-    }
 }
