@@ -48,14 +48,13 @@ class MessageWorker
         $workerCallback,
         $deleteOnConsume = false)
     {
-        if (is_callable($workerCallback)) {
-            $this->workerCallback = $workerCallback;
-        } else {
+        if (!is_callable($workerCallback)) {
             throw new \InvalidArgumentException(
                 "Given worker callback is not callable");
         }
 
         $this->cursor          = $cursor;
+        $this->workerCallback  = $workerCallback;
         $this->deleteOnConsume = $deleteOnConsume;
     }
 
