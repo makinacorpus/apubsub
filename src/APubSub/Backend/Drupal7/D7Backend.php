@@ -14,7 +14,7 @@ use APubSub\Error\SubscriptionDoesNotExistException;
 /**
  * Drupal 7 backend implementation
  */
-class D7PubSub extends AbstractBackend
+class D7Backend extends AbstractBackend
 {
     /**
      * @var D7Context

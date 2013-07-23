@@ -2,7 +2,7 @@
 
 namespace APubSub\Tests\Backend\Drupal7;
 
-use APubSub\Backend\Drupal7\D7PubSub;
+use APubSub\Backend\Drupal7\D7Backend;
 use APubSub\Tests\AbstractChannelTest;
 use APubSub\Tests\Backend\Drupal\DrupalHelper;
 
@@ -45,6 +45,6 @@ class ChannelTest extends AbstractChannelTest
 
     protected function setUpBackend()
     {
-        return new D7PubSub($this->dbConnection);
+        return new D7Backend($this->dbConnection);
     }
 }

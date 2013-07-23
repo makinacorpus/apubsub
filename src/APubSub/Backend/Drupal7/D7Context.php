@@ -52,7 +52,7 @@ class D7Context extends DefaultContext
     public $delayChecks = true;
 
     /**
-     * @var \APubSub\Backend\Drupal7\D7PubSub
+     * @var D7Backend
      */
     public $backend;
 
@@ -67,12 +67,12 @@ class D7Context extends DefaultContext
      * Default constructor
      *
      * @param \DatabaseConnection $dbConnection Database connection
-     * @param D7PubSub $backend                 Backend
+     * @param D7Backend $backend                 Backend
      * @param array|Traversable $options        Options, if any
      */
     public function __construct(
         \DatabaseConnection $dbConnection,
-        D7PubSub $backend,
+        D7Backend $backend,
         $options = null)
     {
         parent::__construct($backend, $options);

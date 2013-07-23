@@ -8,7 +8,7 @@
 /**
  * Default backend class.
  */
-const APB_DEFAULT_CLASS = '\APubSub\Backend\Drupal7\D7PubSub';
+const APB_DEFAULT_CLASS = '\APubSub\Backend\Drupal7\D7Backend';
 
 /**
  * Define a custom autoloader if non declared, this prerequisite that the
