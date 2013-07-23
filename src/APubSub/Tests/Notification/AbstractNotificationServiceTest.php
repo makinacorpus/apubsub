@@ -12,17 +12,10 @@ abstract class AbstractNotificationServiceTest extends AbstractNotificationBased
         $user2Id     = 2;
         $content1Id  = 1;
 
-        // Virtually create some channels, note that they don't exist yet
-        // and we won't ever create them manually, notification service will
-        // do it for us
-        $user1ChanId    = $this->service->getChanId('friend', $user1Id);
-        $user2ChanId    = $this->service->getChanId('friend', $user2Id);
-        $content1ChanId = $this->service->getChanId('content', $content1Id);
-
         // Let's make user 1 subscribe to content 1
-        $this->service->subscribe($content1ChanId, $user1Id);
+        $this->service->subscribe('content', $content1Id, $user1Id);
         // And user 2 subscribe to user 1 friend channel
-        $this->service->subscribe($user1ChanId, $user2Id);
+        $this->service->subscribe('friend', $user1Id, $user2Id);
 
         // User 1 did some thing, user 2 should receive a notification
         $this->service->notify('friend', $user1Id, "gruik");
@@ -73,16 +66,17 @@ abstract class AbstractNotificationServiceTest extends AbstractNotificationBased
      */
     function testDisabledType()
     {
-        $chanId = $this->service->getChanId('disabled', 1);
         // Implicit creation of subscriber
         // User 1 subscribe to this new chan
-        $this->service->subscribe($chanId, 1);
+        $this->service->subscribe('disabled', 'foo', 1);
 
         $sub = $this->service->getSubscriber(1);
-        $this->assertTrue($sub->hasSubscriptionFor($chanId));
+        $this->assertTrue(
+            $sub->hasSubscriptionFor(
+                $this->service->getChanId('disabled', 'foo')));
 
         // Notify someone here that something happened
-        $this->service->notify('disabled', 1, array('some' => 'data'));
+        $this->service->notify('disabled', 'foo', array('some' => 'data'));
 
         // Type is disabled therefore no notifications should happen here
         $cursor = $sub->fetch();
@@ -96,17 +90,18 @@ abstract class AbstractNotificationServiceTest extends AbstractNotificationBased
      */
     function testNonExistingType()
     {
-        $chanId = $this->service->getChanId('nonexisting', 1);
         // Implicit creation of subscriber
         // User 1 subscribe to this new chan
-        $this->service->subscribe($chanId, 1);
+        $this->service->subscribe('nonexisting', 42, 1);
 
         $sub = $this->service->getSubscriber(1);
         // Channel should be implicitely created no matter what happens
-        $this->assertTrue($sub->hasSubscriptionFor($chanId));
+        $this->assertTrue(
+            $sub->hasSubscriptionFor(
+                $this->service->getChanId('nonexisting', 42)));
 
         // Notify someone here that something happened
-        $this->service->notify('nonexisting', 1, array('some' => 'data'));
+        $this->service->notify('nonexisting', 42, array('some' => 'data'));
 
         // Type is disabled therefore no notifications should happen here
         $cursor = $sub->fetch();

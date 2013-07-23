@@ -96,7 +96,7 @@ class NotificationService
      * @param string $type Source object type
      * @param scalar $id   Source object identifier
      *
-     * @return string          Channel identifier
+     * @return string      Channel identifier
      */
     public function getChanId($type, $id)
     {
@@ -127,12 +127,34 @@ class NotificationService
     /**
      * Subscribe an object to a chan
      *
-     * @param string $chanId Channel identifier
-     * @param scalar $id     Subscriber object identifier
-     * @param string $type   Subscriber object type pass a strict null if $id
-     *                       is already the complete identifier
+     * @param string $srcType Source object type
+     * @param scalar $srcId   Source object identifier
+     * @param scalar $id      Subscriber object identifier
+     * @param string $type    Subscriber object type pass a strict null if $id
+     *                        is already the complete identifier
      */
-    public function subscribe($chanId, $id, $type = self::SUBSCRIBER_USER)
+    public function subscribe($srcType, $srcId, $id, $type = self::SUBSCRIBER_USER)
+    {
+        $chanId     = $this->getChanId($srcType, $srcId);
+        $subscriber = $this->getSubscriber($id, $type);
+
+        try {
+            $subscriber->subscribe($chanId);
+        } catch (ChannelDoesNotExistException $e) {
+            $this->getBackend()->createChannel($chanId);
+            $subscriber->subscribe($chanId);
+        }
+    }
+
+    /**
+     * Subscribe an object to a chan
+     *
+     * @param string $chanId  Channel identifier
+     * @param scalar $id      Subscriber object identifier
+     * @param string $type    Subscriber object type pass a strict null if $id
+     *                        is already the complete identifier
+     */
+    public function subscribeTo($chanId, $id, $type = self::SUBSCRIBER_USER)
     {
         $subscriber = $this->getSubscriber($id, $type);
 
