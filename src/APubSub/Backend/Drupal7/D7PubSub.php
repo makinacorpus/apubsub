@@ -4,11 +4,8 @@ namespace APubSub\Backend\Drupal7;
 
 use APubSub\Backend\AbstractBackend;
 use APubSub\Backend\DefaultMessage;
-use APubSub\Backend\Drupal7\Cursor\D7ChannelCursor;
+use APubSub\Backend\DefaultSubscriber;
 use APubSub\Backend\Drupal7\Cursor\D7MessageCursor;
-use APubSub\Backend\Drupal7\Cursor\D7SubscriberCursor;
-use APubSub\Backend\Drupal7\Cursor\D7SubscriptionCursor;
-use APubSub\BackendInterface;
 use APubSub\CursorInterface;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
@@ -17,7 +14,7 @@ use APubSub\Error\SubscriptionDoesNotExistException;
 /**
  * Drupal 7 backend implementation
  */
-class D7PubSub extends AbstractBackend implements BackendInterface
+class D7PubSub extends AbstractBackend
 {
     /**
      * @var D7Context
@@ -729,8 +726,24 @@ class D7PubSub extends AbstractBackend implements BackendInterface
      */
     public function getSubscriber($id)
     {
-        // In this implementation all writes will be delayed on real operations
-        return new D7Subscriber($this->context, $id);
+        $idList = $this
+            ->context
+            ->dbConnection
+            // This query will also remove non existing stalling subscriptions
+            // from the subscriber map thanks to the JOIN statements, thus
+            // avoiding potential exceptions being thrown at single subscription
+            // get time
+            ->query("
+                SELECT c.name, mp.sub_id
+                    FROM {apb_sub_map} mp
+                    JOIN {apb_sub} s ON s.id = mp.sub_id
+                    JOIN {apb_chan} c ON c.id = s.chan_id
+                    WHERE mp.name = :name", array(
+                ':name' => $id,
+            ))
+            ->fetchAllKeyed();
+
+        return new DefaultSubscriber($id, $this->context, $idList);
     }
 
     /**
@@ -739,11 +752,21 @@ class D7PubSub extends AbstractBackend implements BackendInterface
      */
     public function subscribe($chanId, $subscriberId = null)
     {
-        $deactivated = time();
-        $created     = $deactivated;
-        $cx          = $this->context->dbConnection;
-        $tx          = null;
-        $chan        = $this->getChannel($chanId);
+        $deactivated  = time();
+        $created      = $deactivated;
+        $cx           = $this->context->dbConnection;
+        $tx           = null;
+        $chan         = $this->getChannel($chanId);
+        $subscriber   = null;
+        $subscription = null;
+
+        if ($subscriberId) {
+            $subscriber = $this->getSubscriber($subscriberId);
+
+            if ($subscriber->hasSubscriptionFor($chanId)) {
+                return $subscriber->getSubscriptionFor($chanId);
+            }
+        }
 
         try {
             $tx = $cx->startTransaction();
@@ -752,7 +775,7 @@ class D7PubSub extends AbstractBackend implements BackendInterface
                 ->insert('apb_sub')
                 ->fields(array(
                     'chan_id'     => $chan->getDatabaseId(),
-                    'status'      => 0,
+                    'status'      => (int)(bool)$subscriberId,
                     'created'     => $created,
                     'deactivated' => $deactivated,
                 ))
@@ -760,10 +783,37 @@ class D7PubSub extends AbstractBackend implements BackendInterface
 
             $id = (int)$cx->lastInsertId();
 
+            // Implicitely create the new subscriber/subscription association
+            // if a subscriber identifier was given
+            if ($subscriber) {
+
+                $exists = $cx
+                    ->select('apb_sub_map', 'mp')
+                    ->fields('mp', array('name'))
+                    ->condition('mp.name', $subscriberId)
+                    ->condition('mp.sub_id', $id)
+                    ->execute()
+                    ->fetchField();
+
+                if (!$exists) {
+                    $cx
+                        ->insert('apb_sub_map')
+                        ->fields(array(
+                            'name'   => $subscriberId,
+                            'sub_id' => $id,
+                        ))
+                        ->execute();
+                }
+            }
+
             $subscription = new D7Subscription(
                 $chanId, $id, $created, 0,
                 $deactivated, false, $this->context);
 
+            unset($tx); // Explicit commit
+
+            // Populate cache outside of the transaction once
+            // commit in order to ensure we won't cache wrong data
             $this->context->cache->addSubscription($subscription);
 
             return $subscription;

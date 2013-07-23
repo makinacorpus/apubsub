@@ -7,7 +7,10 @@ use APubSub\CursorInterface;
 use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\SubscriberInterface;
 
-abstract class DefaultSubscriber extends AbstractMessageContainer implements
+/**
+ * Default subscriber implementation that will fit most backends
+ */
+class DefaultSubscriber extends AbstractMessageContainer implements
     SubscriberInterface
 {
     /**
@@ -18,22 +21,28 @@ abstract class DefaultSubscriber extends AbstractMessageContainer implements
     /**
      * @var array
      */
-    // @todo Switch back to private once no other implementations exists
-    protected $idList = null;
+    private $idList = null;
 
     /**
      * Default constructor
      *
      * @param int $id                   Identifier
      * @param ContextInterface $context Context
+     * @param array $subIdList          Subscription identifiers list where
+     *                                  keys are channel identifiers and values
+     *                                  are subscriptions identifiers
      */
-    public function __construct($id, ContextInterface $context)
+    public function __construct($id, ContextInterface $context, array $subIdList = null)
     {
         parent::__construct($context, array(
             CursorInterface::FIELD_SUBER_NAME => $id,
         ));
 
         $this->id = $id;
+
+        if (null !== $subIdList) {
+            $this->idList = $subIdList;
+        }
     }
 
     /**
@@ -89,6 +98,22 @@ abstract class DefaultSubscriber extends AbstractMessageContainer implements
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\SubscriberInterface::subscribe()
+     */
+    public function subscribe($chanId)
+    {
+        $subscription = $this
+            ->context
+            ->getBackend()
+            ->subscribe($chanId, $this->id);
+
+        $this->idList[$chanId] = $subscription->getId();
+
+        return $subscription;
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\SubscriberInterface::unsubscribe()
      */
     public function unsubscribe($chanId)
@@ -96,13 +121,15 @@ abstract class DefaultSubscriber extends AbstractMessageContainer implements
         try {
             if (isset($this->idList[$chanId])) {
                 // See the getSubscriptionFor() implementation
-                $this->context
+                $this
+                    ->context
                     ->getBackend()
                     ->getSubscription($this->idList[$chanId])
                     ->delete();
             }
         } catch (SubscriptionDoesNotExistException $e) {
-            // All OK
+            // An exception here means a subscription for this channel does
+            // not exist and that we can pass safely 
         }
     }
 
@@ -112,7 +139,7 @@ abstract class DefaultSubscriber extends AbstractMessageContainer implements
      */
     public function delete()
     {
-        $this
+        return $this
             ->context
             ->getBackend()
             ->deleteSubscriptions($this->idList);
