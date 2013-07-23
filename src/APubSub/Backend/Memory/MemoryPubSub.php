@@ -2,19 +2,24 @@
 
 namespace APubSub\Backend\Memory;
 
-use APubSub\Backend\AbstractObject;
+use APubSub\Backend\AbstractBackend;
 use APubSub\Backend\ArrayCursor;
 use APubSub\CursorInterface;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
-use APubSub\BackendInterface;
+use APubSub\Backend\DefaultSubscriber;
 
 /**
  * Array based implementation for unit testing: do not use in production
  */
-class MemoryPubSub extends AbstractObject implements BackendInterface
+class MemoryPubSub extends AbstractBackend
 {
+    /**
+     * @var MemoryContext
+     */
+    protected $context;
+
     /**
      * Sort helper for messages
      *
@@ -233,10 +238,73 @@ class MemoryPubSub extends AbstractObject implements BackendInterface
     public function getSubscriber($id)
     {
         if (!isset($this->context->subscribers[$id])) {
-            $this->context->subscribers[$id] = new MemorySubscriber($this->context, $id);
+            $this->context->subscribers[$id] = new DefaultSubscriber($id, $this->context);
         }
 
         return $this->context->subscribers[$id];
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\BackendInterface::subscribe()
+     */
+    public function subscribe($chanId, $subscriberId = null)
+    {
+        if ($subscriberId) {
+            $subscriber = $this->getSubscriber($subscriberId);
+
+            if ($subscriber->hasSubscriptionFor($chanId)) {
+                return $subscriber->getSubscriptionFor($chanId);
+            }
+        }
+
+        // FIXME: When this is called with the $subscriberId set outside of
+        // of the DefaultSubscriber::subscribe() method, the subscription
+        // will not be set into the subscriber
+        return new MemorySubscription($context, $chanId);
+    }
+
+    /**
+     * Send a single message to one or more channels
+     *
+     * @param string|string[] $chanId List of channels or single channel to send
+     *                                the message too
+     * @param string $type            Message type
+     * @param int $level              Arbitrary business level
+     * @param int $sendTime           If set the creation/send timestamp will be
+     *                                forced to the given value
+     */
+    public function send($chanId, $contents, $type = null, $level = 0, $sendTime = null)
+    {
+        // FIXME: handle multiple channels
+
+        throw new \Exception("Not implemented yet");
+
+        if (null === $sendTime) {
+            $sendTime = time();
+        }
+
+        $msgId = $this->context->getNextMessageIdentifier();
+
+        $message = new MemoryMessage(
+            $this->context,
+            $chanId,
+            null,
+            $contents,
+            $msgId,
+            $sendTime);
+
+        if (!is_array($chanId)) {
+            $chanId = array($chanId);
+        }
+
+        /*
+         * FIXME: Redo the whole cache handling of memory backend
+         *
+        foreach ($chanId as $id) {
+            $this->context->
+        }
+         */
     }
 
     /**
