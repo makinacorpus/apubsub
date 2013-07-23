@@ -2,6 +2,9 @@
 
 namespace APubSub\Backend\Drupal7\Helper;
 
+use APubSub\Backend\Drupal7\D7Channel;
+use APubSub\Backend\Drupal7\D7Subscription;
+
 class Cache
 {
     /**
