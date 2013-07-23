@@ -39,11 +39,6 @@ const APB_INFO_FORMATTER = 1;
 const APB_INFO_CHAN = 2;
 
 /**
- * Channel instance info
- */
-const APB_INFO_QUEUE = 3;
-
-/**
  * Enable AJAX for notification block variable name.
  */
 const APB_VAR_ENABLE_AJAX = 'apb_follow_enable_ajax';
@@ -166,13 +161,6 @@ function notification_type_info_get($target = APB_INFO_FORMATTER) {
 
     case APB_INFO_CHAN:
       $hook     = 'notification_channel_info';
-      $defaults = array(
-        'visible' => true,
-      );
-      break;
-
-    case APB_INFO_QUEUE:
-      $hook     = 'notification_queue_info';
       $defaults = array(
         'visible' => true,
       );
@@ -336,14 +324,6 @@ function notification_menu() {
     'type'             => MENU_LOCAL_TASK,
     'file'             => 'notification.admin.inc',
   );
-  $items['admin/config/people/notification/queues'] = array(
-    'title'            => "Queues",
-    'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('notification_admin_notification_queues'),
-    'access arguments' => array('administer site configuration'),
-    'type'             => MENU_LOCAL_TASK,
-    'file'             => 'notification.admin.inc',
-  );
   $items['admin/config/people/notification/settings'] = array(
     'title'            => "Global settings",
     'page callback'    => 'drupal_get_form',
@@ -415,12 +395,6 @@ function notification_service_get() {
     $chanTypeRegistry = $instance->getChanTypeRegistry();
     foreach (notification_type_info_get(APB_INFO_CHAN) as $type => $info) {
       $chanTypeRegistry->registerType($type, $info);
-    }
-
-    // Register all "Drupal Way (TM)" channel types.
-    $queueRegistry = $instance->getQueueRegistry();
-    foreach (notification_type_info_get(APB_INFO_QUEUE) as $type => $info) {
-      $queueRegistry->registerType($type, $info);
     }
   }
 
@@ -687,10 +661,6 @@ function notification_image_render($uri, $size = null) {
 
 /**
  * Render the notifications for the given user account.
- *
- * This method demonstrate how to use a custom implementation of QueueMessage
- * and how to iterate over the locale queue cache. Code is quite straight
- * forward to understand, it's mostly dealing with HTML code building.
  *
  * @param object $account
  *   Subscriber account.
