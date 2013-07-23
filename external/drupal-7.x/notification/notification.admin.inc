@@ -12,7 +12,7 @@ use APubSub\Notification\QueueInterface;
 /**
  * Notification types admin form.
  */
-function apb7_follow_admin_notification_notification_types($form, &$form_state) {
+function notification_admin_notification_notification_types($form, &$form_state) {
 
   $service   = notification_service_get();
   $registry  = $service->getFormatterRegistry();
@@ -52,12 +52,12 @@ function apb7_follow_admin_notification_notification_types($form, &$form_state) 
   $form['actions']['enable'] = array(
     '#type'   => 'submit',
     '#value'  => t("Enable"),
-    '#submit' => array('apb7_follow_admin_notification_overview_submit_enable'),
+    '#submit' => array('notification_admin_notification_overview_submit_enable'),
   );
   $form['actions']['disable'] = array(
     '#type'   => 'submit',
     '#value'  => t("Disable"),
-    '#submit' => array('apb7_follow_admin_notification_overview_submit_disable'),
+    '#submit' => array('notification_admin_notification_overview_submit_disable'),
   );
 
   return $form;
@@ -66,7 +66,7 @@ function apb7_follow_admin_notification_notification_types($form, &$form_state) 
 /**
  * Notification types admin form enable selected submit handler.
  */
-function apb7_follow_admin_notification_overview_submit_enable($form, &$form_state) {
+function notification_admin_notification_overview_submit_enable($form, &$form_state) {
 
   $types = array();
   foreach ($form_state['values']['types'] as $type => $selected) {
@@ -95,7 +95,7 @@ function apb7_follow_admin_notification_overview_submit_enable($form, &$form_sta
 /**
  * Notification types admin form disable selected submit handler.
  */
-function apb7_follow_admin_notification_overview_submit_disable($form, &$form_state) {
+function notification_admin_notification_overview_submit_disable($form, &$form_state) {
 
   $types = array();
   foreach ($form_state['values']['types'] as $type => $selected) {
@@ -124,7 +124,7 @@ function apb7_follow_admin_notification_overview_submit_disable($form, &$form_st
 /**
  * Channel types admin form.
  */
-function apb7_follow_admin_notification_channel_types($form, &$form_state) {
+function notification_admin_notification_channel_types($form, &$form_state) {
 
   $service   = notification_service_get();
   $registry  = $service->getChanTypeRegistry();
@@ -164,7 +164,7 @@ function apb7_follow_admin_notification_channel_types($form, &$form_state) {
 /**
  * Channel types admin form.
  */
-function apb7_follow_admin_notification_queues($form, &$form_state) {
+function notification_admin_notification_queues($form, &$form_state) {
 
   $service   = notification_service_get();
   $registry  = $service->getQueueRegistry();
@@ -202,7 +202,7 @@ function apb7_follow_admin_notification_queues($form, &$form_state) {
 /**
  * Global settings form.
  */
-function apb7_follow_admin_notification_settings($form, &$form_state) {
+function notification_admin_notification_settings($form, &$form_state) {
 
   $form['interface'] = array(
     '#type'  => 'fieldset',
@@ -271,14 +271,14 @@ function apb7_follow_admin_notification_settings($form, &$form_state) {
   $form['advanced'][APB_VAR_BACKEND] = array(
     '#type'          => 'radios',
     '#title'         => t("Pub/Sub backend to use"),
-    '#options'       => apb7_backend_list_select_options(),
+    '#options'       => apb_backend_list_select_options(),
     '#description'   => t("If you change the backend while site was being used, all current notifications will be left to stall in the older backend, and users won't be able to access it again, except if you switch back to it."),
     '#default_value' => variable_get(APB_VAR_BACKEND, APB_DEF_BACKEND),
   );
 
   $form = system_settings_form($form);
 
-  $form['#submit'][] = 'apb7_follow_admin_notification_settings_submit';
+  $form['#submit'][] = 'notification_admin_notification_settings_submit';
 
   return $form;
 }
@@ -286,7 +286,7 @@ function apb7_follow_admin_notification_settings($form, &$form_state) {
 /**
  * If variables changed, we need to clear some caches.
  */
-function apb7_follow_admin_notification_settings_submit($form, &$form_state) {
+function notification_admin_notification_settings_submit($form, &$form_state) {
   $values = $form_state['values'];
 
   if ($values[APB_VAR_ENABLE_AJAX] != $values[APB_VAR_ENABLE_AJAX . '.default']) {

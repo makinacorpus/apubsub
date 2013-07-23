@@ -8,72 +8,72 @@
 /**
  * Implements hook_menu().
  */
-function apb7_ui_menu() {
+function apb_ui_menu() {
   $items = array();
 
   // Administration screens.
   $items['admin/content/pubsub'] = array(
     'title' => 'Pub/Sub',
     'description' => 'Manage channels and subscriptions.',
-    'page callback' => 'apb7_ui_content_backend_list',
+    'page callback' => 'apb_ui_content_backend_list',
     'access arguments' => array('access administration pages'),
-    'file' => 'apb7_ui.admin.inc',
+    'file' => 'apb_ui.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
 
-  $items['admin/content/pubsub/%apb7_backend'] = array(
+  $items['admin/content/pubsub/%apb_backend'] = array(
     'title' => 'Backend overview',
-    'page callback' => 'apb7_ui_content_backend_overview_page',
+    'page callback' => 'apb_ui_content_backend_overview_page',
     'page arguments' => array(3),
-    'access callback' => 'apb7_ui_access',
+    'access callback' => 'apb_ui_access',
     'access arguments' => array(3),
-    'file' => 'apb7_ui.admin.inc',
+    'file' => 'apb_ui.admin.inc',
     'type' => MENU_CALLBACK | MENU_VISIBLE_IN_BREADCRUMB,
   );
-  $items['admin/content/pubsub/%apb7_backend/overview'] = array(
+  $items['admin/content/pubsub/%apb_backend/overview'] = array(
     'title' => 'Overview',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
 
-  $items['admin/content/pubsub/%apb7_backend/channels'] = array(
+  $items['admin/content/pubsub/%apb_backend/channels'] = array(
     'title' => 'Channels',
     'description' => 'Manage channels and subscriptions.',
-    'page callback' => 'apb7_ui_content_backend_channel_list',
+    'page callback' => 'apb_ui_content_backend_channel_list',
     'page arguments' => array(3),
-    'access callback' => 'apb7_ui_access',
+    'access callback' => 'apb_ui_access',
     'access arguments' => array(3, 4),
-    'file' => 'apb7_ui.admin.inc',
+    'file' => 'apb_ui.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
-  $items['admin/content/pubsub/%apb7_backend/subscriptions'] = array(
+  $items['admin/content/pubsub/%apb_backend/subscriptions'] = array(
     'title' => 'Subscriptions',
     'description' => 'Manage channels and subscriptions.',
-    'page callback' => 'apb7_ui_content_backend_subscription_list',
+    'page callback' => 'apb_ui_content_backend_subscription_list',
     'page arguments' => array(3),
-    'access callback' => 'apb7_ui_access',
+    'access callback' => 'apb_ui_access',
     'access arguments' => array(3, 4),
-    'file' => 'apb7_ui.admin.inc',
+    'file' => 'apb_ui.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
-  $items['admin/content/pubsub/%apb7_backend/subscribers'] = array(
+  $items['admin/content/pubsub/%apb_backend/subscribers'] = array(
     'title' => 'Subscribers',
     'description' => 'Manage channels and subscriptions.',
-    'page callback' => 'apb7_ui_content_backend_subscriber_list',
+    'page callback' => 'apb_ui_content_backend_subscriber_list',
     'page arguments' => array(3),
-    'access callback' => 'apb7_ui_access',
+    'access callback' => 'apb_ui_access',
     'access arguments' => array(3, 4),
-    'file' => 'apb7_ui.admin.inc',
+    'file' => 'apb_ui.admin.inc',
     'type' => MENU_LOCAL_TASK,
   );
 
-  $items['admin/content/pubsub/%apb7_backend/analysis'] = array(
+  $items['admin/content/pubsub/%apb_backend/analysis'] = array(
     'title' => 'Run analysis',
-    'page callback' => 'apb7_ui_content_backend_analysis',
+    'page callback' => 'apb_ui_content_backend_analysis',
     'page arguments' => array(3),
-    'access callback' => 'apb7_ui_access',
+    'access callback' => 'apb_ui_access',
     'access arguments' => array(3),
-    'file' => 'apb7_ui.admin.inc',
+    'file' => 'apb_ui.admin.inc',
     'type' => MENU_LOCAL_ACTION | MENU_VISIBLE_IN_BREADCRUMB,
   );
 
@@ -91,7 +91,7 @@ function apb7_ui_menu() {
  * @return bool
  *   True for access false else.
  */
-function apb7_ui_access($backend = null, $page = null) {
+function apb_ui_access($backend = null, $page = null) {
   if (($backend instanceof \APubSub\BackendInterface) &&
       user_access('access administration pages'))
   {

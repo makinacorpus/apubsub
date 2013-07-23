@@ -9,10 +9,10 @@ use APubSub\CursorInterface;
 /**
  * AJAX callback, see own user notifications.
  */
-function apb7_follow_ajax_user_notifications() {
+function notification_ajax_user_notifications() {
   global $user;
 
-  $content = apb7_follow_notification_render_block($user, true);
+  $content = notification_notification_render_block($user, true);
 
   if (is_array($content)) {
     echo drupal_render($content);
@@ -28,7 +28,7 @@ function apb7_follow_ajax_user_notifications() {
 /**
  * AJAX callback, unmark messages as unread when receiving this.
  */
-function apb7_follow_ajax_unfold_notifications() {
+function notification_ajax_unfold_notifications() {
   global $user;
 
   notification_service_get()

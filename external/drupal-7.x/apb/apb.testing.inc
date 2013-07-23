@@ -8,7 +8,7 @@
 /**
  * Psuedo implementation of hook_menu() when testing is enabled.
  */
-function apb7_testing_menu() {
+function apb_testing_menu() {
   $items = array();
 
   // Testing stuff.
@@ -26,50 +26,50 @@ function apb7_testing_menu() {
   $items['admin/messages/stress'] = array(
     'title' => 'Massive stress test',
     'description' => 'Multistep interactive wizard to proceed to a massive stress test.',
-    'page callback' => 'apb7_testing_volume_list',
+    'page callback' => 'apb_testing_volume_list',
     'access arguments' => array('access administration pages'),
-    'file' => 'apb7.testing.inc',
+    'file' => 'apb.testing.inc',
     'type' => MENU_NORMAL_ITEM,
   );
   $items['admin/messages/stress/add'] = array(
     'title' => 'Add scenario',
     'description' => 'Create new test scenario.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('apb7_testing_volume_form'),
+    'page arguments' => array('apb_testing_volume_form'),
     'access arguments' => array('access administration pages'),
-    'file' => 'apb7.testing.inc',
+    'file' => 'apb.testing.inc',
     'type' => MENU_LOCAL_ACTION,
   );
-  $items['admin/messages/stress/%apb7_test_scenario'] = array(
+  $items['admin/messages/stress/%apb_test_scenario'] = array(
     'title' => 'View scenario',
-    'page callback' => 'apb7_testing_volume_view_page',
+    'page callback' => 'apb_testing_volume_view_page',
     'page arguments' => array(3),
     'access arguments' => array('access administration pages'),
-    'file' => 'apb7.testing.inc',
+    'file' => 'apb.testing.inc',
     'type' => MENU_CALLBACK | MENU_VISIBLE_IN_BREADCRUMB,
   );
-  $items['admin/messages/stress/%apb7_test_scenario/populate-channels'] = array(
+  $items['admin/messages/stress/%apb_test_scenario/populate-channels'] = array(
     'title' => 'Populate channels',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('apb7_testing_volume_scenario_populate_channels_form', 3),
+    'page arguments' => array('apb_testing_volume_scenario_populate_channels_form', 3),
     'access arguments' => array('access administration pages'),
-    'file' => 'apb7.testing.inc',
+    'file' => 'apb.testing.inc',
     'type' => MENU_LOCAL_ACTION,
   );
-  $items['admin/messages/stress/%apb7_test_scenario/populate-messages'] = array(
+  $items['admin/messages/stress/%apb_test_scenario/populate-messages'] = array(
     'title' => 'Populate messages',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('apb7_testing_volume_scenario_populate_messages_form', 3),
+    'page arguments' => array('apb_testing_volume_scenario_populate_messages_form', 3),
     'access arguments' => array('access administration pages'),
-    'file' => 'apb7.testing.inc',
+    'file' => 'apb.testing.inc',
     'type' => MENU_LOCAL_ACTION,
   );
-  $items['admin/messages/stress/%apb7_test_scenario/delete'] = array(
+  $items['admin/messages/stress/%apb_test_scenario/delete'] = array(
     'title' => 'Delete',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('apb7_testing_volume_scenario_delete_form', 3),
+    'page arguments' => array('apb_testing_volume_scenario_delete_form', 3),
     'access arguments' => array('access administration pages'),
-    'file' => 'apb7.testing.inc',
+    'file' => 'apb.testing.inc',
     'type' => MENU_LOCAL_ACTION,
   );
 
@@ -79,7 +79,7 @@ function apb7_testing_menu() {
 /**
  * List test scenarios.
  */
-function apb7_testing_volume_list() {
+function apb_testing_volume_list() {
 
   $header = array(
     array('data' => t("Id"),      'field' => 's.id'),
@@ -117,7 +117,7 @@ function apb7_testing_volume_list() {
 /**
  * Add new test scenario form.
  */
-function apb7_testing_volume_form($form, &$form_state) {
+function apb_testing_volume_form($form, &$form_state) {
   $form['#tree'] = TRUE;
 
   if (!isset($form_state['storage'])) {
@@ -253,7 +253,7 @@ function apb7_testing_volume_form($form, &$form_state) {
   return $form;
 }
 
-function apb7_testing_volume_form_submit($form, &$form_state) {
+function apb_testing_volume_form_submit($form, &$form_state) {
   $storage = &$form_state['storage'];
 
   // Ensure values.
@@ -283,7 +283,7 @@ function apb7_testing_volume_form_submit($form, &$form_state) {
 /**
  * Single scenario overview page.
  */
-function apb7_testing_volume_view_page($scenario) {
+function apb_testing_volume_view_page($scenario) {
   drupal_set_title(t("Scenario @name", array(
     '@name' => $scenario->name,
   )));
@@ -294,7 +294,7 @@ function apb7_testing_volume_view_page($scenario) {
 /**
  * Single scenario populate form.
  */
-function apb7_testing_volume_scenario_populate_channels_form($form, &$form_state, $scenario) {
+function apb_testing_volume_scenario_populate_channels_form($form, &$form_state, $scenario) {
   $form['id'] = array('#type' => 'value', '#value' => $scenario->id);
 
   $question = t("Drop all data from backend and populate with this scenario data?");
@@ -306,9 +306,9 @@ function apb7_testing_volume_scenario_populate_channels_form($form, &$form_state
 /**
  * Single scenario populate form submit handler.
  */
-function apb7_testing_volume_scenario_populate_channels_form_submit($form, &$form_state) {
+function apb_testing_volume_scenario_populate_channels_form_submit($form, &$form_state) {
 
-  $scenario = apb7_test_scenario_load($form_state['values']['id']);
+  $scenario = apb_test_scenario_load($form_state['values']['id']);
 
   // FIXME: MySQL and Drupal7 backend only
   db_query("TRUNCATE {batch}");
@@ -323,18 +323,18 @@ function apb7_testing_volume_scenario_populate_channels_form_submit($form, &$for
 
   batch_set(array(
     'operations' => array(
-      array('_apb7_testing_volume_batch_setup', array($scenario->data)),
+      array('_apb_testing_volume_batch_setup', array($scenario->data)),
     ),
     'title' => 'Creating channels and subscriptions',
     'finished' => 'update_finished',
-    'file' => drupal_get_path('module', 'apb7') . '/apb7.testing.inc',
+    'file' => drupal_get_path('module', 'apb') . '/apb.testing.inc',
   ));
 }
 
 /**
  * Single scenario populate form.
  */
-function apb7_testing_volume_scenario_populate_messages_form($form, &$form_state, $scenario) {
+function apb_testing_volume_scenario_populate_messages_form($form, &$form_state, $scenario) {
   $form['id'] = array('#type' => 'value', '#value' => $scenario->id);
 
   $form['day_count'] = array(
@@ -353,23 +353,23 @@ function apb7_testing_volume_scenario_populate_messages_form($form, &$form_state
 /**
  * Single scenario populate form submit handler.
  */
-function apb7_testing_volume_scenario_populate_messages_form_submit($form, &$form_state) {
+function apb_testing_volume_scenario_populate_messages_form_submit($form, &$form_state) {
 
-  $scenario = apb7_test_scenario_load($form_state['values']['id']);
+  $scenario = apb_test_scenario_load($form_state['values']['id']);
 
   batch_set(array(
     'operations' => array(
-      array('_apb7_testing_volume_batch_messages', array($scenario->data)),
+      array('_apb_testing_volume_batch_messages', array($scenario->data)),
     ),
     'title' => 'Creating messages',
     'finished' => 'update_finished',
-    'file' => drupal_get_path('module', 'apb7') . '/apb7.testing.inc',
+    'file' => drupal_get_path('module', 'apb') . '/apb.testing.inc',
   ));
 }
 /**
  * Single scenario delete form.
  */
-function apb7_testing_volume_scenario_delete_form($form, &$form_state, $scenario) {
+function apb_testing_volume_scenario_delete_form($form, &$form_state, $scenario) {
   $form['id'] = array('#type' => 'value', '#value' => $scenario->id);
 
   $question = t("Drop this scenario (data will be left in the backend)?");
@@ -381,7 +381,7 @@ function apb7_testing_volume_scenario_delete_form($form, &$form_state, $scenario
 /**
  * Single scenario delete form submit.
  */
-function apb7_testing_volume_scenario_delete_form_submit($form, &$form_state) {
+function apb_testing_volume_scenario_delete_form_submit($form, &$form_state) {
   db_query("DELETE FROM {apb_test_scenario} WHERE id = :id", array(
     ':id' => $form_state['values']['id'],
   ));
@@ -392,7 +392,7 @@ function apb7_testing_volume_scenario_delete_form_submit($form, &$form_state) {
 /**
  * Batch operation that will populate data for a scenario.
  */
-function _apb7_testing_volume_batch_setup($storage, &$context) {
+function _apb_testing_volume_batch_setup($storage, &$context) {
 
   if (empty($context['sandbox'])) {
     // We cannot create it all, the max value will be approximative.
@@ -417,7 +417,7 @@ function _apb7_testing_volume_batch_setup($storage, &$context) {
     $chanLimit = $sandbox['max'] - $sandbox['progress'];
   }
 
-  $backend = apb7_backend_get($storage['backend']);
+  $backend = apb_backend_get($storage['backend']);
 
   // Create all chans one shot
   $chanlist = array();
@@ -461,7 +461,7 @@ function _apb7_testing_volume_batch_setup($storage, &$context) {
 /**
  * Batch operation that will create messages for the given scenario.
  */
-function _apb7_testing_volume_batch_messages($storage, &$context) {
+function _apb_testing_volume_batch_messages($storage, &$context) {
 
   $limit           = 20; // Maximum number of chans processed
   $messagesPerChan = $storage['avg_msg_per_chan'];
@@ -479,7 +479,7 @@ function _apb7_testing_volume_batch_messages($storage, &$context) {
 
   $sandbox = &$context['sandbox'];
 
-  $backend = apb7_backend_get($storage['backend']);
+  $backend = apb_backend_get($storage['backend']);
 
   for ($i = 0; $i < $limit; ++$i) {
 

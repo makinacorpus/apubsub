@@ -10,12 +10,12 @@ use APubSub\BackendInterface;
 /**
  * List all known backends
  */
-function apb7_ui_content_backend_list() {
+function apb_ui_content_backend_list() {
 
   $headers = array(t("Name"), t("Class"), t("Status"), t("Operations"));
   $rows = array();
 
-  foreach (apb7_backend_list() as $name => $backend) {
+  foreach (apb_backend_list() as $name => $backend) {
     $row = array();
 
     $row[] = check_plain($name);
@@ -40,7 +40,7 @@ function apb7_ui_content_backend_list() {
 /**
  * Display information about the given backend
  */
-function apb7_ui_content_backend_overview_page(BackendInterface $backend) {
+function apb_ui_content_backend_overview_page(BackendInterface $backend) {
   $build   = array();
 
   // Recap of backend capabilities, using some bit of introspection.
@@ -111,7 +111,7 @@ function apb7_ui_content_backend_overview_page(BackendInterface $backend) {
 /**
  * Run backend analysis and display result.
  */
-function apb7_ui_content_backend_analysis(BackendInterface $backend) {
+function apb_ui_content_backend_analysis(BackendInterface $backend) {
 
   if (!$analysis = $backend->getAnalysis()) {
     return array(
@@ -147,7 +147,7 @@ function apb7_ui_content_backend_analysis(BackendInterface $backend) {
 /**
  * Display backend channel list
  */
-function apb7_ui_content_backend_channel_list(BackendInterface $backend) {
+function apb_ui_content_backend_channel_list(BackendInterface $backend) {
   $build = array();
   $limit = 16;
 
@@ -187,7 +187,7 @@ function apb7_ui_content_backend_channel_list(BackendInterface $backend) {
 /**
  * Display backend subscription list
  */
-function apb7_ui_content_backend_subscription_list(BackendInterface $backend) {
+function apb_ui_content_backend_subscription_list(BackendInterface $backend) {
   $build = array();
   $limit = 16;
   $yes   = t("Yes");
@@ -242,7 +242,7 @@ function apb7_ui_content_backend_subscription_list(BackendInterface $backend) {
 /**
  * Display backend subscriber list
  */
-function apb7_ui_content_backend_subscriber_list(BackendInterface $backend) {
+function apb_ui_content_backend_subscriber_list(BackendInterface $backend) {
   $build = array();
   $limit = 16;
   $yes   = t("Yes");

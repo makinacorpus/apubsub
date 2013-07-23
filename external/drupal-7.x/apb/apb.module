@@ -27,10 +27,10 @@ if (!class_exists('APubSub\BackendInterface')) {
 /**
  * Implements hook_menu().
  */
-function apb7_menu() {
+function apb_menu() {
   if (variable_get('apubsub_testing', FALSE)) {
-    require_once __DIR__ . '/apb7.testing.inc';
-    return apb7_testing_menu();
+    require_once __DIR__ . '/apb.testing.inc';
+    return apb_testing_menu();
   } else {
     return array();
   }
@@ -39,7 +39,7 @@ function apb7_menu() {
 /**
  * Menu helper.
  */
-function apb7_test_scenario_load($id) {
+function apb_test_scenario_load($id) {
   $scenario = db_select('apb_test_scenario', 't')
     ->fields('t')
     ->condition('t.id', $id)
@@ -55,8 +55,8 @@ function apb7_test_scenario_load($id) {
 /**
  * Menu helper, please do not use directly.
  */
-function apb7_backend_load($name) {
-  return apb7_backend_get($name);
+function apb_backend_load($name) {
+  return apb_backend_get($name);
 }
 
 /**
@@ -65,7 +65,7 @@ function apb7_backend_load($name) {
  * @return array
  *   Configuration array.
  */
-function apb7_backend_list() {
+function apb_backend_list() {
   $backend_conf = &drupal_static(__FUNCTION__);
 
   if (null === $backend_conf) {
@@ -86,10 +86,10 @@ function apb7_backend_list() {
  * @return array
  *   Keys are backend identifiers and values are backend names.
  */
-function apb7_backend_list_select_options() {
+function apb_backend_list_select_options() {
   $ret = array();
 
-  foreach (apb7_backend_list() as $name => $info) {
+  foreach (apb_backend_list() as $name => $info) {
     if (isset($info['info'])) {
       $ret[$name] = $info['info'];
     } else {
@@ -106,11 +106,11 @@ function apb7_backend_list_select_options() {
  * @return \APubSub\BackendInterface
  *   Pub/Sub backend.
  */
-function apb7_backend_get($name = 'default') {
+function apb_backend_get($name = 'default') {
   $backends = &drupal_static(__FUNCTION__, array());
 
   if (!isset($backends[$name])) {
-    $conf = apb7_backend_list();
+    $conf = apb_backend_list();
 
     if (!isset($conf[$name])) {
       throw new InvalidArgumentException(sprintf("Backend '%s' does not exist", $name));
@@ -169,15 +169,15 @@ function apb7_backend_get($name = 'default') {
 /**
  * Implements hook_cron().
  */
-function apb7_cron() {
-  foreach (apb7_backend_list() as $name => $info) {
+function apb_cron() {
+  foreach (apb_backend_list() as $name => $info) {
     try {
-      apb7_backend_get($name)->garbageCollection();
+      apb_backend_get($name)->garbageCollection();
     } catch (Exception $e) {
       // We cannot afford cron failure here, outdated data must be wiped
       // out no matter the cost, just leave some comprehensive exception
       // logging in case of any error
-      watchdog_exception('apb7', $e, sprintf("Backend name '%s' could not be instanciated"), NULL, WATCHDOG_ERROR);
+      watchdog_exception('apb', $e, sprintf("Backend name '%s' could not be instanciated"), NULL, WATCHDOG_ERROR);
     }
   }
 }

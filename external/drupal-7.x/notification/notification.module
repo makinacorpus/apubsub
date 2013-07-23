@@ -227,7 +227,7 @@ function notification_type_info_get($target = APB_INFO_FORMATTER) {
 /**
  * Implements hook_permission().
  */
-function apb7_follow_permission() {
+function notification_permission() {
   return array(
     'follow other users' => array(
       'title'       => t("Follow other users"),
@@ -261,7 +261,7 @@ function notification_user_access($account = null) {
 /**
  * Implements hook_menu().
  */
-function apb7_follow_menu() {
+function notification_menu() {
   $items = array();
 
   // User preferences and pages.
@@ -302,13 +302,13 @@ function apb7_follow_menu() {
 
   // AJAX stuff.
   $items['notification/ajax/user'] = array(
-    'page callback'    => 'apb7_follow_ajax_user_notifications',
+    'page callback'    => 'notification_ajax_user_notifications',
     'access callback'  => 'notification_user_access',
     'type'             => MENU_CALLBACK,
     'file'             => 'notification.ajax.inc',
   );
   $items['notification/ajax/unfold'] = array(
-    'page callback'    => 'apb7_follow_ajax_unfold_notifications',
+    'page callback'    => 'notification_ajax_unfold_notifications',
     'access callback'  => 'notification_user_access',
     'type'             => MENU_CALLBACK,
     'file'             => 'notification.ajax.inc',
@@ -319,7 +319,7 @@ function apb7_follow_menu() {
     'title'            => "Notifications",
     'description'      => "Enable or disable notifications globally and configuration the notifications behavior.",
     'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('apb7_follow_admin_notification_notification_types'),
+    'page arguments'   => array('notification_admin_notification_notification_types'),
     'access arguments' => array('administer site configuration'),
     'type'             => MENU_NORMAL_ITEM,
     'file'             => 'notification.admin.inc',
@@ -331,7 +331,7 @@ function apb7_follow_menu() {
   $items['admin/config/people/notification/chan-type'] = array(
     'title'            => "Channel types",
     'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('apb7_follow_admin_notification_channel_types'),
+    'page arguments'   => array('notification_admin_notification_channel_types'),
     'access arguments' => array('administer site configuration'),
     'type'             => MENU_LOCAL_TASK,
     'file'             => 'notification.admin.inc',
@@ -339,7 +339,7 @@ function apb7_follow_menu() {
   $items['admin/config/people/notification/queues'] = array(
     'title'            => "Queues",
     'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('apb7_follow_admin_notification_queues'),
+    'page arguments'   => array('notification_admin_notification_queues'),
     'access arguments' => array('administer site configuration'),
     'type'             => MENU_LOCAL_TASK,
     'file'             => 'notification.admin.inc',
@@ -347,7 +347,7 @@ function apb7_follow_menu() {
   $items['admin/config/people/notification/settings'] = array(
     'title'            => "Global settings",
     'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('apb7_follow_admin_notification_settings'),
+    'page arguments'   => array('notification_admin_notification_settings'),
     'access arguments' => array('administer site configuration'),
     'weight'           => 100,
     'type'             => MENU_LOCAL_TASK,
@@ -360,8 +360,8 @@ function apb7_follow_menu() {
 /**
  * Implements hook_library().
  */
-function apb7_follow_library() {
-  $path = drupal_get_path('module', 'apb7_follow');
+function notification_library() {
+  $path = drupal_get_path('module', 'notification');
   return array(
     'notification' => array(
       'title'   => "Notification",
@@ -376,9 +376,9 @@ function apb7_follow_library() {
 /**
  * Implements hook_init().
  */
-function apb7_follow_init() {
+function notification_init() {
   // Force this library to exist in aggregated set of libraries.
-  drupal_add_library('apb7_follow', 'notification', TRUE);
+  drupal_add_library('notification', 'notification', TRUE);
 }
 
 /**
@@ -392,7 +392,7 @@ function notification_service_get() {
   if (NULL === $instance) {
 
     $instance = new NotificationService(
-        apb7_backend_get(variable_get(
+        apb_backend_get(variable_get(
             APB_VAR_BACKEND,
             APB_DEF_BACKEND)),
         variable_get(
@@ -430,7 +430,7 @@ function notification_service_get() {
 /**
  * Implements hook_theme().
  */
-function apb7_follow_theme() {
+function notification_theme() {
   return array(
     'notification_block' => array(
       'render element' => 'data',
@@ -448,7 +448,7 @@ function apb7_follow_theme() {
 /**
  * Implements hook_block_info().
  */
-function apb7_follow_block_info() {
+function notification_block_info() {
   return array(
     'notification' => array(
       'info'  => t("Current user notifications"),
@@ -465,7 +465,7 @@ function apb7_follow_block_info() {
  * notifications block list, while the 64x64 variant will mostly be used
  * in page listings.
  */
-function apb7_follow_image_default_styles() {
+function notification_image_default_styles() {
   return array(
     'icon-32' => array(
       'effects' => array(
@@ -512,7 +512,7 @@ function apb7_follow_image_default_styles() {
 /**
  * Implements hook_block_view().
  */
-function apb7_follow_block_view($delta = '') {
+function notification_block_view($delta = '') {
 
   global $user;
 
@@ -546,7 +546,7 @@ function apb7_follow_block_view($delta = '') {
         ), 'setting');
         $block['content']['inside']['#markup'] = theme('notification_loader');
       } else {
-        $block['content']['inside'] += apb7_follow_notification_render_block($user);
+        $block['content']['inside'] += notification_block_render($user);
       }
 
       return $block;
@@ -695,7 +695,7 @@ function notification_image_render($uri, $size = null) {
  * @param object $account
  *   Subscriber account.
  */
-function apb7_follow_notification_render_block($account) {
+function notification_block_render($account) {
 
   $build = array(
     '#theme' => 'notification_block',

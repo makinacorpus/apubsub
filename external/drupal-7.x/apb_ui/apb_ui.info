@@ -3,5 +3,5 @@ description = "Provide administrative UI for APubSub"
 core = 7.x
 package = APubSub
 php = 5.3
-dependencies[] = apb7
+dependencies[] = apb
 configure = admin/content/pubsub
