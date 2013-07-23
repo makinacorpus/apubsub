@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Backend\Drupal7;
+namespace APubSub\Backend\Drupal7\Helper;
 
 use APubSub\Backend\AbstractObject;
 
@@ -8,7 +8,7 @@ use APubSub\Backend\AbstractObject;
  * Handles message type normalisation using an external database table in
  * order to leave the apb_msg table lightweight
  */
-class TypeHelper extends AbstractObject
+class TypeRegistry extends AbstractObject
 {
     /**
      * Known types cache

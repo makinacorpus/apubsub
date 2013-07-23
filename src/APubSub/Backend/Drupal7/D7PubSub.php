@@ -860,7 +860,7 @@ class D7PubSub extends AbstractBackend
         if (null !== $type) {
             $typeId = $this
                 ->context
-                ->typeHelper
+                ->typeRegistry
                 ->getTypeId($type);
         }
 

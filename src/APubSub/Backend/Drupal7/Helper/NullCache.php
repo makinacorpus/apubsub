@@ -1,8 +1,8 @@
 <?php
 
-namespace APubSub\Backend\Drupal7;
+namespace APubSub\Backend\Drupal7\Helper;
 
-class NullInternalCache
+class NullCache
 {
     public function getChannelByDatabaseId($id)
     {

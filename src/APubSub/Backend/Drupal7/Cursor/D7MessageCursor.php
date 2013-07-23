@@ -109,14 +109,14 @@ class D7MessageCursor extends AbstractCursor implements
 
                 case CursorInterface::FIELD_MSG_TYPE:
 
-                    $typeHelper = $this->getContext()->typeHelper;
+                    $typeRegistry = $this->getContext()->typeRegistry;
 
                     if (is_array($value)) {
-                        array_walk($value, function (&$value) use ($typeHelper) {
-                            $value = $typeHelper->getTypeId($value);
+                        array_walk($value, function (&$value) use ($typeRegistry) {
+                            $value = $typeRegistry->getTypeId($value);
                         });
                     } else {
-                        $value = $typeHelper->getTypeId($value);
+                        $value = $typeRegistry->getTypeId($value);
                     }
 
                     $this->conditions['m.type_id'] = $value;
@@ -256,7 +256,7 @@ class D7MessageCursor extends AbstractCursor implements
                     unserialize($record->contents),
                     (int)$record->id,
                     (int)$record->created,
-                    $context->typeHelper->getType($record->type_id),
+                    $context->typeRegistry->getType($record->type_id),
                     (bool)$record->unread,
                     $readTime,
                     (int)$record->level);

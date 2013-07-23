@@ -1,8 +1,8 @@
 <?php
 
-namespace APubSub\Backend\Drupal7;
+namespace APubSub\Backend\Drupal7\Helper;
 
-class InternalCache
+class Cache
 {
     /**
      * Channel cache (database id is the key)

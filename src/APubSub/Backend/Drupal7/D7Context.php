@@ -3,6 +3,9 @@
 namespace APubSub\Backend\Drupal7;
 
 use APubSub\Backend\DefaultContext;
+use APubSub\Backend\Drupal7\Helper\Cache;
+use APubSub\Backend\Drupal7\Helper\NullCache;
+use APubSub\Backend\Drupal7\Helper\TypeRegistry;
 use APubSub\ContextInterface;
 
 /**
@@ -16,7 +19,7 @@ class D7Context extends DefaultContext
     public $dbConnection;
 
     /**
-     * @var \APubSub\Backend\Drupal7\InternalCache
+     * @var Cache
      */
     public $cache;
 
@@ -56,9 +59,9 @@ class D7Context extends DefaultContext
     /**
      * Type helper
      *
-     * @var \APubSub\Backend\Drupal7\TypeHelper
+     * @var TypeRegistry
      */
-    public $typeHelper;
+    public $typeRegistry;
 
     /**
      * Default constructor
@@ -75,8 +78,8 @@ class D7Context extends DefaultContext
         parent::__construct($backend, $options);
 
         $this->dbConnection = $dbConnection;
-        $this->typeHelper   = new TypeHelper($this);
-        $this->cache        = new InternalCache();
+        $this->typeRegistry = new TypeRegistry($this);
+        $this->cache        = new Cache();
     }
 
     /**
@@ -102,7 +105,7 @@ class D7Context extends DefaultContext
 
                 case 'disable_cache':
                     if ($value) {
-                        $this->cache = new NullInternalCache();
+                        $this->cache = new NullCache();
                     }
                     break;
             }
@@ -119,7 +122,7 @@ class D7Context extends DefaultContext
             'queue_global_limit'   => $this->queueGlobalLimit,
             'message_max_lifetime' => $this->messageMaxLifetime,
             'delay_checks'         => $this->delayChecks,
-            'disable_cache'        => $this->cache instanceof NullInternalCache,
+            'disable_cache'        => $this->cache instanceof NullCache,
         );
     }
 }
