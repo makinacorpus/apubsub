@@ -20,11 +20,10 @@ class D7Subscriber extends DefaultSubscriber implements
      *
      * @param D7Context $context  Backend that owns this instance
      * @param scalar $id          User set identifier
-     * @param int $lastAccessTime Last access time
      */
-    public function __construct(D7Context $context, $id, $lastAccessTime = 0)
+    public function __construct(D7Context $context, $id)
     {
-        parent::__construct($id, $context, $lastAccessTime);
+        parent::__construct($id, $context);
 
         // Get subscription identifiers list, with channel mapping
         $this->idList = $this
@@ -123,24 +122,5 @@ class D7Subscriber extends DefaultSubscriber implements
 
             throw $e;
         }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::touch()
-     */
-    public function touch()
-    {
-        $this->lastAccessTime = time();
-
-        $this
-            ->context
-            ->dbConnection
-            ->update('apb_sub_map')
-            ->condition('name', $this->getId())
-            ->fields(array(
-                'accessed' => $this->lastAccessTime,
-            ))
-            ->execute();
     }
 }

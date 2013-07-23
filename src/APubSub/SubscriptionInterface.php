@@ -84,18 +84,4 @@ interface SubscriptionInterface extends MessageContainerInterface
      * @return string
      */
     public function getChannelId();
-
-    /**
-     * Get extra data
-     *
-     * @return array Extra data
-     */
-    public function getExtraData();
-
-    /**
-     * Set extra data
-     *
-     * @param array $data Extra data
-     */
-    public function setExtraData(array $data);
 }

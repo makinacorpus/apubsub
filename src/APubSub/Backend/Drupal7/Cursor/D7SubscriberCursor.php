@@ -64,8 +64,8 @@ class D7SubscriberCursor extends AbstractD7Cursor
      */
     protected function getSortColumn($sort)
     {
-        switch ($sort)
-        {
+        switch ($sort) {
+
             case CursorInterface::FIELD_ID:
                 return 'mp.name';
 

@@ -22,26 +22,18 @@ abstract class DefaultSubscriber extends AbstractMessageContainer implements
     protected $idList = null;
 
     /**
-     * @var int
-     */
-    // @todo Switch back to private once no other implementations exists
-    protected $lastAccessTime = 0;
-
-    /**
      * Default constructor
      *
      * @param int $id                   Identifier
      * @param ContextInterface $context Context
-     * @param number $lastAccessTime    Last access time
      */
-    public function __construct($id, ContextInterface $context, $lastAccessTime = 0)
+    public function __construct($id, ContextInterface $context)
     {
         parent::__construct($context, array(
             CursorInterface::FIELD_SUBER_NAME => $id,
         ));
 
         $this->id = $id;
-        $this->lastAccessTime = $lastAccessTime;
     }
 
     /**
@@ -112,15 +104,6 @@ abstract class DefaultSubscriber extends AbstractMessageContainer implements
         } catch (SubscriptionDoesNotExistException $e) {
             // All OK
         }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::getLastAccessTime()
-     */
-    final public function getLastAccessTime()
-    {
-        return $this->lastAccessTime;
     }
 
     /**

@@ -57,12 +57,6 @@ abstract class DefaultSubscription extends AbstractMessageContainer implements
     protected $deactivatedTime;
 
     /**
-     * @var array
-     */
-    // @todo Switch back to private once no other implementations exists
-    protected $extraData = array();
-
-    /**
      * Default constructor
      *
      * @param int $chanId          Channel identifier
@@ -72,7 +66,6 @@ abstract class DefaultSubscription extends AbstractMessageContainer implements
      * @param int $deactivatedTime Latest deactivation UNIX timestamp
      * @param bool $isActive       Is this subscription active
      * @param ContextInterface     Context
-     * @param array $extraData     Extra data
      */
     public function __construct(
         $chanId,
@@ -81,8 +74,7 @@ abstract class DefaultSubscription extends AbstractMessageContainer implements
         $activatedTime,
         $deactivatedTime,
         $isActive,
-        ContextInterface $context,
-        array $extraData = null)
+        ContextInterface $context)
     {
         parent::__construct($context, array(
             CursorInterface::FIELD_SUB_ID => $id,
@@ -94,10 +86,6 @@ abstract class DefaultSubscription extends AbstractMessageContainer implements
         $this->activatedTime = $activatedTime;
         $this->deactivatedTime = $deactivatedTime;
         $this->active = $isActive;
-
-        if (null !== $extraData) {
-            $this->extraData = $extraData;
-        }
     }
 
     /**
@@ -203,19 +191,4 @@ abstract class DefaultSubscription extends AbstractMessageContainer implements
      * @see \APubSub\SubscriptionInterface::setUnread()
      */
     abstract public function setUnread($messageId, $toggle = false);
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::getExtraData()
-     */
-    public function getExtraData()
-    {
-        return $this->extraData;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::setExtraData()
-     */
-    abstract public function setExtraData(array $data);
 }

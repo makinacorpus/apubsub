@@ -30,13 +30,6 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
     private $subscriptions = array();
 
     /**
-     * Last access time
-     *
-     * @var int
-     */
-    private $lastAccessTime = 0;
-
-    /**
      * Default constructor
      *
      * @param MemoryContext $context Context
@@ -127,24 +120,6 @@ class MemorySubscriber extends AbstractObject implements SubscriberInterface
         } catch (SubscriptionDoesNotExistException $e) {
             return;
         }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::getLastAccessTime()
-     */
-    public function getLastAccessTime()
-    {
-        return $this->lastAccessTime;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::touch()
-     */
-    public function touch()
-    {
-        $this->lastAccessTime = time();
     }
 
     /**

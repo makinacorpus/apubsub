@@ -74,32 +74,4 @@ class D7Subscription extends DefaultSubscription implements
                 ':time'   => $toggle ? null : time(),
             ));
     }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::getExtraData()
-     */
-    public function getExtraData()
-    {
-        return $this->extraData;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::setExtraData()
-     */
-    public function setExtraData(array $data)
-    {
-        $this->extraData = $data;
-
-        $this
-            ->context
-            ->dbConnection
-            ->update('apb_sub')
-            ->condition('id', $this->getId())
-            ->fields(array(
-                'extra' => serialize($this->extraData),
-            ))
-            ->execute();
-    }
 }

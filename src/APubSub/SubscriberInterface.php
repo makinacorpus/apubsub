@@ -78,22 +78,6 @@ interface SubscriberInterface extends MessageContainerInterface
     public function unsubscribe($chanId);
 
     /**
-     * Get latest access time
-     *
-     * This does not change the messaging system behavior but is meant to be
-     * used for processing cron, in order to be able to filter and order
-     * subscribers using this
-     *
-     * @return int Unix timestamp
-     */
-    public function getLastAccessTime();
-
-    /**
-     * Set this subscriber latest access time to now
-     */
-    public function touch();
-
-    /**
      * Delete all subscriptions related to this subscriber
      */
     public function delete();

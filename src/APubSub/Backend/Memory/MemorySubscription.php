@@ -118,11 +118,6 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
     private $readMessages = array();
 
     /**
-     * @var array
-     */
-    private $extraData = array();
-
-    /**
      * Default constructor
      *
      * @param MemoryContext $context Context
@@ -377,23 +372,5 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
         // FIXME Re-order messages following the $idList order
 
         return $ret;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::getExtraData()
-     */
-    public function getExtraData()
-    {
-        return $this->extraData;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::setExtraData()
-     */
-    public function setExtraData(array $data)
-    {
-        $this->extraData = $data;
     }
 }
