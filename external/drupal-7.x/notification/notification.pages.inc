@@ -151,7 +151,9 @@ function notification_page_user_list_submit_delete($form, &$form_state) {
     }
   }
 
-  $subscriber->deleteMessages($list);
+  $subscriber->deleteMessages(array(
+      CursorInterface::FIELD_MSG_ID => $list,
+  ));
 
   drupal_set_message(format_plural($count,
     "@count message deleted",
