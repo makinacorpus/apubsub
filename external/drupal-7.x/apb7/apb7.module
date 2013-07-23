@@ -151,15 +151,6 @@ function apb7_backend_get($name = 'default') {
         $backend = new $class(Database::getConnection($target, $key));
         break;
 
-      case '\APubSub\Backend\Predis\PredisPubSub':
-        // If the Redis module is enabled, connection options will be ignored
-        // and the one provided by the module will be instead.
-        if (module_exists('redis')) {
-          $backend = new $class(Redis_Client::getClient());
-          break;
-        }
-        // Else fallback
-
       default:
         $backend = new $class();
         break;
