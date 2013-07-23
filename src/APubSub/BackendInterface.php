@@ -135,6 +135,8 @@ interface BackendInterface extends
     /**
      * Create a new subscription to the given channel
      *
+     * The counterpart of this method is the deleteSubscription() method
+     *
      * @param string $chanId       Channel identifier
      * @param string $subscriberId Subscriber identifier
      *
@@ -143,16 +145,6 @@ interface BackendInterface extends
      *                               has been generated
      */
     public function subscribe($chanId, $subscriberId = null);
-
-    /**
-     * Remove subscription for the given channel and subscription
-     *
-     * @return SubscriptionInterface The new subscription object, which is not
-     *                               active per default and whose identifier
-     *                               has been generated
-     */
-    // @todo Implement this
-    //public function unsubscribe($chanId);
 
     /**
      * Get subscriber list helper if this backend implements it
