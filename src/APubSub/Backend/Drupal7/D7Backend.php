@@ -660,11 +660,14 @@ class D7Backend extends AbstractBackend
 
         foreach ($recordList as $record) {
             $id = (int)$record->id;
-            $subscription = new D7Subscription($this->context,
-                (int)$record->chan_id, $id,
-                (int)$record->created, (int)$record->activated,
-                (int)$record->deactivated, (bool)$record->status,
-                (array)unserialize($record->extra));
+            $subscription = new D7Subscription(
+                (int)$record->chan_id,
+                $id,
+                (int)$record->created,
+                (int)$record->activated,
+                (int)$record->deactivated,
+                (bool)$record->status,
+                $this->context);
 
             $ret[$id] = $subscription;
 
