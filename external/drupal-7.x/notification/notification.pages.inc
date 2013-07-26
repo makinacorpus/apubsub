@@ -6,7 +6,6 @@
  */
 
 use APubSub\CursorInterface;
-use APubSub\Error\MessageDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\Notification\NotificationService;
 use APubSub\SubscriberInterface;
@@ -119,14 +118,13 @@ function notification_page_user_list_submit_unread($form, &$form_state) {
     if ($msgid == $enabled) {
       ++$count;
 
-      try {
-        $subscriber
-          ->fetch(array(
-              CursorInterface::FIELD_MSG_ID => $msgid,
-          ))
-          ->setUnread(false);
-      } catch (MessageDoesNotExistException $e) {
-        // Silent.
+      $cursor = $subscriber
+        ->fetch(array(
+            CursorInterface::FIELD_MSG_ID => $msgid,
+        ));
+
+      foreach ($cursor as $message) {
+        $message->setUnread(false);
       }
     }
   }

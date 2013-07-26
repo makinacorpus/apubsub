@@ -5,7 +5,6 @@ namespace APubSub\Tests;
 use APubSub\CursorInterface;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
-use APubSub\Error\MessageDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
 
 abstract class AbstractChannelTest extends AbstractBackendBasedTest

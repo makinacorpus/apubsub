@@ -5,7 +5,6 @@ namespace APubSub\Backend;
 use APubSub\ContextInterface;
 use APubSub\MessageContainerInterface;
 use APubSub\CursorInterface;
-use APubSub\Error\MessageDoesNotExistException;
 
 /**
  * Default implementation of the message container interface that would fit most
