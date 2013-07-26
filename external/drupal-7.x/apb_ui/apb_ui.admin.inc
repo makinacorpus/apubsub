@@ -54,30 +54,18 @@ function apb_ui_content_backend_overview_page(BackendInterface $backend) {
   $rows = array();
 
   $row = array(t("Backend can list channels:"));
-  try {
-    $backend->getChannelListHelper();
-    $row[] = $yes;
-  } catch (\APubSub\Error\UncapableException $e) {
-    $row[] = $no;
-  }
+  $backend->getChannelListHelper();
+  $row[] = $yes;
   $rows[] = $row;
 
   $row = array(t("Backend can list subscriptions:"));
-  try {
-    $backend->getSubscriptionListHelper();
-    $row[] = $yes;
-  } catch (\APubSub\Error\UncapableException $e) {
-    $row[] = $no;
-  }
+  $backend->getSubscriptionListHelper();
+  $row[] = $yes;
   $rows[] = $row;
 
   $row = array(t("Backend can list subscribers:"));
-  try {
-    $backend->getSubscriberListHelper();
-    $row[] = $yes;
-  } catch (\APubSub\Error\UncapableException $e) {
-    $row[] = $no;
-  }
+  $backend->getSubscriberListHelper();
+  $row[] = $yes;
   $rows[] = $row;
 
   $build['capabilities']['content']['#markup'] = theme('table', array('rows' => $rows));

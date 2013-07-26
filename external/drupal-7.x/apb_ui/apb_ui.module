@@ -95,28 +95,22 @@ function apb_ui_access($backend = null, $page = null) {
   if (($backend instanceof \APubSub\BackendInterface) &&
       user_access('access administration pages'))
   {
-    // This try/catch statement is here to ensure that the given backend
-    // supports the asked functionnality
-    try {
-      switch ($page) {
+    switch ($page) {
 
-        case 'channels':
-          $backend->getChannelListHelper();
-          return true;
+      case 'channels':
+        $backend->getChannelListHelper();
+        return true;
 
-        case 'subscriptions':
-          $backend->getSubscriptionListHelper();
-          return true;
+      case 'subscriptions':
+        $backend->getSubscriptionListHelper();
+        return true;
 
-        case 'subscribers':
-          $backend->getSubscriptionListHelper();
-          return true;
+      case 'subscribers':
+        $backend->getSubscriptionListHelper();
+        return true;
 
-        default:
-          return true;
-      }
-    } catch (\APubSub\Error\UncapableException $e) {
-      return false;
+      default:
+        return true;
     }
   }
 
