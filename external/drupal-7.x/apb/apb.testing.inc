@@ -1,10 +1,11 @@
 <?php
 
-use APubSub\Field;
 /**
  * @file
  * APubSub testing code.
  */
+
+use APubSub\Field;
 
 /**
  * Psuedo implementation of hook_menu() when testing is enabled.
