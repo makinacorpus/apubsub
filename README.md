@@ -161,3 +161,15 @@ But always do this instead:
     $chanId = $message->getChannelId();
 
 Because the channel is lazy loaded on demand by the default implementation.
+
+History
+=======
+
+ * master branch is the main development branch for new features
+
+ * 0.2 branch is almost signature compatible with 0.1 branch, and contains
+   numerous internal improvements, and a drastic code quantity reduction. It
+   also cleans up the Drupal modules
+
+ * 0.1 branch is the legacy first version, it is kept for compatibility with
+   some prototypes and testing projects that are now in production
