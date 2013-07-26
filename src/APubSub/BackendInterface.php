@@ -190,6 +190,16 @@ interface BackendInterface extends
     public function send($chanId, $contents, $type = null, $level = 0, $sendTime = null);
 
     /**
+     * Set the unread status of a specific message
+     *
+     * Method is silent if message does not exist in this subscription queue
+     *
+     * @param scalar $queueId Message identifier in queue
+     * @param bool $toggle    True for unread, false for read
+     */
+    public function setUnread($queueId, $toggle = false);
+
+    /**
      * Flush any non essential internal cache this backend may hold. Backends
      * implementor can choose to do nothing on such call
      */

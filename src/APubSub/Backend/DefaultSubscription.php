@@ -3,8 +3,8 @@
 namespace APubSub\Backend;
 
 use APubSub\ContextInterface;
-use APubSub\CursorInterface;
 use APubSub\SubscriptionInterface;
+use APubSub\Field;
 
 abstract class DefaultSubscription extends AbstractMessageContainer implements
     SubscriptionInterface
@@ -77,7 +77,7 @@ abstract class DefaultSubscription extends AbstractMessageContainer implements
         ContextInterface $context)
     {
         parent::__construct($context, array(
-            CursorInterface::FIELD_SUB_ID => $id,
+            Field::SUB_ID => $id,
         ));
 
         $this->id = $id;
@@ -173,10 +173,4 @@ abstract class DefaultSubscription extends AbstractMessageContainer implements
      * @see \APubSub\SubscriptionInterface::activate()
      */
     abstract public function activate();
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::setUnread()
-     */
-    abstract public function setUnread($messageId, $toggle = false);
 }

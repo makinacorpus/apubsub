@@ -2,7 +2,7 @@
 
 namespace APubSub\Backend\Drupal7\Cursor;
 
-use APubSub\CursorInterface;
+use APubSub\Field;
 
 /**
  * Drupal 7 implementation of subscription cursor
@@ -16,7 +16,7 @@ class D7SubscriberCursor extends AbstractD7Cursor
     public function getAvailableSorts()
     {
         return array(
-            CursorInterface::FIELD_ID,
+            Field::SUBER_NAME,
         );
     }
 
@@ -66,7 +66,7 @@ class D7SubscriberCursor extends AbstractD7Cursor
     {
         switch ($sort) {
 
-            case CursorInterface::FIELD_ID:
+            case Field::SUBER_NAME:
                 return 'mp.name';
 
             default:

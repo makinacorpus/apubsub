@@ -52,26 +52,4 @@ class D7Subscription extends DefaultSubscription implements
         $this->active = true;
         $this->activatedTime = $activated;
     }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::setUnread()
-     */
-    public function setUnread($messageId, $toggle = false)
-    {
-        $this
-            ->context
-            ->dbConnection
-            ->query("
-                UPDATE {apb_queue}
-                SET unread = :unread, read_timestamp = :time
-                WHERE msg_id = :msgid
-                  AND sub_id = :subid
-            ", array(
-                ':unread' => (int)$toggle,
-                ':msgid'  => (int)$messageId,
-                ':subid'  => $this->getId(),
-                ':time'   => $toggle ? null : time(),
-            ));
-    }
 }

@@ -3,9 +3,9 @@
 namespace APubSub\Backend;
 
 use APubSub\ContextInterface;
-use APubSub\CursorInterface;
 use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\SubscriberInterface;
+use APubSub\Field;
 
 /**
  * Default subscriber implementation that will fit most backends
@@ -35,7 +35,7 @@ class DefaultSubscriber extends AbstractMessageContainer implements
     public function __construct($id, ContextInterface $context, array $subIdList = null)
     {
         parent::__construct($context, array(
-            CursorInterface::FIELD_SUBER_NAME => $id,
+            Field::SUBER_NAME => $id,
         ));
 
         $this->id = $id;

@@ -3,6 +3,7 @@
 namespace APubSub\Tests;
 
 use APubSub\CursorInterface;
+use APubSub\Field;
 
 abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
 {
@@ -120,7 +121,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         // don't care about that anyway, at least ensure that non fully dequeued
         // messages are still here
         $messages = $this->chan->fetch(array(
-            CursorInterface::FIELD_MSG_ID => $msg3->getId(),
+            Field::MSG_ID => $msg3->getId(),
         ));
 
         $messages = $sub3->fetch();
@@ -153,7 +154,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         $i = 8;
         $cursor = $sub2->fetch();
         $cursor->setLimit(CursorInterface::LIMIT_NONE);
-        $cursor->addSort(CursorInterface::FIELD_MSG_SENT, CursorInterface::SORT_DESC);
+        $cursor->addSort(Field::MSG_SENT, CursorInterface::SORT_DESC);
         foreach ($cursor as $message) {
             $i -= 2;
             $this->assertSame($i, $message->getContents());
@@ -175,10 +176,10 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
 
         $sub1->update(
             array(
-                CursorInterface::FIELD_MSG_UNREAD => false,
+                Field::MSG_UNREAD => false,
             ),
             array(
-                CursorInterface::FIELD_MSG_ID => array(
+                Field::MSG_ID => array(
                     1,
                     3,
                     5,

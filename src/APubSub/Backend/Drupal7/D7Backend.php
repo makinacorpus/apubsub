@@ -3,13 +3,13 @@
 namespace APubSub\Backend\Drupal7;
 
 use APubSub\Backend\AbstractBackend;
-use APubSub\Backend\DefaultMessage;
+use APubSub\Backend\DefaultMessageInstance;
 use APubSub\Backend\DefaultSubscriber;
 use APubSub\Backend\Drupal7\Cursor\D7MessageCursor;
-use APubSub\CursorInterface;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
+use APubSub\Field;
 
 /**
  * Drupal 7 backend implementation
@@ -111,14 +111,14 @@ class D7Backend extends AbstractBackend
         foreach ($values as $field => $value) {
             switch ($field) {
 
-                case CursorInterface::FIELD_MSG_UNREAD:
+                case Field::MSG_UNREAD:
                     if (!$fields['unread'] = $value ? 1 : 0) {
                         // Also update the read timestamp if necessary
                         $fields['read_timestamp'] = time();
                     }
                     break;
 
-                case CursorInterface::FIELD_MSG_READ_TS:
+                case Field::MSG_READ_TS:
                     $fields['read_timestamp'] = (int)$value;
                     break;
 
@@ -944,7 +944,7 @@ class D7Backend extends AbstractBackend
             throw $e;
         }
 
-        return new DefaultMessage(
+        return new DefaultMessageInstance(
             $this->context, $chanId, null, $contents, $id,
             $sendTime, null, true, null, $level);
     }

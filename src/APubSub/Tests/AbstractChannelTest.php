@@ -6,6 +6,7 @@ use APubSub\CursorInterface;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
+use APubSub\Field;
 
 abstract class AbstractChannelTest extends AbstractBackendBasedTest
 {
@@ -168,7 +169,7 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         $messageId = null;
 
         $cursor = $sub1->fetch();
-        $cursor->addSort(CursorInterface::FIELD_MSG_SENT, CursorInterface::SORT_ASC);
+        $cursor->addSort(Field::MSG_SENT, CursorInterface::SORT_ASC);
         $this->assertCount(3, $cursor, "Sub 1 has 3 messages");
         foreach ($cursor as $message) {
             // There should be only one
@@ -178,7 +179,7 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         }
 
         $sub2->delete(array(
-            CursorInterface::FIELD_MSG_ID => $messageId,
+            Field::MSG_ID => $messageId,
         ));
 
         $cursor = $sub2->fetch();
@@ -189,7 +190,7 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         $this->assertCount(3, $cursor, "Sub 3 is still full");
 
         $chan->delete(array(
-            CursorInterface::FIELD_MSG_ID => $messageId,
+            Field::MSG_ID => $messageId,
         ));
 
         $cursor = $sub1->fetch();

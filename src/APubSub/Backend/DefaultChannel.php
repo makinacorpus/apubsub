@@ -4,7 +4,7 @@ namespace APubSub\Backend;
 
 use APubSub\ChannelInterface;
 use APubSub\ContextInterface;
-use APubSub\CursorInterface;
+use APubSub\Field;
 
 /**
  * Default implementation of the channel interface that would fit most backends
@@ -31,7 +31,7 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
     public function __construct($id, ContextInterface $context, $creationTime = null)
     {
         parent::__construct($context, array(
-            CursorInterface::FIELD_CHAN_ID => $id,
+            Field::CHAN_ID => $id,
         ));
 
         $this->id = $id;

@@ -3,17 +3,16 @@
 namespace APubSub\Backend\Drupal7\Cursor;
 
 use APubSub\Backend\AbstractCursor;
-use APubSub\Backend\DefaultMessage;
+use APubSub\Backend\DefaultMessageInstance;
 use APubSub\ContextInterface;
 use APubSub\CursorInterface;
+use APubSub\Field;
 
 /**
  * Message cursor is a bit tricky: the query will be provided by the caller
  * and may change depending on the source (subscriber or subscription)
  */
-class D7MessageCursor extends AbstractCursor implements
-    \IteratorAggregate,
-    CursorInterface
+class D7MessageCursor extends AbstractCursor implements \IteratorAggregate
 {
     /**
      * @var \ArrayIterator
@@ -73,14 +72,14 @@ class D7MessageCursor extends AbstractCursor implements
     public function getAvailableSorts()
     {
         return array(
-            CursorInterface::FIELD_CHAN_ID,
-            CursorInterface::FIELD_MSG_ID,
-            CursorInterface::FIELD_MSG_SENT,
-            CursorInterface::FIELD_MSG_TYPE,
-            CursorInterface::FIELD_MSG_LEVEL,
-            CursorInterface::FIELD_MSG_READ_TS,
-            CursorInterface::FIELD_MSG_UNREAD,
-            CursorInterface::FIELD_SUB_ID,
+            Field::CHAN_ID,
+            Field::MSG_ID,
+            Field::MSG_SENT,
+            Field::MSG_TYPE,
+            Field::MSG_LEVEL,
+            Field::MSG_READ_TS,
+            Field::MSG_UNREAD,
+            Field::SUB_ID,
         );
     }
 
@@ -99,15 +98,19 @@ class D7MessageCursor extends AbstractCursor implements
         foreach ($conditions as $field => $value) {
             switch ($field) {
 
-                case CursorInterface::FIELD_MSG_ID:
+                case Field::MSG_ID:
                     $this->conditions['q.msg_id'] = $value;
                     break;
 
-                case CursorInterface::FIELD_MSG_UNREAD:
+                case Field::MSG_UNREAD:
                     $this->conditions['q.unread'] = $value;
                     break;
 
-                case CursorInterface::FIELD_MSG_TYPE:
+                case Field::MSG_QUEUE_ID:
+                    $this->conditions['q.id'] = $value;
+                    break;
+
+                case Field::MSG_TYPE:
 
                     $typeRegistry = $this->getContext()->typeRegistry;
 
@@ -122,17 +125,17 @@ class D7MessageCursor extends AbstractCursor implements
                     $this->conditions['m.type_id'] = $value;
                     break;
 
-                case CursorInterface::FIELD_SUB_ID:
+                case Field::SUB_ID:
                     $this->conditions['q.sub_id'] = $value;
                     break;
 
-                case CursorInterface::FIELD_SUBER_NAME:
+                case Field::SUBER_NAME:
                     $this->conditions['mp.name'] = $value;
                     $this->queryOnSuber = true;
                     break;
 
 
-                case CursorInterface::FIELD_CHAN_ID:
+                case Field::CHAN_ID:
                     // FIXME: Find a better way
                     $chan = $this
                         ->context
@@ -184,35 +187,35 @@ class D7MessageCursor extends AbstractCursor implements
 
             switch ($sort)
             {
-                case CursorInterface::FIELD_CHAN_ID:
+                case Field::CHAN_ID:
                     $this->query->orderBy('m.chan_id', $direction);
                     break;
 
-                case CursorInterface::FIELD_SELF_ID:
-                case CursorInterface::FIELD_MSG_ID:
-                case CursorInterface::FIELD_MSG_SENT:
+                case Field::SELF_ID:
+                case Field::MSG_ID:
+                case Field::MSG_SENT:
                     $query
                         ->orderBy('q.created', $direction)
                         ->orderBy('q.msg_id', $direction);
                     break;
 
-                case CursorInterface::FIELD_MSG_TYPE:
+                case Field::MSG_TYPE:
                     $query->orderBy('m.type', $direction);
                     break;
 
-                case CursorInterface::FIELD_MSG_READ_TS:
+                case Field::MSG_READ_TS:
                     $query->orderBy('m.read_timestamp', $direction);
                     break;
 
-                case CursorInterface::FIELD_MSG_UNREAD:
+                case Field::MSG_UNREAD:
                     $query->orderBy('q.msg_id', $direction);
                     break;
 
-                case CursorInterface::FIELD_MSG_LEVEL:
+                case Field::MSG_LEVEL:
                     $query->orderBy('m.level', $direction);
                     break;
 
-                case CursorInterface::FIELD_SUB_ID:
+                case Field::SUB_ID:
                     $query->orderBy('q.sub_id', $direction);
                     break;
 
@@ -249,7 +252,7 @@ class D7MessageCursor extends AbstractCursor implements
                     $readTime = null;
                 }
 
-                $result[] = new DefaultMessage(
+                $result[] = new DefaultMessageInstance(
                     $this->context,
                     (string)$record->chan_id,
                     (int)$record->sub_id,

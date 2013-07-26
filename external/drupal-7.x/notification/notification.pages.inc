@@ -7,6 +7,7 @@
 
 use APubSub\CursorInterface;
 use APubSub\Error\SubscriptionDoesNotExistException;
+use APubSub\Field;
 use APubSub\Notification\NotificationService;
 use APubSub\SubscriberInterface;
 use APubSub\SubscriptionInterface;
@@ -29,7 +30,7 @@ function notification_page_user_list($form, &$form_state, $account) {
   $cursor = $subscriber
     ->fetch()
     ->addSort(
-        CursorInterface::FIELD_MSG_SENT,
+        Field::MSG_SENT,
         CursorInterface::SORT_DESC)
     ->setRange($limit, $offset);
 
@@ -120,7 +121,7 @@ function notification_page_user_list_submit_unread($form, &$form_state) {
 
       $cursor = $subscriber
         ->fetch(array(
-            CursorInterface::FIELD_MSG_ID => $msgid,
+            Field::MSG_ID => $msgid,
         ));
 
       foreach ($cursor as $message) {
@@ -152,7 +153,7 @@ function notification_page_user_list_submit_delete($form, &$form_state) {
   }
 
   $subscriber->delete(array(
-      CursorInterface::FIELD_MSG_ID => $list,
+      Field::MSG_ID => $list,
   ));
 
   drupal_set_message(format_plural($count,

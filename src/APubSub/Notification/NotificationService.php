@@ -3,7 +3,7 @@
 namespace APubSub\Notification;
 
 use APubSub\BackendInterface;
-use APubSub\Backend\VolatileMessage;
+use APubSub\Backend\DefaultMessage;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\MessageInterface;
 use APubSub\Notification\Registry\ChanTypeRegistry;
@@ -268,7 +268,12 @@ class NotificationService
                 // Quite a hack, but efficient, we need a false message to
                 // exist in order to create a false notification, so we can
                 // force it to be rendered before the message exists
-                $message = new VolatileMessage($contents, $type);
+                $message = new DefaultMessage(
+                    $this
+                        ->getBackend()
+                        ->getContext(),
+                    $contents,
+                    $type);
 
                 $contents['f'] = $this
                     ->getFormatterRegistry()

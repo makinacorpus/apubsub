@@ -3,6 +3,7 @@
 namespace APubSub\Helper;
 
 use APubSub\CursorInterface;
+use APubSub\Field;
 use APubSub\MessageInterface;
 
 /**
@@ -75,7 +76,7 @@ class MessageWorker
                     $message
                         ->getSubscription()
                         ->delete(array(
-                              CursorInterface::FIELD_MSG_ID => $message->getId()
+                              Field::MSG_ID => $message->getId()
                         ));
                 }
             }

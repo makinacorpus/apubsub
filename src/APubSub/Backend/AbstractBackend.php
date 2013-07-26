@@ -3,6 +3,7 @@
 namespace APubSub\Backend;
 
 use APubSub\BackendInterface;
+use APubSub\Field;
 
 /**
  * Common base implementation for most backends
@@ -45,6 +46,25 @@ abstract class AbstractBackend extends AbstractObject implements
         foreach ($idList as $id) {
             $this->deleteSubscription($id);
         }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\BackendInterface::setUnread()
+     */
+    public function setUnread($queueId, $toggle = false)
+    {
+        $this
+            ->context
+            ->getBackend()
+            ->update(
+                array(
+                    Field::MSG_UNREAD  => $toggle,
+                    Field::MSG_READ_TS => time(),
+                ),
+                array(
+                    Field::MSG_QUEUE_ID => $queueId,
+                ));
     }
 
     /**

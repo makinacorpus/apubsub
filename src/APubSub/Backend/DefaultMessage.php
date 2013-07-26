@@ -2,7 +2,6 @@
 
 namespace APubSub\Backend;
 
-use APubSub\BackendInterface;
 use APubSub\ContextInterface;
 use APubSub\MessageInterface;
 
@@ -16,61 +15,26 @@ class DefaultMessage extends AbstractObject implements MessageInterface
      *
      * @var scalar
      */
-    protected $id;
-
-    /**
-     * Send time UNIX timestamp
-     *
-     * @var int
-     */
-    protected $sendTime;
-
-    /**
-     * Is this message unread
-     *
-     * @var bool
-     */
-    protected $unread = true;
-
-    /**
-     * Read timestamp
-     *
-     * @var int
-     */
-    protected $readTimestamp;
+    private $id;
 
     /**
      * Message type
      *
      * @return string
      */
-    protected $type;
+    private $type;
 
     /**
      * Message raw data
      *
      * @var mixed
      */
-    protected $contents;
-
-    /**
-     * Channel identifier
-     *
-     * @var string
-     */
-    protected $chanId;
-
-    /**
-     * Subscription identifier
-     *
-     * @var string
-     */
-    protected $subscriptionId;
+    private $contents;
 
     /**
      * @var int
      */
-    protected $level;
+    private $level;
 
     /**
      * Default constructor
@@ -88,26 +52,16 @@ class DefaultMessage extends AbstractObject implements MessageInterface
      */
     public function __construct(
         ContextInterface $context,
-        $chanId,
-        $subscriptionId,
         $contents,
         $id,
-        $sendTime,
         $type          = null,
-        $isUnread      = true,
-        $readTimestamp = null,
         $level         = 0)
     {
         parent::__construct($context);
 
         $this->id             = $id;
-        $this->chanId         = $chanId;
-        $this->subscriptionId = $subscriptionId;
         $this->contents       = $contents;
-        $this->sendTime       = $sendTime;
         $this->type           = $type;
-        $this->unread         = $isUnread;
-        $this->readTimestamp  = $readTimestamp;
         $this->level          = $level;
     }
 
@@ -118,61 +72,6 @@ class DefaultMessage extends AbstractObject implements MessageInterface
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::isUnread()
-     */
-    public function isUnread()
-    {
-        return $this->unread;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::setReadStatus()
-     */
-    public function setUnread($toggle = false)
-    {
-        if ($this->unread !== $toggle) {
-
-            if ($toggle) {
-                $this->readTimestamp = null;
-            } else {
-                $this->readTimestamp = time();
-            }
-
-            $this->getSubscription()->setUnread($this->id, $toggle);
-        }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getSendTimestamp()
-     */
-    public function getSendTimestamp()
-    {
-        return $this->sendTime;
-    }
-
-    /**
-     * Set sent timestamp
-     *
-     * @param int $sendTime UNIX timestamp when the message is being sent
-     */
-    public function setSendTimestamp($sendTime)
-    {
-        $this->sendTime = $sendTime;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getReadTimestamp()
-     */
-    public function getReadTimestamp()
-    {
-        return $this->readTimestamp;
     }
 
     /**
@@ -200,41 +99,5 @@ class DefaultMessage extends AbstractObject implements MessageInterface
     public function getLevel()
     {
         return $this->level;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getSubscriptionId()
-     */
-    public function getSubscriptionId()
-    {
-      return $this->subscriptionId;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getSubscription()
-     */
-    public function getSubscription()
-    {
-        return $this->context->getBackend()->getSubscription($this->subscriptionId);
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getChannelId()
-     */
-    public function getChannelId()
-    {
-        return $this->chanId;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getChannel()
-     */
-    public function getChannel()
-    {
-        return $this->context->getBackend()->getChannel($this->chanId);
     }
 }

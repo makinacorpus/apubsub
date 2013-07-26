@@ -1,6 +1,7 @@
 <?php
 
-use APubSub\CursorInterface;
+use APubSub\Field;
+
 /**
  * @file
  * AJAX callbacks.
@@ -34,6 +35,6 @@ function notification_ajax_unfold_notifications() {
   notification_service_get()
     ->getSubscriber($user->uid)
     ->update(array(
-      CursorInterface::FIELD_MSG_UNREAD => false,
+      Field::MSG_UNREAD => false,
     ));
 }

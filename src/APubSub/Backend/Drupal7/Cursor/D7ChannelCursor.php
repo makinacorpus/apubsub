@@ -2,7 +2,7 @@
 
 namespace APubSub\Backend\Drupal7\Cursor;
 
-use APubSub\CursorInterface;
+use APubSub\Field;
 
 /**
  * Drupal 7 implementation of channel cursor
@@ -16,8 +16,8 @@ class D7ChannelCursor extends AbstractD7Cursor
     public function getAvailableSorts()
     {
         return array(
-            CursorInterface::FIELD_ID,
-            CursorInterface::FIELD_CREATED,
+            Field::CHAN_ID,
+            Field::CHAN_CREATED_TS,
         );
     }
 
@@ -60,10 +60,10 @@ class D7ChannelCursor extends AbstractD7Cursor
     {
         switch ($sort) {
 
-            case CursorInterface::FIELD_ID:
+            case Field::CHAN_ID:
                 return 'c.name';
 
-            case CursorInterface::FIELD_CREATED:
+            case Field::CHAN_CREATED_TS:
                 return 'c.created';
 
             default:

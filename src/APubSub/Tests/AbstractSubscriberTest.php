@@ -2,10 +2,11 @@
 
 namespace APubSub\Tests;
 
+use APubSub\CursorInterface;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionAlreadyExistsException;
 use APubSub\Error\SubscriptionDoesNotExistException;
-use APubSub\CursorInterface;
+use APubSub\Field;
 
 abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
 {
@@ -172,7 +173,7 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
         $i = 10;
         $cursor = $subscriber->fetch();
         $cursor->setLimit(CursorInterface::LIMIT_NONE);
-        $cursor->addSort(CursorInterface::FIELD_MSG_SENT, CursorInterface::SORT_DESC);
+        $cursor->addSort(Field::MSG_SENT, CursorInterface::SORT_DESC);
         foreach ($cursor as $message) {
           $this->assertSame(--$i, $message->getContents());
         }
@@ -208,10 +209,10 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
 
         $subscriber->update(
             array(
-                CursorInterface::FIELD_MSG_UNREAD => false,
+                Field::MSG_UNREAD => false,
             ),
             array(
-                CursorInterface::FIELD_MSG_ID => array(
+                Field::MSG_ID => array(
                     1,
                     3,
                     5,
