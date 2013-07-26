@@ -392,4 +392,120 @@ class D7MessageCursor extends AbstractCursor implements \IteratorAggregate
 
         return $this->query;
     }
+
+    /**
+     * Create temporary table from current query
+     *
+     * @return string New temporary table name, filled in with query primary
+     *                identifiers only
+     */
+    private function createTempTable()
+    {
+        $query = clone $this->getQuery();
+        $query->distinct(false);
+
+        // I am sorry but I have to be punished for I am writing this
+        $selectFields = &$query->getFields();
+        foreach ($selectFields as $key => $value) {
+            unset($selectFields[$key]);
+        }
+        // Again.
+        $tables = &$query->getTables();
+        foreach ($tables as $key => $table) {
+            unset($tables[$key]['all_fields']);
+        }
+        // And again.
+        $groupBy = &$query->getGroupBy();
+        foreach ($groupBy as $key => $value) {
+            unset($groupBy[$key]);
+        }
+
+        $query->fields('q', array('id'));
+
+        // Create a temp table containing identifiers to update: this is
+        // mandatory because you cannot use the apb_queue in the UPDATE
+        // query subselect
+        $tempTableName = $this
+            ->context
+            ->dbConnection
+            ->queryTemporary(
+                (string)$query,
+                $query->getArguments());
+
+        return $tempTableName;
+    }
+
+    /**
+     * Delete all selected items.
+     */
+    public function delete()
+    {
+        // Deleting messages in queue implicates doing it using the queue id:
+        // because the 'apb_queue' table is our primary FROM table (in most
+        // cases) we need to proceed using a temporary table
+        $tempTableName = $this->createTempTable();
+
+        $cx = $this->context->dbConnection;
+
+        $cx->query("
+            DELETE FROM {apb_queue}
+            WHERE
+                id IN (
+                    SELECT id
+                    FROM " . $tempTableName ."
+                )
+        ");
+
+        $cx->query("DROP TABLE {" . $tempTableName . "}");
+    }
+
+    /**
+     * Update all selected items using given values.
+     */
+    public function update(array $values)
+    {
+        if (empty($values)) {
+            return;
+        }
+
+        $queryValues = array();
+
+        // First build values and ensure the users don't do anything stupid
+        foreach ($values as $key => $value) {
+            switch ($key) {
+
+                case Field::MSG_UNREAD:
+                    $queryValues['unread'] = (int)$value;
+                    break;
+
+                case Field::MSG_READ_TS:
+                    $queryValues['read_timestamp'] = (int)$value;
+                    break;
+
+                default:
+                    throw new \RuntimeException(sprintf(
+                        "%s field is unsupported for update",
+                        $key));
+            }
+        }
+
+        // Updating messages in queue implicates doing it using the queue id:
+        // because the 'apb_queue' table is our primary FROM table (in most
+        // cases) we need to proceed using a temporary table
+        $tempTableName = $this->createTempTable();
+
+        $cx = $this->context->dbConnection;
+
+        $select = $cx
+            ->select($tempTableName, 't')
+            ->fields('t', array('id'));
+
+        $cx
+            ->update('apb_queue')
+            ->fields($queryValues)
+            ->condition('id', $select, 'IN')
+            ->execute();
+
+        $cx->query("DROP TABLE {" . $tempTableName . "}");
+    }
 }

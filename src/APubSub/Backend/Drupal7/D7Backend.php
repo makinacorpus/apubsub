@@ -9,7 +9,6 @@ use APubSub\Backend\Drupal7\Cursor\D7MessageCursor;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
-use APubSub\Field;
 
 /**
  * Drupal 7 backend implementation
@@ -49,168 +48,6 @@ class D7Backend extends AbstractBackend
         }
 
         return $cursor;
-    }
-
-    /**
-     * From the given conditions, store matching messages identifiers into
-     * a temporary table and return the standalong SELECT query for getting
-     * those identifiers.
-     */
-    private function getTempTableNameFrom(array $conditions)
-    {
-        $cx = $this
-            ->context
-            ->dbConnection;
-
-        $cursor = $this->fetch($conditions);
-        $cursor->setDistinct(false);
-        $query  = $cursor->getQuery();
-
-        // I am sorry but I have to be punished for I am writing this
-        $selectFields = &$query->getFields();
-        foreach ($selectFields as $key => $value) {
-            unset($selectFields[$key]);
-        }
-        // Again.
-        $tables = &$query->getTables();
-        foreach ($tables as $key => $table) {
-            unset($tables[$key]['all_fields']);
-        }
-
-        $query
-            ->fields('q', array('id', 'msg_id', 'sub_id'))
-            ->fields('m', array('chan_id'));
-
-        // Create a temp table containing identifiers to update: this is
-        // mandatory because you cannot use the apb_queue in the UPDATE
-        // query subselect
-        $tempTableName = $cx
-            ->queryTemporary(
-                (string)$query,
-                $query->getArguments());
-
-        return $tempTableName;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::update()
-     *
-     * // FIXME: Fix this (performance problem spotted)
-     */
-    public function update(array $values, array $conditions = null)
-    {
-        if (empty($values)) {
-            return;
-        }
-
-        $cx     = $this->context->dbConnection;
-        $tx     = null;
-        $fields = array();
-
-        foreach ($values as $field => $value) {
-            switch ($field) {
-
-                case Field::MSG_UNREAD:
-                    if (!$fields['unread'] = $value ? 1 : 0) {
-                        // Also update the read timestamp if necessary
-                        $fields['read_timestamp'] = time();
-                    }
-                    break;
-
-                case Field::MSG_READ_TS:
-                    $fields['read_timestamp'] = (int)$value;
-                    break;
-
-                default:
-                    trigger_error(sprintf("% does not support updating %d",
-                        get_class($this), $field));
-                    break;
-            }
-        }
-
-        try {
-            $tx = $cx->startTransaction();
-
-            $tempTableName = $this->getTempTableNameFrom($conditions);
-
-            $select = $cx
-                ->select($tempTableName, 'tu')
-                ->fields('tu', array('msg_id'));
-
-            $update = $cx
-                ->update('apb_queue');
-
-            $update
-                ->fields($fields)
-                ->condition('msg_id', $select, 'IN')
-                ->execute();
-
-            unset($tx); // Explicit commit
-
-        } catch (\Exception $e) {
-            if ($tx) {
-                try {
-                    $tx->rollback();
-                } catch (\Exception $e2) {}
-            }
-
-            throw $e;
-        }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::delete()
-     */
-    public function delete(array $conditions = null)
-    {
-        $cx = $this->context->dbConnection;
-        $tx = null;
-
-        try {
-            $tx = $cx->startTransaction();
-
-            $tempTableName = $this->getTempTableNameFrom($conditions);
-
-            $select = $cx
-                ->select($tempTableName, 'tu')
-                ->fields('tu', array('id'));
-
-            $cx
-                ->delete('apb_queue')
-                ->condition('id', $select, 'IN')
-                ->execute();
-
-            // This one can hurt very much, hope it wont in practical cases
-            $select = $cx
-                ->select('apb_queue', 'q')
-                ->fields('q', array('msg_id'));
-            $cx
-                ->delete('apb_msg')
-                ->condition('id', $select, 'NOT IN')
-                ->execute();
-
-            unset($tx); // Explicit commit
-
-        } catch (\Exception $e) {
-            if ($tx) {
-                try {
-                    $tx->rollback();
-                } catch (\Exception $e2) {}
-            }
-
-            throw $e;
-        }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::flush()
-     */
-    public function flush()
-    {
-        $this->delete();
     }
 
     /**
@@ -964,11 +801,27 @@ class D7Backend extends AbstractBackend
      */
     public function garbageCollection()
     {
-        // Ensure queue max size
         $this->cleanUpMessageQueue();
-
-        // Ensure messages max lifetime
         $this->cleanUpMessageLifeTime();
+        $this->cleanUpOrphanMessages();
+    }
+
+    /**
+     * Clean up orphan message
+     */
+    public function cleanUpOrphanMessages()
+    {
+        $min = $this
+            ->context
+            ->dbConnection
+            ->query("
+                      DELETE
+                      FROM {apb_msg}
+                      WHERE msg_id NOT IN (
+                          SELECT msg_id
+                          FROM {apb_queue}
+                      )
+                  ");
     }
 
     /**
@@ -982,10 +835,12 @@ class D7Backend extends AbstractBackend
             ->context
             ->dbConnection
             ->query("
-                  DELETE FROM {apb_queue}
+                      DELETE
+                      FROM {apb_queue}
                       WHERE sub_id IN (
-                          SELECT id FROM {apb_sub}
-                              WHERE status = 0
+                          SELECT id
+                          FROM {apb_sub}
+                          WHERE status = 0
                       )
                   ");
 
@@ -996,7 +851,8 @@ class D7Backend extends AbstractBackend
                 ->context
                 ->dbConnection
                 ->query("
-                    SELECT msg_id FROM {apb_queue}
+                        SELECT msg_id
+                        FROM {apb_queue}
                         ORDER BY msg_id DESC
                         OFFSET :max LIMIT 1
                     ", array(
@@ -1026,25 +882,12 @@ class D7Backend extends AbstractBackend
     public function cleanUpMessageLifeTime()
     {
         if ($this->context->messageMaxLifetime) {
-
-            // Delete messages
             $this
                 ->context
                 ->dbConnection
                 ->query("DELETE FROM {apb_msg} WHERE created < :time", array(
                     ':time' => time() - $this->context->messageMaxLifetime,
                 ));
-
-            // Delete in queue
-            $this
-                ->context
-                ->dbConnection
-                ->query("
-                    DELETE FROM {apb_queue}
-                        WHERE msg_id NOT IN (
-                            SELECT id FROM {apb_msg}
-                        )
-                    ");
         }
     }
 

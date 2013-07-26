@@ -66,19 +66,6 @@ abstract class AbstractMessageContainer extends AbstractObject implements
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::delete()
-     */
-    public function delete(array $conditions = null)
-    {
-        return $this
-            ->context
-            ->getBackend()
-            ->delete(
-                $this->ensureConditions($conditions));
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\MessageContainerInterface::fetch()
      */
     public function fetch(array $conditions = null)
@@ -92,20 +79,6 @@ abstract class AbstractMessageContainer extends AbstractObject implements
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::update()
-     */
-    public function update(array $values, array $conditions = null)
-    {
-        return $this
-            ->context
-            ->getBackend()
-            ->update(
-                $values,
-                $this->ensureConditions($conditions));
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\MessageContainerInterface::flush()
      */
     public function flush()
@@ -113,7 +86,8 @@ abstract class AbstractMessageContainer extends AbstractObject implements
         return $this
             ->context
             ->getBackend()
-            ->delete(
-                $this->ensureConditions());
+            ->fetch(
+                 $this->ensureConditions())
+            ->delete();
     }
 }

@@ -15,17 +15,17 @@ interface CursorInterface extends ObjectInterface, \Traversable, \Countable
     /**
      * No limit
      */
-    const LIMIT_NONE            = 0;
+    const LIMIT_NONE = 0;
 
     /**
      * Sort order ascending
      */
-    const SORT_ASC              = 1;
+    const SORT_ASC = 1;
 
     /**
      * Sort order descending
      */
-    const SORT_DESC             = -1;
+    const SORT_DESC = -1;
 
     /**
      * Return a list of available sort bit flags
@@ -78,4 +78,14 @@ interface CursorInterface extends ObjectInterface, \Traversable, \Countable
      * @return int
      */
     public function getTotalCount();
+
+    /**
+     * Delete all selected items.
+     */
+    public function delete();
+
+    /**
+     * Update all selected items using given values.
+     */
+    public function update(array $values);
 }

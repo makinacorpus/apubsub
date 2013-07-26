@@ -207,16 +207,16 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
         $chan1->send(5);
         $chan1->send(6);
 
-        $subscriber->update(
-            array(
-                Field::MSG_UNREAD => false,
-            ),
-            array(
+        $subscriber
+            ->fetch(array(
                 Field::MSG_ID => array(
                     1,
                     3,
                     5,
                 ),
+            ))
+            ->update(array(
+                Field::MSG_UNREAD => false,
             ));
 
         $cursor = $subscriber->fetch();

@@ -57,14 +57,13 @@ abstract class AbstractBackend extends AbstractObject implements
         $this
             ->context
             ->getBackend()
-            ->update(
-                array(
-                    Field::MSG_UNREAD  => $toggle,
-                    Field::MSG_READ_TS => time(),
-                ),
-                array(
-                    Field::MSG_QUEUE_ID => $queueId,
-                ));
+            ->fetch(array(
+                Field::MSG_QUEUE_ID => $queueId
+            ))
+            ->update(array(
+                Field::MSG_UNREAD  => $toggle,
+                Field::MSG_READ_TS => time(),
+            ));
     }
 
     /**
@@ -73,6 +72,8 @@ abstract class AbstractBackend extends AbstractObject implements
      */
     public function flush()
     {
-        $this->delete();
+        $this
+            ->fetch()
+            ->delete();
     }
 }
