@@ -124,24 +124,11 @@ class DefaultSubscriber extends AbstractMessageContainer implements
                 $this
                     ->context
                     ->getBackend()
-                    ->getSubscription($this->idList[$chanId])
-                    ->delete();
+                    ->deleteSubscription($this->idList[$chanId]);
             }
         } catch (SubscriptionDoesNotExistException $e) {
             // An exception here means a subscription for this channel does
             // not exist and that we can pass safely 
         }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::delete()
-     */
-    public function delete()
-    {
-        return $this
-            ->context
-            ->getBackend()
-            ->deleteSubscriptions($this->idList);
     }
 }

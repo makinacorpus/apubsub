@@ -178,7 +178,9 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
             break;
         }
 
-        $sub2->deleteMessage($messageId);
+        $sub2->delete(array(
+            CursorInterface::FIELD_MSG_ID => $messageId,
+        ));
 
         $cursor = $sub2->fetch();
         $this->assertCount(2, $cursor, "Sub 2 has 2 messages after delete");
@@ -187,7 +189,9 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         $cursor = $suber->fetch();
         $this->assertCount(3, $cursor, "Sub 3 is still full");
 
-        $chan->deleteMessage($messageId);
+        $chan->delete(array(
+            CursorInterface::FIELD_MSG_ID => $messageId,
+        ));
 
         $cursor = $sub1->fetch();
         $this->assertCount(2, $cursor, "Sub 1 has now 2 messages");

@@ -76,9 +76,4 @@ interface SubscriberInterface extends MessageContainerInterface
      * @param string $chanId Channel identifier
      */
     public function unsubscribe($chanId);
-
-    /**
-     * Delete all subscriptions related to this subscriber
-     */
-    public function delete();
 }

@@ -8,16 +8,6 @@ namespace APubSub;
 interface MessageContainerInterface extends ObjectInterface
 {
     /**
-     * Delete a single message and all its references in all existing
-     * subscriptions queues
-     *
-     * Method is silent if message does not exists in the current context
-     *
-     * @param scalar $id Message identifier
-     */
-    public function deleteMessage($id);
-
-    /**
      * Delete a set of messages and all their references in all existing
      * subscriptions queues
      *
@@ -28,40 +18,7 @@ interface MessageContainerInterface extends ObjectInterface
      *                           "equal" operation is supported. If value is an
      *                           array, treat it as a "IN" operator
      */
-    public function deleteMessages(array $conditions = null);
-
-    /**
-     * Delete all messages in this queue
-     *
-     * Alias of deleteMessages() with no conditions
-     */
-    public function deleteAllMessages();
-
-    /**
-     * Get a single message
-     *
-     * @param scalar $id                 Message identifier
-     *
-     * @return \APubSub\MessageInterface Loaded message
-     *
-     * @throws \APubSub\Error\MessageDoesNotExistException
-     *                                   If message does not exist in the
-     *                                   current container
-     */
-    public function getMessage($id);
-
-    /**
-     * Get a list of messages
-     *
-     * @param array $idList                List of message identifiers
-     *
-     * @return \APubSub\MessageInterface[] Loaded messages array
-     *
-     * @throws \APubSub\Error\MessageDoesNotExistException
-     *                                     If one of more messages don't exist
-     *                                     in the current container
-     */
-    public function getMessages(array $idList);
+    public function delete(array $conditions = null);
 
     /**
      * Fetch messages in message queue
@@ -88,7 +45,7 @@ interface MessageContainerInterface extends ObjectInterface
     public function update(array $values, array $conditions = null);
 
     /**
-     * Alias of deleteAllMessages()
+     * Delete all messages.
      */
     public function flush();
 }

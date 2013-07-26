@@ -47,13 +47,6 @@ interface SubscriptionInterface extends MessageContainerInterface
     public function getStopTime();
 
     /**
-     * Delete all messages linked to that subscription and the subscription
-     * itself. Once this call, you can get rid of the instance you have because
-     * it doesn't exist anymore
-     */
-    public function delete();
-
-    /**
      * Deactivate this subscription, if it is already deactivated it will
      * remain silent
      */

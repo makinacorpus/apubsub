@@ -101,8 +101,6 @@ interface BackendInterface extends
     /**
      * Delete a channel along with all its messages and subscriptions
      *
-     * It is eventually an alias of SubscriptionInterface::delete()
-     *
      * @param string $id Subscription identifier
      *
      * @throws \APubSub\Error\SubscriptionDoesNotExistException
@@ -131,6 +129,28 @@ interface BackendInterface extends
      * @return \APubSub\SubscriberInterface The subscriber instance
      */
     public function getSubscriber($id);
+
+    /**
+     * Delete a subscriber along all its susbscriptions
+     *
+     * @param string $id Subscriber identifier
+     *
+     * @throws \APubSub\Error\SubscriberDoesNotExistException
+     *                   If subscription does not exist
+     */
+    public function deleteSubscriber($id);
+
+    /**
+     * Delete a list of subscribers
+     *
+     * @param array|Traversable $idList Subscriber identifiers
+     *
+     * @throws \APubSub\Error\SubscriberDoesNotExistException
+     *                                  If one subscription does not exist, case
+     *                                  in which the operation ended up
+     *                                  imcomplete
+     */
+    public function deleteSubscribers($idList);
 
     /**
      * Create a new subscription to the given channel

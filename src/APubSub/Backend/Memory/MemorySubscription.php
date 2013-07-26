@@ -205,15 +205,6 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::delete()
-     */
-    public function delete()
-    {
-        $this->context->getBackend()->deleteSubscription($this->getId());
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\SubscriptionInterface::fetch()
      */
     public function fetch(array $conditions = null)
@@ -295,82 +286,10 @@ class MemorySubscription extends AbstractObject implements SubscriptionInterface
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::deleteMessage()
-     */
-    public function deleteMessage($id)
-    {
-        $this->deleteMessages(array($id));
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::deleteMessages()
-     */
-    public function deleteMessages(array $idList)
-    {
-        if (isset($this->context->subscriptionMessages[$this->id])) {
-            foreach ($idList as $id) {
-                unset($this->context->subscriptionMessages[$this->id][$id]);
-            }
-        }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::deleteAllMessages()
-     */
-    public function deleteAllMessages()
-    {
-        foreach ($this->context->subscriptionMessages[$this->id] as $id => $message) {
-            unset($this->context->subscriptionMessages[$this->id][$id]);
-        }
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\MessageContainerInterface::flush()
      */
     public function flush()
     {
-        $this->deleteAllMessages();
-    }
-
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::getMessage()
-     */
-    public function getMessage($id)
-    {
-        foreach ($this->fetch() as $message) {
-            if ($message->getId() === $id) {
-                return $message;
-            }
-        }
-
-        throw new MessageDoesNotExistException();
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::getMessages()
-     */
-    public function getMessages(array $idList)
-    {
-        $ret = array();
-
-        foreach ($this->fetch() as $message) {
-            if (in_array($id, $message->getId())) {
-                return $ret[] = $message;
-            }
-        }
-
-        if (count($ret) !== count($idList)) {
-            throw new MessageDoesNotExistException();
-        }
-
-        // FIXME Re-order messages following the $idList order
-
-        return $ret;
+        $this->delete();
     }
 }

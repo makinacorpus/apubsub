@@ -74,8 +74,9 @@ class MessageWorker
                 if ($this->deleteOnConsume) {
                     $message
                         ->getSubscription()
-                        ->deleteMessage(
-                              $message->getId());
+                        ->delete(array(
+                              CursorInterface::FIELD_MSG_ID => $message->getId()
+                        ));
                 }
             }
             return true;

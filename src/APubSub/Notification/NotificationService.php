@@ -181,7 +181,10 @@ class NotificationService
      */
     public function deleteSubscriber($id, $type = self::SUBSCRIBER_USER)
     {
-        $this->getSubscriber($id, $type)->delete();
+        $this
+            ->getBackend()
+            ->deleteSubscriber(
+                $this->getChanId($type, $id));
     }
 
     /**

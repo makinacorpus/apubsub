@@ -49,28 +49,10 @@ abstract class AbstractBackend extends AbstractObject implements
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::deleteMessage()
-     */
-    public function deleteMessage($id)
-    {
-        $this->deleteMessages(array($id));
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::deleteAllMessages()
-     */
-    public function deleteAllMessages()
-    {
-        $this->deleteMessages();
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\MessageContainerInterface::flush()
      */
     public function flush()
     {
-        $this->deleteMessages();
+        $this->delete();
     }
 }

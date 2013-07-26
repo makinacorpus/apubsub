@@ -164,18 +164,6 @@ abstract class DefaultSubscription extends AbstractMessageContainer implements
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::delete()
-     */
-    public function delete()
-    {
-        $this
-            ->context
-            ->getBackend()
-            ->deleteSubscription($this->id);
-    }
-
-    /**
-     * (non-PHPdoc)
      * @see \APubSub\SubscriptionInterface::deactivate()
      */
     abstract public function deactivate();

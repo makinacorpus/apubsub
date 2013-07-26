@@ -161,9 +161,9 @@ class D7Backend extends AbstractBackend
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::deleteMessages()
+     * @see \APubSub\MessageContainerInterface::delete()
      */
-    public function deleteMessages(array $conditions = null)
+    public function delete(array $conditions = null)
     {
         $cx = $this->context->dbConnection;
         $tx = null;
@@ -210,43 +210,7 @@ class D7Backend extends AbstractBackend
      */
     public function flush()
     {
-        $this->deleteAllMessages();
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::getMessage()
-     */
-    public function getMessage($id)
-    {
-        $cursor = $this->fetch(array(
-            CursorInterface::FIELD_MSG_ID => $id,
-        ));
-
-        if (!count($cursor)) {
-            throw new MessageDoesNotExistException();
-        }
-
-        foreach ($cursor as $message) {
-            return $message;
-        }
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::getMessages()
-     */
-    public function getMessages(array $idList)
-    {
-        $cursor = $this->fetch(array(
-            CursorInterface::FIELD_MSG_ID => $idList,
-        ));
-
-        if (count($cursor) !== count($idList)) {
-            throw new MessageDoesNotExistException();
-        }
-
-        return iterator_to_array($cursor);
+        $this->delete();
     }
 
     /**
@@ -686,9 +650,11 @@ class D7Backend extends AbstractBackend
     public function deleteSubscription($id)
     {
         $cx = $this->context->dbConnection;
-        $tx = $cx->startTransaction();
+        $tx = null;
 
         try {
+            $tx   = $cx->startTransaction();
+
             $args = array(':id' => $id);
 
             // FIXME: SELECT FOR UPDATE here in all tables
@@ -717,7 +683,11 @@ class D7Backend extends AbstractBackend
             $this->context->cache->removeSubscription($id);
 
         } catch (\Exception $e) {
-            $tx->rollback();
+            if ($tx) {
+                try {
+                    $tx->rollback();
+                } catch (\Exception $e2) {}
+            }
 
             throw $e;
         }
@@ -747,6 +717,60 @@ class D7Backend extends AbstractBackend
             ->fetchAllKeyed();
 
         return new DefaultSubscriber($id, $this->context, $idList);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\BackendInterface::deleteSubscriber()
+     */
+    public function deleteSubscriber($id)
+    {
+        $cx         = $this->context->dbConnection;
+        $tx         = null;
+        $subscriber = $this->getSubscriber($id);
+
+        try {
+            $tx   = $cx->startTransaction();
+
+            $args = array(':id' => $id);
+
+            // FIXME: SELECT FOR UPDATE here in all tables
+
+            // Start by deleting all subscriptions.
+            $subIdList = array();
+            foreach ($subscriber->getSubscriptions() as $subscription) {
+                $subIdList[] = $subscription->getId();
+            }
+
+            if (!empty($subIdList)) {
+                $this->deleteSubscriptions($subIdList);
+            }
+
+            $cx->query("DELETE FROM {apb_sub_map} WHERE sub_id = :id", $args);
+
+            unset($tx); // Explicit commit
+
+        } catch (\Exception $e) {
+            if ($tx) {
+                try {
+                    $tx->rollback();
+                } catch (\Exception $e2) {}
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\BackendInterface::deleteSubscribers()
+     */
+    public function deleteSubscribers($idList)
+    {
+        // FIXME: Find a more elegant way of doing this
+        foreach ($idList as $id) {
+            $this->deleteSubscriber($id);
+        }
     }
 
     /**

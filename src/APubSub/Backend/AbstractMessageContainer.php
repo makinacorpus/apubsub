@@ -67,80 +67,15 @@ abstract class AbstractMessageContainer extends AbstractObject implements
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::deleteMessage()
+     * @see \APubSub\MessageContainerInterface::delete()
      */
-    public function deleteMessage($id)
-    {
-        return $this->deleteMessages($this->ensureConditions(array(
-            CursorInterface::FIELD_MSG_ID => $id,
-        )));
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::deleteMessages()
-     */
-    public function deleteMessages(array $conditions = null)
+    public function delete(array $conditions = null)
     {
         return $this
             ->context
             ->getBackend()
-            ->deleteMessages($this->ensureConditions($conditions));
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::deleteAllMessages()
-     */
-    public function deleteAllMessages()
-    {
-        return $this->deleteMessages($this->invariant);
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::getMessage()
-     */
-    public function getMessage($id)
-    {
-        $msgList = $this->getMessages(array($id));
-
-        return reset($msgList);
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::getMessages()
-     */
-    public function getMessages(array $idList)
-    {
-        $expectedCount = count($idList);
-
-        if (0 === $expectedCount) {
-            return array();
-        }
-
-        $cursor = $this
-            ->context
-            ->getBackend()
-            ->fetch($this->ensureConditions(array(
-                CursorInterface::FIELD_MSG_ID => $idList,
-            )))
-            ->setLimit(count($idList));
-
-        if ($expectedCount !== count($cursor)) {
-            throw new MessageDoesNotExistException();
-        }
-
-        $messageList = iterator_to_array($cursor);
-
-        // Sort back the message list depending on given identifiers list for
-        // consistency even thought this not required per signature
-        if (1 === $expectedCount) {
-            return $messageList;
-        } else {
-            return array_multisort($idList, $messageList); 
-        }
+            ->delete(
+                $this->ensureConditions($conditions));
     }
 
     /**
@@ -152,7 +87,8 @@ abstract class AbstractMessageContainer extends AbstractObject implements
         return $this
             ->context
             ->getBackend()
-            ->fetch($this->ensureConditions($conditions));
+            ->fetch(
+                $this->ensureConditions($conditions));
     }
 
     /**
@@ -175,6 +111,10 @@ abstract class AbstractMessageContainer extends AbstractObject implements
      */
     public function flush()
     {
-        return $this->deleteAllMessages();
+        return $this
+            ->context
+            ->getBackend()
+            ->delete(
+                $this->ensureConditions());
     }
 }

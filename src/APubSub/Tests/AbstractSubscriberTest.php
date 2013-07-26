@@ -98,7 +98,7 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
         $sId2 = $subscriber->subscribe('b')->getId();
         $sId3 = $subscriber->subscribe('c')->getId();
 
-        $subscriber->delete();
+        $this->backend->deleteSubscriber($subscriber->getId());
 
         foreach (array($sId1, $sId2, $sId3) as $subId) {
             try {

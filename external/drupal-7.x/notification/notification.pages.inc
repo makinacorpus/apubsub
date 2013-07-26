@@ -121,7 +121,9 @@ function notification_page_user_list_submit_unread($form, &$form_state) {
 
       try {
         $subscriber
-          ->getMessage($msgid)
+          ->fetch(array(
+              CursorInterface::FIELD_MSG_ID => $msgid,
+          ))
           ->setUnread(false);
       } catch (MessageDoesNotExistException $e) {
         // Silent.
@@ -151,7 +153,7 @@ function notification_page_user_list_submit_delete($form, &$form_state) {
     }
   }
 
-  $subscriber->deleteMessages(array(
+  $subscriber->delete(array(
       CursorInterface::FIELD_MSG_ID => $list,
   ));
 
