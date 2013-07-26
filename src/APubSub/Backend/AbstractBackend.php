@@ -3,6 +3,7 @@
 namespace APubSub\Backend;
 
 use APubSub\BackendInterface;
+use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Field;
 
 /**
@@ -20,6 +21,23 @@ abstract class AbstractBackend extends AbstractObject implements
         $this
             ->context
             ->setOptions($options);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\BackendInterface::getChannel()
+     */
+    public function getChannel($id)
+    {
+        $cursor = $this->fetchChannels(array(
+            Field::CHAN_ID => $id,
+        ));
+
+        foreach ($cursor as $chan) {
+            return $chan;
+        }
+
+        throw new ChannelDoesNotExistException();
     }
 
     /**

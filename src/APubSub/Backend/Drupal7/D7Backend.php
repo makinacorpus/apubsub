@@ -5,10 +5,12 @@ namespace APubSub\Backend\Drupal7;
 use APubSub\Backend\AbstractBackend;
 use APubSub\Backend\DefaultMessageInstance;
 use APubSub\Backend\DefaultSubscriber;
+use APubSub\Backend\Drupal7\Cursor\D7ChannelCursor;
 use APubSub\Backend\Drupal7\Cursor\D7MessageCursor;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
+use APubSub\Field;
 
 /**
  * Drupal 7 backend implementation
@@ -44,7 +46,7 @@ class D7Backend extends AbstractBackend
         $cursor = new D7MessageCursor($this->context);
 
         if (!empty($conditions)) {
-            $cursor->applyConditions($conditions);
+            $cursor->setConditions($conditions);
         }
 
         return $cursor;
@@ -52,189 +54,17 @@ class D7Backend extends AbstractBackend
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::getChannel()
+     * @see \APubSub\BackendInterface::fetchChannels()
      */
-    public function getChannel($id)
+    public function fetchChannels(array $conditions)
     {
-        if ($chan = $this->context->cache->getChannel($id)) {
-            return $chan;
+        $cursor = new D7ChannelCursor($this->context);
+
+        if (!empty($conditions)) {
+            $cursor->setConditions($conditions);
         }
 
-        $record = $this
-            ->context
-            ->dbConnection
-            ->query("SELECT * FROM {apb_chan} WHERE name = :name", array(':name' => $id))
-            ->fetchObject();
-
-        if (!$record) {
-            throw new ChannelDoesNotExistException();
-        }
-
-        $chan = new D7Channel(
-            (int)$record->id,
-            $record->name,
-            $this->context,
-            (int)$record->created);
-
-        $this->context->cache->addChannel($chan);
-
-        return $chan;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::getChannels()
-     */
-    public function getChannels(array $idList)
-    {
-        if (empty($idList)) {
-            return array();
-        }
-
-        $ret           = array();
-        $missingIdList = array();
-
-        // First populate cache from what we have
-        foreach ($idList as $id) {
-            if ($chan = $this->context->cache->getChannel($id)) {
-                $ret[$id] = $chan;
-            } else {
-                $missingIdList[] = $id;
-            }
-        }
-
-        // Short-circuiting thus avoiding useless SQL queries
-        if (empty($missingIdList)) {
-            return $ret;
-        }
-
-        $recordList = $this
-            ->context
-            ->dbConnection
-            ->select('apb_chan', 'c')
-            ->fields('c')
-            ->condition('name', $missingIdList, 'IN')
-            ->execute()
-            // Fetch all is mandatory, else we cannot count
-            ->fetchAll();
-
-        if (count($recordList) !== count($missingIdList)) {
-            throw new ChannelDoesNotExistException();
-        }
-
-        foreach ($recordList as $record) {
-
-            $chan = new D7Channel(
-                (int)$record->id,
-                $record->name,
-                $this->context,
-                (int)$record->created);
-
-            $ret[$record->name] = $chan;
-
-            $this->context->cache->addChannel($chan);
-        }
-
-        array_multisort($idList, $ret);
-
-        return $ret;
-    }
-
-    /**
-     * Get channels by database identifiers
-     *
-     * Method signature is the same as getChannels()
-     *
-     * @param array $idList List of database identifiers
-     */
-    public function getChannelsByDatabaseId(array $idList)
-    {
-        $ret           = array();
-        $missingIdList = array();
-
-        // First populate cache from what we have
-        foreach ($idList as $id) {
-            if ($chan = $this->context->cache->getChannelByDatabaseId($id)) {
-                $ret[$id] = $chan;
-            } else {
-                $missingIdList[] = $id;
-            }
-        }
-
-        // Short-circuiting thus avoiding useless SQL queries
-        if (empty($missingIdList)) {
-            return $ret;
-        }
-
-        $recordList = $this
-            ->context
-            ->dbConnection
-            ->select('apb_chan', 'c')
-            ->fields('c')
-            ->condition('id', $missingIdList, 'IN')
-            ->execute()
-            // Fetch all is mandatory, else we cannot count
-            ->fetchAll();
-
-        if (count($recordList) !== count($missingIdList)) {
-            throw new ChannelDoesNotExistException();
-        }
-
-        foreach ($recordList as $record) {
-
-            $chan = new D7Channel(
-                (int)$record->id,
-                $record->name,
-                $this->context,
-                (int)$record->created);
-
-            $ret[$record->name] = $chan;
-
-            $this->context->cache->addChannel($chan);
-        }
-
-        array_multisort($idList, $ret);
-
-        return $ret;
-    }
-
-    /**
-     * Internal helper for pure performances purpose
-     *
-     * @param int $id                           Channel database identifier
-     *
-     * @return \APubSub\Backend\Drupal7\D7Channel
-     *                                          Loaded instance
-     *
-     * @throws \APubSub\Error\ChannelDoesNotExistException
-     *                                          If channel does not exist in
-     *                                          database
-     */
-    public function getChannelByDatabaseId($id)
-    {
-        if ($chan = $this->context->cache->getChannel($id)) {
-            return $chan;
-        }
-
-        $record = $this
-            ->context
-            ->dbConnection
-            ->query("SELECT * FROM {apb_chan} WHERE id = :id", array(':id' => $id))
-            ->fetchObject();
-
-        if (!$record) {
-            throw new ChannelDoesNotExistException();
-        }
-
-        $chan = new D7Channel(
-            (int)$record->id,
-            $record->name,
-            $this->context,
-            (int)$record->created);
-
-        $this->context->cache->addChannel($chan);
-
-        return $chan;
+        return $cursor;
     }
 
     /**
@@ -277,9 +107,6 @@ class D7Backend extends AbstractBackend
 
                 $dbId = (int)$cx->lastInsertId();
                 $chan = new D7Channel($dbId, $id, $this->context, $created);
-
-                // In case of success, populate internal static cache
-                $this->context->cache->addChannel($chan);
             }
 
             unset($tx); // Explicit commit
@@ -327,22 +154,25 @@ class D7Backend extends AbstractBackend
                 throw new ChannelAlreadyExistsException();
             }
 
-            $query = $cx
-                ->insert('apb_chan')
-                ->fields(array(
-                    'name',
-                    'created',
-                ));
+            if (count($existingList) !== count($idList)) {
 
-            // Create only the non existing one, in one query
-            foreach (array_diff($idList, $existingList) as $id) {
-                $query->values(array(
-                    $id,
-                    $created,
-                ));
+                $query = $cx
+                    ->insert('apb_chan')
+                    ->fields(array(
+                        'name',
+                        'created',
+                    ));
+
+                // Create only the non existing one, in one query
+                foreach (array_diff($idList, $existingList) as $id) {
+                    $query->values(array(
+                        $id,
+                        $created,
+                    ));
+                }
+
+                $query->execute();
             }
-
-            $query->execute();
 
             // We can get back an id with the last insert id, but if the
             // user created 10 chans, better do 2 SQL queries than 10!
@@ -351,7 +181,9 @@ class D7Backend extends AbstractBackend
             // existing and a second for newly created ones, thus allowing
             // us to keep the list ordered implicitely as long as the get
             // method keeps it ordered too
-            $ret = $this->getChannels($idList);
+            $ret = $this->fetchChannels(array(
+                Field::CHAN_ID => $idList,
+            ));
 
             unset($tx); // Explicit commit
         } catch (\Exception $e) {
@@ -360,66 +192,7 @@ class D7Backend extends AbstractBackend
             throw $e;
         }
 
-        return $ret;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::deleteChannel()
-     */
-    public function deleteChannel($id)
-    {
-        $dbId = null;
-        $cx   = $this->context->dbConnection;
-        $tx   = $cx->startTransaction();
-
-        try {
-            // FIXME: SELECT FOR UPDATE here in all tables
-
-            $dbId = (int)$cx
-                ->query("SELECT id FROM {apb_chan} WHERE name = :name", array(
-                    ':name' => $id,
-                ))
-                ->fetchField();
-
-            if (!$dbId) {
-                throw new ChannelDoesNotExistException();
-            }
-
-            $args = array(':dbId' => $dbId);
-
-            // Queue is not the most optimized query but is necessary
-            // FIXME: Joining with apb_sub instead might be more efficient
-            $cx->query("
-                DELETE FROM {apb_queue}
-                    WHERE msg_id IN (
-                        SELECT m.id FROM {apb_msg} m
-                            WHERE m.chan_id = :dbId
-                    )
-                ", $args);
-
-            // Delete subscriptions and messages
-            $cx->query("DELETE FROM {apb_msg} WHERE chan_id = :dbId", $args);
-            $cx->query("DELETE FROM {apb_sub} WHERE chan_id = :dbId", $args);
-
-            // Finally the last strike
-            $cx->query("DELETE FROM {apb_chan} WHERE id = :dbId", $args);
-
-            unset($tx); // Explicit commit
-
-            // FIXME: Deleting a channel actually does a lot of bad things
-            // including deleting subscriptions, removing messages and
-            // invalidating subscribers: do not allow anything to remain in
-            // static cache, checking all dependencies one by one would be
-            // uselessly complex code considering that deleting a channel
-            // is *not* something you are going to do in every day
-            $this->context->cache->flush();
-
-        } catch (\Exception $e) {
-            $tx->rollback();
-
-            throw $e;
-        }
+        return iterator_to_array($ret);
     }
 
     /**
@@ -429,40 +202,30 @@ class D7Backend extends AbstractBackend
     public function getSubscriptions($idList)
     {
         $ret = array();
-        $missingIdList = array();
 
-        // First populate cache from what we have
-        foreach ($idList as $id) {
-            if ($subscription = $this->context->cache->getSubscription($id)) {
-                $ret[$id] = $subscription;
-            } else {
-                $missingIdList[] = $id;
-            }
-        }
-
-        // Short-circuiting thus avoiding useless SQL queries
-        if (empty($missingIdList)) {
-            return $ret;
-        }
-
-        $recordList = $this
+        $select = $this
             ->context
             ->dbConnection
-            ->select('apb_sub', 's')
+            ->select('apb_sub', 's');
+        // FIXME: Sad JOIN is sad
+        $select
+            ->join('apb_chan', 'c', 'c.id = s.chan_id');
+        $recordList = $select
             ->fields('s')
-            ->condition('id', $missingIdList, 'IN')
+            ->fields('c', array('name'))
+            ->condition('s.id', $idList, 'IN')
             ->execute()
             // Fetch all is mandatory, else we cannot count
             ->fetchAll();
 
-        if (count($recordList) !== count($missingIdList)) {
+        if (count($recordList) !== count($idList)) {
             throw new SubscriptionDoesNotExistException();
         }
 
         foreach ($recordList as $record) {
             $id = (int)$record->id;
             $subscription = new D7Subscription(
-                (int)$record->chan_id,
+                $record->name,
                 $id,
                 (int)$record->created,
                 (int)$record->activated,
@@ -471,8 +234,6 @@ class D7Backend extends AbstractBackend
                 $this->context);
 
             $ret[$id] = $subscription;
-
-            $this->context->cache->addSubscription($subscription);
         }
 
         array_multisort($idList, $ret);
@@ -516,8 +277,6 @@ class D7Backend extends AbstractBackend
             $cx->query("DELETE FROM {apb_sub} WHERE id = :id", $args);
 
             unset($tx); // Explicit commit
-
-            $this->context->cache->removeSubscription($id);
 
         } catch (\Exception $e) {
             if ($tx) {
@@ -675,10 +434,6 @@ class D7Backend extends AbstractBackend
                 $deactivated, false, $this->context);
 
             unset($tx); // Explicit commit
-
-            // Populate cache outside of the transaction once
-            // commit in order to ensure we won't cache wrong data
-            $this->context->cache->addSubscription($subscription);
 
             return $subscription;
 

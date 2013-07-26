@@ -13,7 +13,7 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
     public function testChannelCreation()
     {
         $chan = $this->backend->createChannel('foo');
-        $loaded  = $this->backend->getChannel('foo');
+        $loaded = $this->backend->getChannel('foo');
 
         $this->assertSame($chan->getId(), 'foo');
         $this->assertSame($loaded->getId(), 'foo');
@@ -129,7 +129,12 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         $msg2 = $chan->send(2);
 
         // Ok, first of all, deletion
-        $this->backend->deleteChannel("delete_me");
+        $this
+            ->backend
+            ->fetchChannels(array(
+                Field::CHAN_ID => "delete_me",
+            ))
+            ->delete();
 
         try {
             $oldChannel = $this->backend->getChannel("delete_me");

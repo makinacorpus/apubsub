@@ -11,28 +11,24 @@ interface BackendInterface extends
     MessageContainerInterface
 {
     /**
-     * Load an existing channel
+     * Helper method for loading one single channel
      *
-     * @param scalar $id                                   The channel id
+     * @param string $channelId             Channel identifier
      *
-     * @return \APubSub\ChannelInterface                   The channel instance
+     * @return ChannelInterface             Loaded channel
      *
-     * @throws \APubSub\Error\ChannelDoesNotExistException If the channel does
-     *                                                     not exist
+     * @throws ChannelDoesNotExistException If channel does not exist
      */
     public function getChannel($id);
 
     /**
-     * Load existing channels
+     * Fetch channels
      *
-     * @param array $idList      List of channels ids to load
+     * @param array $conditions                            The channel id
      *
-     * @return array|Traversable List of channel instances
-     *
-     * @throws \APubSub\Error\ChannelDoesNotExistException
-     *                           If one of the channel does not exist
+     * @return \APubSub\CursorInterface                    Channel cursor
      */
-    public function getChannels(array $idList);
+    public function fetchChannels(array $conditions);
 
     /**
      * Create a channel instance
@@ -63,16 +59,6 @@ interface BackendInterface extends
      *                             not ignored
      */
     public function createChannels($idList, $ignoreErrors = false);
-
-    /**
-     * Delete a channel along with all its messages and subscriptions
-     *
-     * @param string $id Channel identifier
-     *
-     * @throws \APubSub\Error\ChannelDoesNotExistException
-     *                   If channel does not exist
-     */
-    public function deleteChannel($id);
 
     /**
      * Load an existing subscription

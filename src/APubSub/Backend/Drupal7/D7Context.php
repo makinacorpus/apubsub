@@ -19,11 +19,6 @@ class D7Context extends DefaultContext
     public $dbConnection;
 
     /**
-     * @var Cache
-     */
-    public $cache;
-
-    /**
      * Queue global limit (0 = no limit)
      *
      * @var int
@@ -79,7 +74,6 @@ class D7Context extends DefaultContext
 
         $this->dbConnection = $dbConnection;
         $this->typeRegistry = new TypeRegistry($this);
-        $this->cache        = new Cache();
     }
 
     /**
@@ -102,12 +96,6 @@ class D7Context extends DefaultContext
                 case 'delay_checks':
                     $this->delayChecks = (bool)$value;
                     break;
-
-                case 'disable_cache':
-                    if ($value) {
-                        $this->cache = new NullCache();
-                    }
-                    break;
             }
         }
     }
@@ -122,7 +110,6 @@ class D7Context extends DefaultContext
             'queue_global_limit'   => $this->queueGlobalLimit,
             'message_max_lifetime' => $this->messageMaxLifetime,
             'delay_checks'         => $this->delayChecks,
-            'disable_cache'        => $this->cache instanceof NullCache,
         );
     }
 }

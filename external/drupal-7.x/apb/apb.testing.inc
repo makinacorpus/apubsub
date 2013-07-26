@@ -1,5 +1,6 @@
 <?php
 
+use APubSub\Field;
 /**
  * @file
  * APubSub testing code.
@@ -490,11 +491,12 @@ function _apb_testing_volume_batch_messages($storage, &$context) {
       $chanId = $limit;
     }
 
-    $chan = $backend->getChannel($chanId);
-
-    // Send messages to the channel
-    for ($j = 0; $j < $messagesPerChan; ++$j) {
-      $chan->send($j);
+    $cursor = $backend->fetchChannels(array(Field::CHAN_ID => $chanId));
+    foreach ($cursor as $chan) {
+      // Send messages to the channel
+      for ($j = 0; $j < $messagesPerChan; ++$j) {
+        $chan->send($j);
+      }
     }
   }
 
