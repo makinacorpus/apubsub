@@ -5,13 +5,14 @@ namespace APubSub\Backend\Drupal7;
 use APubSub\Backend\AbstractBackend;
 use APubSub\Backend\DefaultMessageInstance;
 use APubSub\Backend\DefaultSubscriber;
+use APubSub\Backend\DefaultSubscription;
 use APubSub\Backend\Drupal7\Cursor\D7ChannelCursor;
 use APubSub\Backend\Drupal7\Cursor\D7MessageCursor;
+use APubSub\Backend\Drupal7\Cursor\D7SubscriptionCursor;
 use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\Field;
-use APubSub\Backend\Drupal7\Cursor\D7SubscriptionCursor;
 
 /**
  * Drupal 7 backend implementation
@@ -355,7 +356,7 @@ class D7Backend extends AbstractBackend
                 }
             }
 
-            $subscription = new D7Subscription(
+            $subscription = new DefaultSubscription(
                 $chanId, $id, $created, 0,
                 $deactivated, false, $this->context);
 

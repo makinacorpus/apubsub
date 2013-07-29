@@ -2,7 +2,7 @@
 
 namespace APubSub\Backend\Drupal7\Cursor;
 
-use APubSub\Backend\Drupal7\D7Subscription;
+use APubSub\Backend\DefaultSubscription;
 use APubSub\CursorInterface;
 use APubSub\Field;
 
@@ -111,7 +111,7 @@ class D7SubscriptionCursor extends AbstractD7Cursor
      */
     protected function createObjectInstance(\stdClass $record)
     {
-        return new D7Subscription(
+        return new DefaultSubscription(
             $record->name,
             (int)$record->id,
             (int)$record->created,
@@ -242,8 +242,50 @@ class D7SubscriptionCursor extends AbstractD7Cursor
     {
         if (empty($values)) {
             return;
-        } else {
-            throw new \RuntimeException("Cannot update a channel");
         }
+
+        $queryValues = array();
+
+        // First build values and ensure the users don't do anything stupid
+        foreach ($values as $key => $value) {
+            switch ($key) {
+
+                case Field::SUB_STATUS:
+                    $queryValues['status'] = (int)$value;
+                    break;
+
+                case Field::SUB_ACTIVATED:
+                    $queryValues['activated'] = (int)$value;
+                    break;
+
+                case Field::SUB_DEACTIVATED:
+                    $queryValues['deactivated'] = (int)$value;
+                    break;
+
+                default:
+                    throw new \RuntimeException(sprintf(
+                        "%s field is unsupported for update",
+                        $key));
+            }
+        }
+
+        // Updating messages in queue implicates doing it using the queue id:
+        // because the 'apb_queue' table is our primary FROM table (in most
+        // cases) we need to proceed using a temporary table
+        $tempTableName = $this->createTempTable();
+
+        $cx = $this->context->dbConnection;
+
+        $select = $cx
+            ->select($tempTableName, 't')
+            ->fields('t', array('id'));
+
+        $cx
+            ->update('apb_sub')
+            ->fields($queryValues)
+            ->condition('id', $select, 'IN')
+            ->execute();
+
+        $cx->query("DROP TABLE {" . $tempTableName . "}");
     }
 }

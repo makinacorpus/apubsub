@@ -80,4 +80,14 @@ final class Field
      * Subscription creation timestamp
      */
     const SUB_CREATED_TS  = 42;
+
+    /**
+     * Subscription activation timestamp
+     */
+    const SUB_ACTIVATED   = 43;
+
+    /**
+     * Subscription deactivation timestamp
+     */
+    const SUB_DEACTIVATED = 44;
 }

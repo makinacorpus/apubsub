@@ -6,7 +6,7 @@ use APubSub\ContextInterface;
 use APubSub\SubscriptionInterface;
 use APubSub\Field;
 
-abstract class DefaultSubscription extends AbstractMessageContainer implements
+class DefaultSubscription extends AbstractMessageContainer implements
     SubscriptionInterface
 {
     /**
@@ -35,8 +35,7 @@ abstract class DefaultSubscription extends AbstractMessageContainer implements
      *
      * @var bool
      */
-    // @todo Switch back to private once no other implementations exists
-    protected $active = false;
+    private $active = false;
 
     /**
      * Time when this subscription has been activated for the last time as a
@@ -44,8 +43,7 @@ abstract class DefaultSubscription extends AbstractMessageContainer implements
      *
      * @var int
      */
-    // @todo Switch back to private once no other implementations exists
-    protected $activatedTime;
+    private $activatedTime;
 
     /**
      * Time when this subscription has been deactivated for the last time as a
@@ -53,8 +51,7 @@ abstract class DefaultSubscription extends AbstractMessageContainer implements
      *
      * @var int
      */
-    // @todo Switch back to private once no other implementations exists
-    protected $deactivatedTime;
+    private $deactivatedTime;
 
     /**
      * Default constructor
@@ -166,11 +163,45 @@ abstract class DefaultSubscription extends AbstractMessageContainer implements
      * (non-PHPdoc)
      * @see \APubSub\SubscriptionInterface::deactivate()
      */
-    abstract public function deactivate();
+    public function deactivate()
+    {
+        $deactivated = time();
+
+        $this
+            ->context
+            ->getBackend()
+            ->fetchSubscriptions(array(
+                Field::SUB_ID => $this->id,
+            ))
+            ->update(array(
+                Field::SUB_STATUS => 0,
+                Field::SUB_DEACTIVATED => $deactivated,
+            ));
+
+        $this->active = false;
+        $this->deactivatedTime = $deactivated;
+    }
 
     /**
      * (non-PHPdoc)
      * @see \APubSub\SubscriptionInterface::activate()
      */
-    abstract public function activate();
+    public function activate()
+    {
+        $activated = time();
+
+        $this
+            ->context
+            ->getBackend()
+            ->fetchSubscriptions(array(
+                Field::SUB_ID => $this->id,
+            ))
+            ->update(array(
+                Field::SUB_STATUS => 1,
+                Field::SUB_DEACTIVATED => $activated,
+            ));
+
+        $this->active = true;
+        $this->activatedTime = $activated;
+    }
 }
