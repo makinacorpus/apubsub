@@ -193,7 +193,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
             if ($id % 2) { // 1, 2, 5
                 $this->assertFalse($message->isUnread());
             } else { // 2, 4, 6
-                //$this->assertTrue($message->isUnread());
+                $this->assertTrue($message->isUnread());
             }
         }
     }
