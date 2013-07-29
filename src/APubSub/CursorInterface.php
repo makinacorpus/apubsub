@@ -81,11 +81,17 @@ interface CursorInterface extends ObjectInterface, \Traversable, \Countable
 
     /**
      * Delete all selected items.
+     *
+     * Limit and offset apply on this method.
      */
     public function delete();
 
     /**
      * Update all selected items using given values.
+     *
+     * Limit and offset apply on this method.
+     *
+     * @param array $values Fields to update
      */
     public function update(array $values);
 }

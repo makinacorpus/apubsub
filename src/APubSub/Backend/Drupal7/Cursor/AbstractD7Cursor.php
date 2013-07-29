@@ -94,13 +94,8 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
         if (null === $this->iterator) {
 
             $result  = array();
-            $limit   = $this->getLimit();
             $context = $this->getContext();
             $query   = $this->getQuery();
-
-            if (CursorInterface::LIMIT_NONE !== $limit) {
-                $query->range($this->getOffset(), $limit);
-            }
 
             $this->applySorts($this->query, $this->getSorts());
 
@@ -164,6 +159,12 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
             // Apply conditions.
             foreach ($this->conditions as $statement => $value) {
                 $this->query->condition($statement, $value);
+            }
+
+            $limit = $this->getLimit();
+
+            if (CursorInterface::LIMIT_NONE !== $limit) {
+                $this->query->range($this->getOffset(), $limit);
             }
         }
 

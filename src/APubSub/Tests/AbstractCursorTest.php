@@ -39,5 +39,18 @@ abstract class AbstractCursorTest extends AbstractBackendBasedTest
             ++$count;
         }
         $this->assertSame(2, $count);
+
+        $cursor->delete();
+
+        $newcursor = $this
+            ->backend
+            ->fetchChannels()
+            ->setRange(2, 3)
+            ->addSort(
+                Field::CHAN_ID,
+                CursorInterface::SORT_DESC);
+
+        $this->assertSame(4, $newcursor->getTotalCount());
+        $this->assertCount(1, $newcursor);
     }
 }
