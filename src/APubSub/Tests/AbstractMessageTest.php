@@ -40,9 +40,4 @@ abstract class AbstractMessageTest extends AbstractBackendBasedTest
             break;
         }
     }
-
-    public function testMessageCursor()
-    {
-        
-    }
 }
