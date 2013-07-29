@@ -132,7 +132,7 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
         if (null === $this->count) {
             $query = clone $this->getQuery();
 
-            $this->count = $query
+            $this->count = (int)$query
                 ->range()
                 ->countQuery()
                 ->execute()

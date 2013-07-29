@@ -28,7 +28,7 @@ interface BackendInterface extends
      *
      * @return \APubSub\CursorInterface                    Channel cursor
      */
-    public function fetchChannels(array $conditions);
+    public function fetchChannels(array $conditions = null);
 
     /**
      * Create a channel instance

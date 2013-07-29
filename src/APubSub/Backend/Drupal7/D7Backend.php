@@ -56,7 +56,7 @@ class D7Backend extends AbstractBackend
      * (non-PHPdoc)
      * @see \APubSub\BackendInterface::fetchChannels()
      */
-    public function fetchChannels(array $conditions)
+    public function fetchChannels(array $conditions = null)
     {
         $cursor = new D7ChannelCursor($this->context);
 

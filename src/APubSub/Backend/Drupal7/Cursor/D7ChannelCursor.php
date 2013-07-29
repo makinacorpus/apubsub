@@ -3,6 +3,7 @@
 namespace APubSub\Backend\Drupal7\Cursor;
 
 use APubSub\Backend\Drupal7\D7Channel;
+use APubSub\CursorInterface;
 use APubSub\Field;
 
 /**
