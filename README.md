@@ -167,6 +167,11 @@ History
 
  * master branch is the main development branch for new features
 
+ * 0.3 got rid of all objects specific implementations, adds generic cursors
+   for all objects and yet again reduces code. Counter part is a performance
+   regression in update and delete operations, but a performance boots for
+   bulk operations
+
  * 0.2 branch is almost signature compatible with 0.1 branch, and contains
    numerous internal improvements, and a drastic code quantity reduction. It
    also cleans up the Drupal modules
