@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Backend\Drupal7\Cursor;
+namespace APubSub\Backend\Drupal7;
 
 use APubSub\Backend\AbstractCursor;
 use APubSub\ContextInterface;

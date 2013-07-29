@@ -1,6 +1,6 @@
 <?php
 
-namespace APubSub\Backend\Drupal7\Helper;
+namespace APubSub\Backend\Drupal7;
 
 use APubSub\Backend\AbstractObject;
 

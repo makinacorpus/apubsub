@@ -3,9 +3,6 @@
 namespace APubSub\Backend\Drupal7;
 
 use APubSub\Backend\DefaultContext;
-use APubSub\Backend\Drupal7\Helper\Cache;
-use APubSub\Backend\Drupal7\Helper\NullCache;
-use APubSub\Backend\Drupal7\Helper\TypeRegistry;
 use APubSub\ContextInterface;
 
 /**
