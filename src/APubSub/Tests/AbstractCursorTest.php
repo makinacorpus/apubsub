@@ -7,6 +7,11 @@ use APubSub\Field;
 
 abstract class AbstractCursorTest extends AbstractBackendBasedTest
 {
+    /**
+     * Basic channel cursor features
+     *
+     * Channels don't support update
+     */
     public function testChannelCursor()
     {
         $chanIdList = array(
@@ -54,6 +59,12 @@ abstract class AbstractCursorTest extends AbstractBackendBasedTest
         $this->assertCount(1, $cursor);
     }
 
+    /**
+     * Basic subscription cursor features
+     *
+     * Most update operations are done via the other tests (subscription basic
+     * usage mostly)
+     */
     public function testSubscriptionCursor()
     {
         $chanIdList = array(
