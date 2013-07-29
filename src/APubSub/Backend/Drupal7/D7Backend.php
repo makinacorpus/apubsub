@@ -11,6 +11,7 @@ use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\Field;
+use APubSub\Backend\Drupal7\Cursor\D7SubscriptionCursor;
 
 /**
  * Drupal 7 backend implementation
@@ -197,96 +198,17 @@ class D7Backend extends AbstractBackend
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::getSubscriptions()
+     * @see \APubSub\BackendInterface::fetchSubscriptions()
      */
-    public function getSubscriptions($idList)
+    public function fetchSubscriptions(array $conditions = null)
     {
-        $ret = array();
+        $cursor = new D7SubscriptionCursor($this->context);
 
-        $select = $this
-            ->context
-            ->dbConnection
-            ->select('apb_sub', 's');
-        // FIXME: Sad JOIN is sad
-        $select
-            ->join('apb_chan', 'c', 'c.id = s.chan_id');
-        $recordList = $select
-            ->fields('s')
-            ->fields('c', array('name'))
-            ->condition('s.id', $idList, 'IN')
-            ->execute()
-            // Fetch all is mandatory, else we cannot count
-            ->fetchAll();
-
-        if (count($recordList) !== count($idList)) {
-            throw new SubscriptionDoesNotExistException();
+        if (!empty($conditions)) {
+            $cursor->setConditions($conditions);
         }
 
-        foreach ($recordList as $record) {
-            $id = (int)$record->id;
-            $subscription = new D7Subscription(
-                $record->name,
-                $id,
-                (int)$record->created,
-                (int)$record->activated,
-                (int)$record->deactivated,
-                (bool)$record->status,
-                $this->context);
-
-            $ret[$id] = $subscription;
-        }
-
-        array_multisort($idList, $ret);
-
-        return $ret;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::deleteSubscription()
-     */
-    public function deleteSubscription($id)
-    {
-        $cx = $this->context->dbConnection;
-        $tx = null;
-
-        try {
-            $tx   = $cx->startTransaction();
-
-            $args = array(':id' => $id);
-
-            // FIXME: SELECT FOR UPDATE here in all tables
-
-            $exists = (bool)$cx
-                // SELECT 1 would have been better, but as always Drupal is
-                // incredibly stupid and does not allow us to write the SQL
-                // we really want to
-                ->query("SELECT id FROM {apb_sub} WHERE id = :id", $args)
-                ->fetchField();
-
-            if (!$exists) {
-                // See comment in createChannel() method
-                $tx->rollback();
-
-                throw new ChannelDoesNotExistException();
-            }
-
-            // Clean subscribers and queue then delete subscription
-            $cx->query("DELETE FROM {apb_sub_map} WHERE sub_id = :id", $args);
-            $cx->query("DELETE FROM {apb_queue} WHERE sub_id = :id", $args);
-            $cx->query("DELETE FROM {apb_sub} WHERE id = :id", $args);
-
-            unset($tx); // Explicit commit
-
-        } catch (\Exception $e) {
-            if ($tx) {
-                try {
-                    $tx->rollback();
-                } catch (\Exception $e2) {}
-            }
-
-            throw $e;
-        }
+        return $cursor;
     }
 
     /**
@@ -339,7 +261,11 @@ class D7Backend extends AbstractBackend
             }
 
             if (!empty($subIdList)) {
-                $this->deleteSubscriptions($subIdList);
+                $cursor = $this
+                    ->fetchSubscriptions(array(
+                        Field::SUB_ID => $subIdList,
+                    ))
+                    ->delete();
             }
 
             $cx->query("DELETE FROM {apb_sub_map} WHERE sub_id = :id", $args);

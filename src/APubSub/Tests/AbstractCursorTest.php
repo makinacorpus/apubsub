@@ -42,7 +42,7 @@ abstract class AbstractCursorTest extends AbstractBackendBasedTest
 
         $cursor->delete();
 
-        $newcursor = $this
+        $cursor = $this
             ->backend
             ->fetchChannels()
             ->setRange(2, 3)
@@ -50,7 +50,71 @@ abstract class AbstractCursorTest extends AbstractBackendBasedTest
                 Field::CHAN_ID,
                 CursorInterface::SORT_DESC);
 
-        $this->assertSame(4, $newcursor->getTotalCount());
-        $this->assertCount(1, $newcursor);
+        $this->assertSame(4, $cursor->getTotalCount());
+        $this->assertCount(1, $cursor);
+    }
+
+    public function testSubscriptionCursor()
+    {
+        $chanIdList = array(
+            'foo',
+            'bar',
+        );
+        foreach ($chanIdList as $chanId) {
+            $this->backend->createChannel($chanId);
+        }
+
+        $sub1 = $this->backend->subscribe("foo");
+        $sub2 = $this->backend->subscribe("bar");
+        $sub3 = $this->backend->subscribe("foo");
+        $sub4 = $this->backend->subscribe("foo");
+        $sub5 = $this->backend->subscribe("bar");
+        $sub6 = $this->backend->subscribe("foo");
+
+        $cursor = $this
+            ->backend
+            ->fetchSubscriptions(array(
+                Field::CHAN_ID => "foo",
+            ))
+            ->setLimit(3)
+            ->addSort(
+                Field::SUB_STATUS,
+                CursorInterface::SORT_DESC);
+
+        $this->assertCount(3, $cursor);
+        $this->assertSame(4, $cursor->getTotalCount());
+
+        $count = 0;
+        foreach ($cursor as $sub) {
+            $this->assertInstanceOf('\APubSub\SubscriptionInterface', $sub);
+            ++$count;
+        }
+        $this->assertSame(3, $count);
+
+        $cursor->delete();
+
+        $cursor = $this
+            ->backend
+            ->fetchSubscriptions()
+            ->addSort(
+                Field::SUB_STATUS,
+                CursorInterface::SORT_DESC);
+
+        $this->assertSame(3, $cursor->getTotalCount());
+        $this->assertCount(3, $cursor);
+
+        // Ensure there was no link on delete by loading the "bar" associated
+        // subscriptions
+        $cursor = $this
+            ->backend
+            ->fetchSubscriptions(array(
+                Field::CHAN_ID => "bar",
+            ))
+            ->addSort(
+                Field::SUB_STATUS,
+                CursorInterface::SORT_DESC);
+
+        $this->assertSame(2, $cursor->getTotalCount());
+        $this->assertCount(2, $cursor);
     }
 }

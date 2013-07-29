@@ -8,11 +8,6 @@ namespace APubSub;
 final class Field
 {
     /**
-     * Whatever object you are querying identifier
-     */
-    const SELF_ID         = 1;
-
-    /**
      * Channel id
      */
     const CHAN_ID         = 10;

@@ -13,7 +13,7 @@ interface BackendInterface extends
     /**
      * Helper method for loading one single channel
      *
-     * @param string $channelId             Channel identifier
+     * @param string $id                    Channel identifier
      *
      * @return ChannelInterface             Loaded channel
      *
@@ -22,11 +22,22 @@ interface BackendInterface extends
     public function getChannel($id);
 
     /**
+     * Helper method for loading mulitple channels
+     *
+     * @param string $idList                Channel identifier list
+     *
+     * @return ChannelInterface             Loaded channel
+     *
+     * @throws ChannelDoesNotExistException If channel does not exist
+     */
+    public function getChannels($idList);
+
+    /**
      * Fetch channels
      *
-     * @param array $conditions                            The channel id
+     * @param array $conditions         Conditions
      *
-     * @return \APubSub\CursorInterface                    Channel cursor
+     * @return \APubSub\CursorInterface Channel cursor
      */
     public function fetchChannels(array $conditions = null);
 
@@ -85,26 +96,13 @@ interface BackendInterface extends
     public function getSubscriptions($idList);
 
     /**
-     * Delete a channel along with all its messages and subscriptions
+     * Fetch subscriptions
      *
-     * @param string $id Subscription identifier
+     * @param array $conditions         Conditions
      *
-     * @throws \APubSub\Error\SubscriptionDoesNotExistException
-     *                   If subscription does not exist
+     * @return \APubSub\CursorInterface Subscription cursor
      */
-    public function deleteSubscription($id);
-
-    /**
-     * Delete a list of subscriptions
-     *
-     * @param array|Traversable $idList Subscription identifiers
-     *
-     * @throws \APubSub\Error\SubscriptionDoesNotExistException
-     *                                  If one subscription does not exist, case
-     *                                  in which the operation ended up
-     *                                  imcomplete
-     */
-    public function deleteSubscriptions($idList);
+    public function fetchSubscriptions(array $conditions = null);
 
     /**
      * Get or create a new subscriber instance
@@ -140,8 +138,6 @@ interface BackendInterface extends
 
     /**
      * Create a new subscription to the given channel
-     *
-     * The counterpart of this method is the deleteSubscription() method
      *
      * @param string $chanId       Channel identifier
      * @param string $subscriberId Subscriber identifier

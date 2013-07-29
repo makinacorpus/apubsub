@@ -5,6 +5,7 @@ namespace APubSub\Backend;
 use APubSub\BackendInterface;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Field;
+use APubSub\Error\SubscriptionDoesNotExistException;
 
 /**
  * Common base implementation for most backends
@@ -33,11 +34,32 @@ abstract class AbstractBackend extends AbstractObject implements
             Field::CHAN_ID => $id,
         ));
 
-        foreach ($cursor as $chan) {
-            return $chan;
+        $ret = iterator_to_array($cursor);
+
+        if (1 !== count($ret)) {
+            throw new ChannelDoesNotExistException();
         }
 
-        throw new ChannelDoesNotExistException();
+        return reset($ret);
+    }
+
+    /**
+     * (non-PHPdoc)
+     * @see \APubSub\BackendInterface::getChannels()
+     */
+    public function getChannels($idList)
+    {
+        $cursor = $this->fetchChannels(array(
+            Field::CHAN_ID => $idList,
+        ));
+
+        $ret = iterator_to_array($cursor);
+
+        if (count($idList) !== count($ret)) {
+            throw new ChannelDoesNotExistException();
+        }
+
+        return reset($ret);
     }
 
     /**
@@ -46,24 +68,36 @@ abstract class AbstractBackend extends AbstractObject implements
      */
     public function getSubscription($id)
     {
-        $subscriptionList = $this->getSubscriptions(array($id));
+        $cursor = $this->fetchSubscriptions(array(
+            Field::SUB_ID => $id,
+        ));
 
-        return reset($subscriptionList);
+        $ret = iterator_to_array($cursor);
+
+        if (1 !== count($ret)) {
+            throw new SubscriptionDoesNotExistException();
+        }
+
+        return reset($ret);
     }
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::deleteSubscriptions()
+     * @see \APubSub\BackendInterface::getSubscription()
      */
-    public function deleteSubscriptions($idList)
+    public function getSubscriptions($idList)
     {
-        // This doesn't sound revelant to optimize this method, subscriptions
-        // should not be to transcient, they have not been meant to anyway:
-        // deleting subscriptions will be a costy operation whatever the effort
-        // to make in deleting them faster
-        foreach ($idList as $id) {
-            $this->deleteSubscription($id);
+        $cursor = $this->fetchSubscriptions(array(
+            Field::SUB_ID => $idList,
+        ));
+
+        $ret = iterator_to_array($cursor);
+
+        if (count($idList) !== count($ret)) {
+            throw new SubscriptionDoesNotExistException();
         }
+
+        return $ret;
     }
 
     /**

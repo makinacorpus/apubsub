@@ -132,7 +132,6 @@ class D7MessageCursor extends AbstractD7Cursor
                         $this->query->orderBy('m.chan_id', $direction);
                         break;
 
-                    case Field::SELF_ID:
                     case Field::MSG_ID:
                     case Field::MSG_SENT:
                         $query

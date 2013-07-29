@@ -124,7 +124,10 @@ class DefaultSubscriber extends AbstractMessageContainer implements
                 $this
                     ->context
                     ->getBackend()
-                    ->deleteSubscription($this->idList[$chanId]);
+                    ->fetchSubscriptions(array(
+                        Field::SUB_ID => $this->idList[$chanId], 
+                    ))
+                    ->delete();
             }
         } catch (SubscriptionDoesNotExistException $e) {
             // An exception here means a subscription for this channel does
