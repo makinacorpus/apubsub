@@ -177,7 +177,7 @@ function apb_cron() {
       // We cannot afford cron failure here, outdated data must be wiped
       // out no matter the cost, just leave some comprehensive exception
       // logging in case of any error
-      watchdog_exception('apb', $e, sprintf("Backend name '%s' could not be instanciated"), NULL, WATCHDOG_ERROR);
+      watchdog_exception('apb', $e, sprintf("Backend name '%s' could not be instanciated", $name), NULL, WATCHDOG_ERROR);
     }
   }
 }
