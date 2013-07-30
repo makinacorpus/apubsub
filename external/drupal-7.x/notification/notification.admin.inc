@@ -137,7 +137,8 @@ function notification_admin_notification_channel_types($form, &$form_state) {
   $options = array();
   foreach ($instances as $type => $instance) {
     if ($instance instanceof ChanTypeInterface) {
-      $type = $instance->getType();
+      $type  = $instance->getType();
+      $group = $instance->getGroupId();
 
       $options[$type]['description'] = $instance->getDescription();
       $options[$type]['group']       = isset($groups[$group]) ? $groups[$group] : '';
