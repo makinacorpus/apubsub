@@ -8,35 +8,8 @@ use APubSub\Notification\FormatterInterface;
 /**
  * Null implementation
  */
-class NullFormatter implements FormatterInterface
+class NullFormatter extends AbstractFormatter
 {
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\FormatterInterface::getType()
-     */
-    public function getType()
-    {
-        return 'null';
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\FormatterInterface::getDescription()
-     */
-    public function getDescription()
-    {
-        return t("Null");
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\RegistryItemInterface::getGroupId()
-     */
-    public function getGroupId()
-    {
-        return null;
-    }
-
     /**
      * (non-PHPdoc)
      * @see \APubSub\Follow\NotificationTypeInterface::format()
