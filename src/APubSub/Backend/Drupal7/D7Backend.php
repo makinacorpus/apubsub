@@ -496,7 +496,7 @@ class D7Backend extends AbstractBackend
             ->query("
                       DELETE
                       FROM {apb_msg}
-                      WHERE msg_id NOT IN (
+                      WHERE id NOT IN (
                           SELECT msg_id
                           FROM {apb_queue}
                       )
