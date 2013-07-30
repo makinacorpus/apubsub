@@ -162,15 +162,31 @@ class NotificationService
     /**
      * Unsubscribe an object to a chan
      *
+     * @param string $srcType Source object type
+     * @param scalar $srcId   Source object identifier
+     * @param scalar $id      Subscriber object identifier
+     * @param string $type    Subscriber object type
+     */
+    public function unsubscribe($srcType, $srcId, $id, $type = self::SUBSCRIBER_USER)
+    {
+        $subscriber = $this
+            ->getSubscriber($id, $type)
+            ->unsubscribe(
+                $this->getChanId($srcType, $srcId));
+    }
+
+    /**
+     * Unsubscribe an object to a chan
+     *
      * @param string $chanId Channel identifier
      * @param scalar $id     Subscriber object identifier
      * @param string $type   Subscriber object type
      */
-    public function unsubscribe($chanId, $id, $type = self::SUBSCRIBER_USER)
+    public function unsubscribeTo($chanId, $id, $type = self::SUBSCRIBER_USER)
     {
         $subscriber = $this
-            ->getSubscriber($id, $type)
-            ->unsubscribe($chanId);
+          ->getSubscriber($id, $type)
+          ->unsubscribe($chanId);
     }
 
     /**
