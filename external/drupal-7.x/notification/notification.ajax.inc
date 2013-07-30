@@ -13,7 +13,7 @@ use APubSub\Field;
 function notification_ajax_user_notifications() {
   global $user;
 
-  $content = notification_notification_render_block($user, true);
+  $content = notification_block_render($user, true);
 
   if (is_array($content)) {
     echo drupal_render($content);

@@ -9,6 +9,7 @@
  * instead (except for some rare edge case needs).
  */
 
+use APubSub\CursorInterface;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\Field;
@@ -682,7 +683,7 @@ function notification_block_render($account) {
     ->fetch()
     ->addSort(
       Field::MSG_SENT,
-      Field::SORT_DESC)
+      CursorInterface::SORT_DESC)
     ->setRange($limit, 0);
 
   foreach ($cursor as $message) {
