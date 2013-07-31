@@ -219,6 +219,16 @@ class D7SubscriptionCursor extends AbstractD7Cursor
                     )
             ");
 
+            $cx->query("
+                DELETE
+                FROM {apb_sub_map}
+                WHERE
+                    sub_id IN (
+                        SELECT id
+                        FROM {" . $tempTableName ."}
+                    )
+            ");
+
             $cx->query("DROP TABLE {" . $tempTableName . "}");
 
             unset($tx); // Explicit commit
