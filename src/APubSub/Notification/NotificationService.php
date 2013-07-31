@@ -250,7 +250,7 @@ class NotificationService
      *
      * If notification type is disabled the message will be dropped
      *
-     * @param string $type Source object type
+     * @param string $type Notification type
      * @param scalar $id   Source object identifier
      * @param mixed $data  Arbitrary data to send along
      * @param int $level   Arbitrary level, see Notification::LEVEL_* constants.
