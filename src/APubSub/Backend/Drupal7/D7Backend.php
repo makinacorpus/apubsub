@@ -480,48 +480,29 @@ class D7Backend extends AbstractBackend
      */
     public function garbageCollection()
     {
-        $this->cleanUpMessageQueue();
-        $this->cleanUpMessageLifeTime();
-        $this->cleanUpOrphanMessages();
-    }
-
-    /**
-     * Clean up orphan message
-     */
-    public function cleanUpOrphanMessages()
-    {
-        $min = $this
-            ->context
-            ->dbConnection
-            ->query("
-                      DELETE
-                      FROM {apb_msg}
-                      WHERE id NOT IN (
-                          SELECT msg_id
-                          FROM {apb_queue}
-                      )
-                  ");
-    }
-
-    /**
-     * Use context configuration and wipe out sent messages from queue if
-     * the queue limit is reached
-     */
-    public function cleanUpMessageQueue()
-    {
         // Drop all messages for inactive subscriptions
-        $min = $this
+        $this
             ->context
             ->dbConnection
             ->query("
-                      DELETE
-                      FROM {apb_queue}
-                      WHERE sub_id IN (
-                          SELECT id
-                          FROM {apb_sub}
-                          WHERE status = 0
-                      )
-                  ");
+                    DELETE
+                    FROM {apb_queue}
+                    WHERE sub_id IN (
+                        SELECT id
+                        FROM {apb_sub}
+                        WHERE status = 0
+                    )
+                ");
+
+        // Clean up expired messages
+        if ($this->context->messageMaxLifetime) {
+            $this
+                ->context
+                ->dbConnection
+                ->query("DELETE FROM {apb_msg} WHERE created < :time", array(
+                    ':time' => time() - $this->context->messageMaxLifetime,
+                ));
+        }
 
         // Limit queue size if configured for
         if ($this->context->queueGlobalLimit) {
@@ -552,22 +533,32 @@ class D7Backend extends AbstractBackend
                     ));
             }
         }
-    }
 
-    /**
-     * Use context configuration and remove outdate message according to
-     * maximum message lifetime
-     */
-    public function cleanUpMessageLifeTime()
-    {
-        if ($this->context->messageMaxLifetime) {
-            $this
-                ->context
-                ->dbConnection
-                ->query("DELETE FROM {apb_msg} WHERE created < :time", array(
-                    ':time' => time() - $this->context->messageMaxLifetime,
-                ));
-        }
+        // Clean up orphaned messages
+        $this
+            ->context
+            ->dbConnection
+            ->query("
+                    DELETE
+                    FROM {apb_msg}
+                    WHERE id NOT IN (
+                        SELECT msg_id
+                        FROM {apb_queue}
+                    )
+                ");
+
+        // Clean up orphaned subsribers
+        $this
+            ->context
+            ->dbConnection
+            ->query("
+                    DELETE
+                    FROM {apb_sub_map}
+                    WHERE sub_id NOT IN (
+                        SELECT id
+                        FROM {apb_sub}
+                    )
+                ");
     }
 
     public function getAnalysis()
