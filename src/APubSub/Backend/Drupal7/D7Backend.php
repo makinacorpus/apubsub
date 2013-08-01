@@ -421,6 +421,7 @@ class D7Backend extends AbstractBackend
                     'created'  => $sendTime,
                     'contents' => serialize($contents),
                     'type_id'  => $typeId,
+                    'level'    => $level,
                 ))
                 ->execute();
 
