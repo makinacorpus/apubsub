@@ -95,6 +95,10 @@ class D7MessageCursor extends AbstractD7Cursor
                         ))->fetchCol();
                     break;
 
+                case Field::MSG_LEVEL:
+                    $ret['m.level'] = $value;
+                    break;
+
                 default:
                     trigger_error(sprintf("% does not support filter %d yet",
                         get_class($this), $field));
