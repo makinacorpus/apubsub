@@ -63,7 +63,7 @@ class DefaultSubscriber extends AbstractMessageContainer implements
         return $this
             ->context
             ->getBackend()
-            ->getSubscriptions($this->idList);
+            ->getSubscriptions(array_values($this->idList));
     }
 
     /**
