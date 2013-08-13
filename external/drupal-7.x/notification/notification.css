@@ -16,7 +16,7 @@
   color: #808080;
   z-index: 10;
   width: 400px;
-  padding: none;
+  padding: 0;
   border: 1px solid #202020;
   box-shadow: 2px 2px 4px #808080;
 }
@@ -114,7 +114,6 @@
 
 #notifications .top {
   height: 15px;
-  pading: 2px;
   cursor: pointer;
 }
 
