@@ -16,7 +16,9 @@ function notification_ajax_user_notifications() {
   $content = notification_block_render($user, true);
 
   if (is_array($content)) {
-    echo drupal_render($content);
+    $build['since_id'] = end(array_keys($content['#list']));
+    $build['html'] = drupal_render($content);
+    drupal_json_output($build);
   }
 
   // This will force Drupal to write all its caches and ensure next
@@ -34,6 +36,9 @@ function notification_ajax_unfold_notifications() {
 
   notification_service_get()
     ->getSubscriber($user->uid)
+    ->fetch(array(
+      Field::MSG_ID => array('<' => $_POST['since_id']),
+    ))
     ->update(array(
       Field::MSG_UNREAD => false,
     ));

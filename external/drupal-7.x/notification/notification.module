@@ -698,9 +698,6 @@ function notification_block_render($account) {
 
     if ($message->isUnread()) {
       ++$unreadCount;
-
-      // This should be done at the discretion of the business layer.
-      // FIXME $message->setUnread(false);
     }
 
     if ($uri = $notification->getImageUri()) {
@@ -709,7 +706,8 @@ function notification_block_render($account) {
       $image = '';
     }
 
-    $build['#list'][] = array(
+    $build['#list'][$message->getId()] = array(
+      'id'     => $message->getId(),
       'image'  => $image,
       'time'   => $message->getSendTimestamp(),
       'text'   => $notification->format(),
