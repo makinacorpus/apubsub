@@ -37,7 +37,7 @@ function notification_ajax_unfold_notifications() {
   notification_service_get()
     ->getSubscriber($user->uid)
     ->fetch(array(
-      Field::MSG_ID => array('<' => $_POST['since_id']),
+      Field::MSG_ID => array('<=' => $_POST['since_id']),
     ))
     ->update(array(
       Field::MSG_UNREAD => false,
