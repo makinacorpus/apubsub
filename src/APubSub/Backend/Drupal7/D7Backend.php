@@ -270,7 +270,7 @@ class D7Backend extends AbstractBackend
                     ->delete();
             }
 
-            $cx->query("DELETE FROM {apb_sub_map} WHERE sub_id = :id", $args);
+            $cx->query("DELETE FROM {apb_sub_map} WHERE name = :id", $args);
 
             unset($tx); // Explicit commit
 
