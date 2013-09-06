@@ -18,6 +18,6 @@
     </filter>
 
     <php>
-        <var name="DRUPAL_7_PATH" value="/var/www/drupal-7" />
+        <var name="DRUPAL_PATH_7" value="/var/www/drupal-7" />
     </php>
 </phpunit>
