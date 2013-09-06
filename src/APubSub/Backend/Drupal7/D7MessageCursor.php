@@ -272,7 +272,8 @@ class D7MessageCursor extends AbstractD7Cursor
         // or DELETE operations we want the full result list in order to
         // correctly wipe out the queue
         if ($this->distinct) {
-            $query->groupBy('q.msg_id');
+            $query->groupBy('q.id');
+            $query->groupBy('m.id');
         }
 
         return $query;
