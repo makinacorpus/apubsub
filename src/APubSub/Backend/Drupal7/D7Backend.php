@@ -104,7 +104,11 @@ class D7Backend extends AbstractBackend
                     ))
                     ->execute();
 
-                $dbId = (int)$cx->lastInsertId();
+                // Specify the name of the sequence object for PDO_PGSQL.
+                // @see http://php.net/manual/en/pdo.lastinsertid.php.
+                $seq = ($cx->driver() === 'pgsql') ? 'apb_chan_id_seq' : null;
+                $dbId = (int)$cx->lastInsertId($seq);
+
                 $chan = new D7Channel($dbId, $id, $this->context, $created);
             }
 
@@ -328,7 +332,10 @@ class D7Backend extends AbstractBackend
                 ))
                 ->execute();
 
-            $id = (int)$cx->lastInsertId();
+            // Specify the name of the sequence object for PDO_PGSQL.
+            // @see http://php.net/manual/en/pdo.lastinsertid.php.
+            $seq = ($cx->driver() === 'pgsql') ? 'apb_sub_id_seq' : null;
+            $id = (int)$cx->lastInsertId($seq);
 
             // Implicitely create the new subscriber/subscription association
             // if a subscriber identifier was given
@@ -425,7 +432,8 @@ class D7Backend extends AbstractBackend
                 ))
                 ->execute();
 
-            $id = (int)$cx->lastInsertId();
+            $seq = ($cx->driver() === 'pgsql') ? 'apb_msg_id_seq' : null;
+            $id = (int)$cx->lastInsertId($seq);
 
             // Send message to all subscribers
             $cx

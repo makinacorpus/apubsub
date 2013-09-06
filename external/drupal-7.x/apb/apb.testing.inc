@@ -273,7 +273,8 @@ function apb_testing_volume_form_submit($form, &$form_state) {
     ))
     ->execute();
 
-  $id = Database::getConnection()->lastInsertId();
+  $seq = ($cx->driver() === 'pgsql') ? 'apb_test_scenario_id_seq' : null;
+  $id = (int)$cx->lastInsertId($seq);
 
   drupal_set_message(t("Scenario %name has been created.", array(
     '%name' => check_plain($storage['name']),
