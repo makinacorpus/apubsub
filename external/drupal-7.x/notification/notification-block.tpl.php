@@ -8,11 +8,11 @@
 <div class="top">
   <?php if ($unread_count): ?>
   <div class="unread number" title="<?php echo $title; ?>">
-    <?php echo $real_total; ?>
+    <?php echo $unread_count; ?>
   </div>
   <?php else: ?>
   <div class="number" title="<?php echo $title; ?>">
-    <?php echo $real_total; ?>
+    <?php echo $unread_count; ?>
   </div>
   <?php endif; ?>
 </div>
