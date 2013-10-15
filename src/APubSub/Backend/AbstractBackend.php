@@ -4,8 +4,8 @@ namespace APubSub\Backend;
 
 use APubSub\BackendInterface;
 use APubSub\Error\ChannelDoesNotExistException;
-use APubSub\Field;
 use APubSub\Error\SubscriptionDoesNotExistException;
+use APubSub\Field;
 
 /**
  * Common base implementation for most backends
