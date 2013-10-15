@@ -26,6 +26,12 @@ function apb_schema() {
         'length' => 64,
         'not null' => TRUE,
       ),
+      'title' => array(
+        'description' => "Optional human readable title",
+        'type' => 'varchar',
+        'length' => 1024,
+        'not null' => FALSE,
+      ),
       'created' => array(
         'description' => "Creation UNIX timestamp",
         'type' => 'int',
@@ -352,4 +358,16 @@ function apb_update_7001() {
  */
 function apb_update_7002() {
   db_drop_field('apb_sub_map', 'extra');
+}
+
+/**
+ * Adds the {apb_chan}.title column.
+ */
+function apb_update_7003() {
+  db_add_field('apb_chan', 'title', array(
+    'description' => "Optional human readable title",
+    'type' => 'varchar',
+    'length' => 1024,
+    'not null' => FALSE,
+  ));
 }

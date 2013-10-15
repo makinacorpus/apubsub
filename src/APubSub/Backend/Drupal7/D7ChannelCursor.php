@@ -96,7 +96,8 @@ class D7ChannelCursor extends AbstractD7Cursor
             (int)$record->id,
             $record->name,
             $this->context,
-            (int)$record->created);
+            (int)$record->created,
+            empty($record->title) ? null : $record->title);
     }
 
     /**
@@ -230,8 +231,42 @@ class D7ChannelCursor extends AbstractD7Cursor
     {
         if (empty($values)) {
             return;
-        } else {
-            throw new \RuntimeException("Cannot update a channel");
         }
+
+        $queryValues = array();
+
+        // First build values and ensure the users don't do anything stupid
+        foreach ($values as $key => $value) {
+            switch ($key) {
+
+                case Field::CHAN_TITLE:
+                    $queryValues['title'] = $value;
+                    break;
+
+                default:
+                    throw new \RuntimeException(sprintf(
+                        "%s field is unsupported for update",
+                        $key));
+            }
+        }
+
+        // Updating messages in queue implicates doing it using the queue id:
+        // because the 'apb_queue' table is our primary FROM table (in most
+        // cases) we need to proceed using a temporary table
+        $tempTableName = $this->createTempTable();
+
+        $cx = $this->context->dbConnection;
+
+        $select = $cx
+            ->select($tempTableName, 't')
+            ->fields('t', array('id'));
+
+        $cx
+            ->update('apb_chan')
+            ->fields($queryValues)
+            ->condition('id', $select, 'IN')
+            ->execute();
+
+        $cx->query("DROP TABLE {" . $tempTableName . "}");
     }
 }

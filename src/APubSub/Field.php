@@ -13,6 +13,11 @@ final class Field
     const CHAN_ID         = 10;
 
     /**
+     * Channel title
+     */
+    const CHAN_TITLE      = 12;
+
+    /**
      * Channel creation timestamp
      */
     const CHAN_CREATED_TS = 11;

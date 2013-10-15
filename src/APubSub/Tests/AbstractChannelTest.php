@@ -29,7 +29,7 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
 
         // Test the ignore error boolean
         try {
-            $chan1 = $this->backend->createChannel('foo', true);
+            $chan1 = $this->backend->createChannel('foo', null, true);
 
             $this->assertSame($chan1->getId(), $chan->getId());
 
@@ -208,5 +208,20 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         $this->assertCount(2, $cursor, "Sub 2 still has 2 messages");
         $cursor = $sub3->fetch();
         $this->assertCount(2, $cursor, "Sub 3 has now 2 messages");
+    }
+
+    public function testUpdate()
+    {
+        $chan = $this->backend->createChannel('some_channel');
+        $this->assertSame(null, $chan->getTitle());
+        $chan->setTitle("Some channel");
+        $this->assertSame("Some channel", $chan->getTitle());
+        $chan = $this->backend->getChannel('some_channel');
+        $this->assertSame("Some channel", $chan->getTitle());
+
+        $chan = $this->backend->createChannel('some_other_channel', "Some other channel");
+        $this->assertSame("Some other channel", $chan->getTitle());
+        $chan = $this->backend->getChannel('some_other_channel');
+        $this->assertSame("Some other channel", $chan->getTitle());
     }
 }

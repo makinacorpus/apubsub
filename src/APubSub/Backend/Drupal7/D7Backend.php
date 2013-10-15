@@ -70,7 +70,7 @@ class D7Backend extends AbstractBackend
      * (non-PHPdoc)
      * @see \APubSub\BackendInterface::createChannel()
      */
-    public function createChannel($id, $ignoreErrors = false)
+    public function createChannel($id, $title = null, $ignoreErrors = false)
     {
         $chan    = null;
         $created = time();
@@ -100,6 +100,7 @@ class D7Backend extends AbstractBackend
                     ->insert('apb_chan')
                     ->fields(array(
                         'name' => $id,
+                        'title' => $title,
                         'created' => $created,
                     ))
                     ->execute();
@@ -109,7 +110,7 @@ class D7Backend extends AbstractBackend
                 $seq = ($cx->driver() === 'pgsql') ? 'apb_chan_id_seq' : null;
                 $dbId = (int)$cx->lastInsertId($seq);
 
-                $chan = new D7Channel($dbId, $id, $this->context, $created);
+                $chan = new D7Channel($dbId, $id, $this->context, $created, $title);
             }
 
             unset($tx); // Explicit commit

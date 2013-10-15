@@ -26,7 +26,7 @@ interface BackendInterface extends
      *
      * @param string $idList                Channel identifier list
      *
-     * @return ChannelInterface             Loaded channel
+     * @return ChannelInterface[]           Loaded channel
      *
      * @throws ChannelDoesNotExistException If channel does not exist
      */
@@ -45,6 +45,7 @@ interface BackendInterface extends
      * Create a channel instance
      *
      * @param string $id           Channel name
+     * @param string $title        Human readable title
      * @param string $ignoreErrors Allow silent errors when channel already
      *                             exists
      *
@@ -54,7 +55,7 @@ interface BackendInterface extends
      *                             If the channel with the given identifier
      *                             already exists
      */
-    public function createChannel($id, $ignoreErrors = false);
+    public function createChannel($id, $title = null, $ignoreErrors = false);
 
     /**
      * Create multiple channel instances

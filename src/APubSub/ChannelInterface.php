@@ -15,6 +15,20 @@ interface ChannelInterface extends MessageContainerInterface
     public function getId();
 
     /**
+     * Get channel title
+     *
+     * @return string Humean readable title if set otherwise null
+     */
+    public function getTitle();
+
+    /**
+     * Update channel title
+     *
+     * @param string $title New title or null to unset it
+     */
+    public function setTitle($title);
+
+    /**
      * Get creation time as a UNIX timestamp
      *
      * @return int UNIX timestamp where the channel was created

@@ -23,10 +23,11 @@ class D7Channel extends DefaultChannel implements ChannelInterface
      * @param string $id        Channel identifier
      * @param ContextInterface  Context
      * @param int $creationTime Creation time UNIX timestamp
+     * @param string $title     Human readable title
      */
-    public function __construct($databaseId, $id, ContextInterface $context, $creationTime = null)
+    public function __construct($databaseId, $id, ContextInterface $context, $creationTime = null, $title = null)
     {
-        parent::__construct($id, $context, $creationTime);
+        parent::__construct($id, $context, $creationTime, $title);
 
         $this->databaseId = $databaseId;
     }
