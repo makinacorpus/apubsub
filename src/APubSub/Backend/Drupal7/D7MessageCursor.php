@@ -187,6 +187,7 @@ class D7MessageCursor extends AbstractD7Cursor
             (string)$record->chan_id,
             (int)$record->sub_id,
             unserialize($record->contents),
+            (int)$record->msg_id,
             (int)$record->id,
             (int)$record->created,
             $this->context->typeRegistry->getType($record->type_id),

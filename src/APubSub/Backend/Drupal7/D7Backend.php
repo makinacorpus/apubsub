@@ -3,7 +3,7 @@
 namespace APubSub\Backend\Drupal7;
 
 use APubSub\Backend\AbstractBackend;
-use APubSub\Backend\DefaultMessageInstance;
+use APubSub\Backend\DefaultMessage;
 use APubSub\Backend\DefaultSubscriber;
 use APubSub\Backend\DefaultSubscription;
 use APubSub\Error\ChannelAlreadyExistsException;
@@ -390,14 +390,8 @@ class D7Backend extends AbstractBackend
     }
 
     /**
-     * Send a single message to one or more channels
-     *
-     * @param string|string[] $chanId List of channels or single channel to send
-     *                                the message too
-     * @param string $type            Message type
-     * @param int $level              Arbitrary business level
-     * @param int $sendTime           If set the creation/send timestamp will be
-     *                                forced to the given value
+     * (non-PHPdoc)
+     * @see \APubSub\BackendInterface::send()
      */
     public function send($chanId, $contents, $type = null, $level = 0, $sendTime = null)
     {
@@ -470,9 +464,8 @@ class D7Backend extends AbstractBackend
             throw $e;
         }
 
-        return new DefaultMessageInstance(
-            $this->context, $chanId, null, $contents, $id,
-            $sendTime, null, true, null, $level);
+        return new DefaultMessage(
+            $this->context, $contents, $id, $type, $level);
     }
 
     /**

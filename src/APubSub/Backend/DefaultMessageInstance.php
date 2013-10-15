@@ -58,6 +58,7 @@ class DefaultMessageInstance extends DefaultMessage implements
      * @param string $subscriptionId    Subscription identifier
      * @param mixed $contents           Message contents
      * @param scalar $id                Message identifier
+     * @param scalar $queueId           Queue identifier
      * @param int $sendTime             Send time UNIX timestamp
      * @param string $type              Message type
      * @param bool $isUnread            Is this message unread
@@ -70,6 +71,7 @@ class DefaultMessageInstance extends DefaultMessage implements
         $subscriptionId,
         $contents,
         $id,
+        $queueId,
         $sendTime,
         $type          = null,
         $isUnread      = true,
@@ -78,6 +80,7 @@ class DefaultMessageInstance extends DefaultMessage implements
     {
         parent::__construct($context, $contents, $id, $type, $level);
 
+        $this->queueId        = $queueId;
         $this->chanId         = $chanId;
         $this->subscriptionId = $subscriptionId;
         $this->sendTime       = $sendTime;
@@ -87,7 +90,7 @@ class DefaultMessageInstance extends DefaultMessage implements
 
     /**
      * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getId()
+     * @see \APubSub\MessageInstanceInterface::getQueueId()
      */
     public function getQueueId()
     {
@@ -112,9 +115,9 @@ class DefaultMessageInstance extends DefaultMessage implements
         if ($this->unread !== $toggle) {
 
             if ($toggle) {
-                $this->readTimestamp = null;
+                $timestamp = null;
             } else {
-                $this->readTimestamp = time();
+                $timestamp = time();
             }
 
             $this
@@ -123,6 +126,9 @@ class DefaultMessageInstance extends DefaultMessage implements
                 ->setUnread(
                     $this->queueId,
                     $toggle);
+
+            $this->readTimestamp = $timestamp;
+            $this->unread = $toggle;
         }
     }
 
