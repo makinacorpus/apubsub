@@ -364,10 +364,28 @@ function apb_update_7002() {
  * Adds the {apb_chan}.title column.
  */
 function apb_update_7003() {
-  db_add_field('apb_chan', 'title', array(
-    'description' => "Optional human readable title",
-    'type' => 'varchar',
-    'length' => 1024,
-    'not null' => FALSE,
-  ));
+  if (!db_field_exists('apb_chan', 'title')) {
+    db_add_field('apb_chan', 'title', array(
+      'description' => "Optional human readable title",
+      'type' => 'varchar',
+      'length' => 1024,
+      'not null' => FALSE,
+    ));
+  }
+}
+
+/**
+ * Adds the {apb_queue}.id column.
+ */
+function apb_update_7004() {
+  if (!db_field_exists('apb_queue', 'id')) {
+    // We need to drop the table due to primary key constraints changes.
+    db_query("CREATE TABLE {temp_apb_queue} AS SELECT * FROM {apb_queue}");
+    db_drop_table('apb_queue');
+    db_create_table('apb_queue', drupal_get_schema_unprocessed('apb', 'apb_queue'));
+    db_query("INSERT INTO {apb_queue} (msg_id, sub_id, created, unread, read_timestamp) SELECT * FROM {temp_apb_queue}");
+    // Could have used a temporary table but wasn't sure about the result.
+    // Better have stalling data than lost data.
+    db_drop_table('temp_apb_queue');
+  }
 }
