@@ -11,11 +11,9 @@ final class Misc
      */
     static public function isIndexed(array $array)
     {
+        // Best answer ever to that question:
+        // http://stackoverflow.com/a/5969617/552405
         for (reset($array); is_int(key($array)); next($array));
-            if (!is_null(key($array))) {
-                return false;
-            }
-        }
-        return true;
+        return is_null(key($array));
     }
 }
