@@ -73,6 +73,17 @@ interface BackendInterface extends
     public function createChannels($idList, $ignoreErrors = false);
 
     /**
+     * Delete channel
+     *
+     * If channel does not exists be silent about it
+     *
+     * @param string $id           Channel name
+     * @param string $ignoreErrors Allow silent errors when channel already
+     *                             exists
+     */
+    public function deleteChannel($id, $ignoreErrors = false);
+
+    /**
      * Load an existing subscription
      *
      * @param scalar $id                      The subscription identifier

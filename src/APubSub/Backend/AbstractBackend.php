@@ -45,6 +45,23 @@ abstract class AbstractBackend extends AbstractObject implements
 
     /**
      * (non-PHPdoc)
+     * @see \APubSub\BackendInterface::deleteChannel()
+     */
+    public function deleteChannel($id, $ignoreErrors = false)
+    {
+        $cursor = $this->fetchChannels(array(
+            Field::CHAN_ID => $id,
+        ));
+
+        if (!$ignoreErrors && !count($cursor)) {
+            throw new ChannelDoesNotExistException();
+        }
+
+        $cursor->delete();
+    }
+
+    /**
+     * (non-PHPdoc)
      * @see \APubSub\BackendInterface::getChannels()
      */
     public function getChannels($idList)
