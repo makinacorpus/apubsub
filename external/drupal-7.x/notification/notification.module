@@ -589,6 +589,8 @@ function notification_follow_form_submit($form, &$form_state) {
   //  * use the notification manager instead would be better
 
   try {
+    // Throws an exception if the user is not following the channel.
+    $subscriber->getSubscriptionFor($chanId);
     $subscription = $subscriber->unsubscribe($chanId);
     drupal_set_message(t("You are not following this channel!"));
   } catch (SubscriptionDoesNotExistException $e) {
