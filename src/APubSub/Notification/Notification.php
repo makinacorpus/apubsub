@@ -94,16 +94,19 @@ class Notification
 
         if (($contents = $message->getContents()) &&
             is_array($contents) &&
-            isset($contents['i']) &&
-            isset($contents['d']))
+            isset($contents['i']))
         {
             $this->message   = $message;
-            $this->data      = $contents['d'];
             $this->sourceId  = $contents['i'];
             $this->valid     = true;
 
             if (isset($contents['f'])) {
                 $this->formatted = $contents['f'];
+            }
+            if (isset($contents['d'])) {
+                $this->data = $contents['d'];
+            } else {
+                $this->data = array();
             }
         }
     }

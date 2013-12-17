@@ -262,7 +262,7 @@ class NotificationService
      *                     computed from the given $type and $id parameters
      *                     using the getChanId() method
      */
-    public function notify($type, $id, $data, $level = null, $chanId = null)
+    public function notify($type, $id, $data = null, $level = null, $chanId = null)
     {
         if (!$this->isTypeEnabled($type)) {
             return;
