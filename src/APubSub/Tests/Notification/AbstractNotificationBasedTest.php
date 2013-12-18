@@ -8,9 +8,9 @@ use APubSub\Tests\AbstractBackendBasedTest;
 abstract class AbstractNotificationBasedTest extends AbstractBackendBasedTest
 {
     /**
-     * @var NotificationService
+     * @var \APubSub\Notification\NotificationService
      */
-    protected $service;
+    private $service;
 
     protected function setUp()
     {
@@ -56,5 +56,10 @@ abstract class AbstractNotificationBasedTest extends AbstractBackendBasedTest
             'description' => "Disabled",
             'group'       => "Testing 1",
         ));
+    }
+
+    public function getService()
+    {
+        return $this->service;
     }
 }

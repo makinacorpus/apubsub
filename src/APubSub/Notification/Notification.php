@@ -46,18 +46,6 @@ class Notification
     private $data;
 
     /**
-     * @var scalar
-     */
-    private $sourceId;
-
-    /**
-     * Contents contains the appropriate data
-     *
-     * @var bool
-     */
-    private $valid = false;
-
-    /**
      * Notification type
      *
      * @var string
@@ -92,13 +80,7 @@ class Notification
         $this->service = $service;
         $this->message = $message;
 
-        if (($contents = $message->getContents()) &&
-            is_array($contents) &&
-            isset($contents['i']))
-        {
-            $this->message   = $message;
-            $this->sourceId  = $contents['i'];
-            $this->valid     = true;
+        if (($contents = $message->getContents()) && is_array($contents)) {
 
             if (isset($contents['f'])) {
                 $this->formatted = $contents['f'];
@@ -109,16 +91,6 @@ class Notification
                 $this->data = array();
             }
         }
-    }
-
-    /**
-     * Tell if this instance has a valid message
-     *
-     * @return boolean True if valid
-     */
-    public function isValid()
-    {
-        return $this->valid;
     }
 
     /**
@@ -139,16 +111,6 @@ class Notification
     public function getMessageId()
     {
         return $this->message->getId();
-    }
-
-    /**
-     * Get notification source identifier
-     *
-     * @return mixed Arbitrary source identifier
-     */
-    public function getSourceId()
-    {
-        return $this->sourceId;
     }
 
     /**

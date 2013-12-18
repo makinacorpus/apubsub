@@ -51,10 +51,6 @@ function notification_page_user_list($form, &$form_state, $account) {
   foreach ($cursor as $message) {
     $notification = $service->getNotification($message);
 
-    if (!$notification->isValid()) {
-      continue;
-    }
-
     ++$displayed;
 
     if ($uri = $notification->getImageUri()) {

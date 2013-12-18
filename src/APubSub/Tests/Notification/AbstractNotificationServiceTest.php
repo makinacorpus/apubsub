@@ -8,104 +8,73 @@ abstract class AbstractNotificationServiceTest extends AbstractNotificationBased
 {
     public function testSubscribeAndNotify()
     {
-        $user1Id     = 1;
-        $user2Id     = 2;
-        $content1Id  = 1;
+        $service = $this->getService();
 
-        // Let's make user 1 subscribe to content 1
-        $this->service->subscribe('content', $content1Id, $user1Id);
-        // And user 2 subscribe to user 1 friend channel
-        $this->service->subscribe('friend', $user1Id, $user2Id);
+        $userId1 = $service->getSubscriberName("u", 1);
+        $userId2 = $service->getSubscriberName("u", 2);
+        $userId3 = $service->getSubscriberName("u", 3);
 
-        // User 1 did some thing, user 2 should receive a notification
-        $this->service->notify('friend', $user1Id, "gruik");
-        $subUser2 = $this->service->getSubscriber($user2Id);
-        $cursor   = $subUser2->fetch();
-        $this->assertCount(1, $cursor);
+        $chanId1 = $service->getChanId("friend", 1);
+        $chanId2 = $service->getChanId("friend", 2);
+        $chanId3 = $service->getChanId("friend", 3);
 
-        // Get first element and ensure data is OK
-        foreach ($cursor as $message) {
-            $notification = $this->service->getNotification($message);
+        // User 1 registers to user 2 and user 3 channels
+        // because they are his friends
+        $service->subscribe($chanId2, $userId1);
+        $service->subscribe($chanId1, $userId2);
+        $service->subscribe($chanId3, $userId1);
+        $service->subscribe($chanId1, $userId3);
 
-            // Ensures that notification inherits from message
-            $this->assertEquals($notification->getMessageId(), $message->getId());
+        // Now they are all linked let's just try to send stuff
+        $service->notify($chanId1, "friend");
 
-            // Is valid means this message originates from
-            // NotificationService::notify()
-            $this->assertTrue($notification->isValid());
-
-            $data = $notification->getData();
-            $this->assertEquals($data, "gruik");
+        // Everyone should have received that
+        foreach (array($userId2, $userId3) as $userId) {
+            $messages = $service->getSubscriber($userId)->fetch();
+            $this->assertCount(1, $messages);
+            foreach ($messages as $message) {
+                // There should be only 1 right?
+                $this->assertSame("friend", $message->getType());
+            }
         }
 
-        // Content was modified, user 1 should receive a notification
-        $this->service->notify('content', $content1Id, array('some' => 'data'));
-        $subUser1 = $this->service->getSubscriber($user1Id);
-        $cursor   = $subUser1->fetch();
-        $this->assertCount(1, $cursor);
+        // Now 2 and 3 become friends, and we send a multichannel
+        // message there
+        $service->subscribe($chanId2, $userId3);
+        $service->subscribe($chanId3, $userId2);
 
-        // Get first element and ensure data is OK
-        foreach ($cursor as $message) {
-            $notification = $this->service->getNotification($message);
+        // Multichannel message
+        $service->notify(
+            array(
+                $chanId2,
+                $chanId3,
+            ),
+            "friend",
+            array(
+                "message" => "2 and 3 are friends yay",
+            )
+        );
 
-            // Ensures that notification inherits from message
-            $this->assertEquals($notification->getMessageId(), $message->getId());
-
-            // Is valid means this message originates from
-            // NotificationService::notify()
-            $this->assertTrue($notification->isValid());
-
-            $data = $notification->getData();
-            $this->assertCount(1, $data);
-            $this->assertEquals($data['some'], "data");
+        // 1 should have received it only once
+        // This also tests the multi channel message feature
+        $messages = $service->getSubscriber($userId1)->fetch();
+        $this->assertCount(1, $messages);
+        foreach ($messages as $message) {
+            // There should be only 1 right?
+            $this->assertSame("friend", $message->getType());
         }
-    }
 
-    /**
-     * Ensures that notifications on disabled types are never sent
-     */
-    function testDisabledType()
-    {
-        // Implicit creation of subscriber
-        // User 1 subscribe to this new chan
-        $this->service->subscribe('disabled', 'foo', 1);
-
-        $sub = $this->service->getSubscriber(1);
-        $this->assertTrue(
-            $sub->hasSubscriptionFor(
-                $this->service->getChanId('disabled', 'foo')));
-
-        // Notify someone here that something happened
-        $this->service->notify('disabled', 'foo', array('some' => 'data'));
-
-        // Type is disabled therefore no notifications should happen here
-        $cursor = $sub->fetch();
-
-        $this->assertCount(0, $cursor);
-    }
-
-    /**
-     * Ensures that notifications on non existing types are never sent (same
-     * as upper)
-     */
-    function testNonExistingType()
-    {
-        // Implicit creation of subscriber
-        // User 1 subscribe to this new chan
-        $this->service->subscribe('nonexisting', 42, 1);
-
-        $sub = $this->service->getSubscriber(1);
-        // Channel should be implicitely created no matter what happens
-        $this->assertTrue(
-            $sub->hasSubscriptionFor(
-                $this->service->getChanId('nonexisting', 42)));
-
-        // Notify someone here that something happened
-        $this->service->notify('nonexisting', 42, array('some' => 'data'));
-
-        // Type is disabled therefore no notifications should happen here
-        $cursor = $sub->fetch();
-
-        $this->assertCount(0, $cursor);
+        // 2 and 3 would have received it too, but they now have 2 messages
+        foreach (array($userId2, $userId3) as $userId) {
+            $messages = $service->getSubscriber($userId)->fetch();
+            $this->assertCount(2, $messages);
+            foreach ($messages as $message) {
+                // There should be only 1 right?
+                $this->assertSame("friend", $message->getType());
+            }
+            // Ensure latest message has the right content
+            $notification = $service->getNotification($message);
+            $this->assertSame("2 and 3 are friends yay", $notification->get("message"));
+        }
     }
 }

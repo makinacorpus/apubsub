@@ -15,11 +15,6 @@ use APubSub\Notification\Registry\FormatterRegistry;
 class NotificationService
 {
     /**
-     * User subscriber prefix
-     */
-    const SUBSCRIBER_USER = 'u';
-
-    /**
      * @var \APubSub\BackendInterface
      */
     private $backend;
@@ -99,37 +94,45 @@ class NotificationService
     /**
      * Get subscriber
      *
-     * @param scalar $id           Susbcriber identifier
-     * @param string $type         Susbcriber type identifier: pass a strict
-     *                             null if $id is already the complete
-     *                             identifier
+     * @param string $name
+     *   Subscriber name
      *
      * @return SubscriberInterface Subscriber
      */
-    public function getSubscriber($id, $type = self::SUBSCRIBER_USER)
+    public function getSubscriber($name)
     {
-        if (null === $type) {
-            $subsciberId = $id;
-        } else {
-            $subsciberId = $type . ':' . $id;
-        }
-
-        return $this->backend->getSubscriber($subsciberId);
+        return $this->backend->getSubscriber($name);
     }
 
     /**
-     * Subscribe an object to a chan
+     * Get subscriber
      *
-     * @param string $srcType Source object type
-     * @param scalar $srcId   Source object identifier
-     * @param scalar $id      Subscriber object identifier
-     * @param string $type    Subscriber object type pass a strict null if $id
-     *                        is already the complete identifier
+     * @param string $type
+     *   Susbcriber type identifier: pass a strict null if $id is already the
+     *   complete identifier
+     * @param scalar $id
+     *   Susbcriber identifier
+     *
+     * @return SubscriberInterface Subscriber
      */
-    public function subscribe($srcType, $srcId, $id, $type = self::SUBSCRIBER_USER)
+    public function getSubscriberName($type, $id)
     {
-        $chanId     = $this->getChanId($srcType, $srcId);
-        $subscriber = $this->getSubscriber($id, $type);
+        return $id. ':' . $type;
+    }
+
+    /**
+     * Subscribe to a chan
+     *
+     * This method will implicetely create the channel if non existant
+     *
+     * @param string $chanId
+     *   Channel identifier list or single value
+     * @param string $name
+     *   Subscriber name
+     */
+    public function subscribe($chanId, $name)
+    {
+        $subscriber = $this->getSubscriber($name);
 
         try {
             $subscriber->subscribe($chanId);
@@ -140,67 +143,31 @@ class NotificationService
     }
 
     /**
-     * Subscribe an object to a chan
+     * Unsubscribe to a chan
      *
-     * @param string $chanId  Channel identifier
-     * @param scalar $id      Subscriber object identifier
-     * @param string $type    Subscriber object type pass a strict null if $id
-     *                        is already the complete identifier
+     * @param string|array $chanId
+     *   Channel identifier list or single value
+     * @param string $name
+     *   Subscriber name
      */
-    public function subscribeTo($chanId, $id, $type = self::SUBSCRIBER_USER)
-    {
-        $subscriber = $this->getSubscriber($id, $type);
-
-        try {
-            $subscriber->subscribe($chanId);
-        } catch (ChannelDoesNotExistException $e) {
-            $this->getBackend()->createChannel($chanId);
-            $subscriber->subscribe($chanId);
-        }
-    }
-
-    /**
-     * Unsubscribe an object to a chan
-     *
-     * @param string $srcType Source object type
-     * @param scalar $srcId   Source object identifier
-     * @param scalar $id      Subscriber object identifier
-     * @param string $type    Subscriber object type
-     */
-    public function unsubscribe($srcType, $srcId, $id, $type = self::SUBSCRIBER_USER)
+    public function unsubscribe($chanId, $name)
     {
         $subscriber = $this
-            ->getSubscriber($id, $type)
-            ->unsubscribe(
-                $this->getChanId($srcType, $srcId));
-    }
-
-    /**
-     * Unsubscribe an object to a chan
-     *
-     * @param string $chanId Channel identifier
-     * @param scalar $id     Subscriber object identifier
-     * @param string $type   Subscriber object type
-     */
-    public function unsubscribeTo($chanId, $id, $type = self::SUBSCRIBER_USER)
-    {
-        $subscriber = $this
-          ->getSubscriber($id, $type)
-          ->unsubscribe($chanId);
+            ->getSubscriber($name)
+            ->unsubscribe($chanId);
     }
 
     /**
      * Delete all subscriber information
      *
-     * @param scalar $id        Susbcriber identifier
-     * @param string $type      Subscriber type
+     * @param string $name
+     *   Subscriber name
      */
-    public function deleteSubscriber($id, $type = self::SUBSCRIBER_USER)
+    public function deleteSubscriber($name)
     {
         $this
             ->getBackend()
-            ->deleteSubscriber(
-                $this->getChanId($type, $id));
+            ->deleteSubscriber($name);
     }
 
     /**
@@ -250,19 +217,18 @@ class NotificationService
      *
      * If notification type is disabled the message will be dropped
      *
-     * @param string $type Notification type
-     * @param scalar $id   Source object identifier
-     * @param mixed $data  Arbitrary data to send along
-     * @param int $level   Arbitrary level, see Notification::LEVEL_* constants.
-     *                     This value is purely arbitrary, it is up to the
-     *                     business layer to do something with it. It does not
-     *                     alters the notification system behavior
-     * @param int $chanId  Forces a channel identifier, for convenience if this
-     *                     is left to null the channel identifier will be
-     *                     computed from the given $type and $id parameters
-     *                     using the getChanId() method
+     * @param int|array $chanId
+     *   Channel identifier list or single value
+     * @param string $type
+     *   Notification type
+     * @param array $data
+     *   Arbitrary data to send along
+     * @param int $level
+     *   Arbitrary level, see Notification::LEVEL_* constants. This value is
+     *   purely arbitrary, it is up to the business layer to do something with
+     *   it. It does not alters the notification system behavior.
      */
-    public function notify($type, $id, $data = null, $level = null, $chanId = null)
+    public function notify($chanId, $type, array $data = null, $level = null)
     {
         if (!$this->isTypeEnabled($type)) {
             return;
@@ -270,15 +236,9 @@ class NotificationService
         if (null === $level) {
             $level = Notification::LEVEL_INFO;
         }
-        if (null === $chanId) {
-            $chanId = $this->getChanId($type, $id);
-        }
 
         try {
-            $contents = array(
-                'i' => $id,
-                'd' => $data,
-            );
+            $contents = array('d' => $data);
 
             if ($this->storeFormatted) {
                 // Quite a hack, but efficient, we need a false message to
@@ -299,8 +259,7 @@ class NotificationService
 
             $message = $this
                 ->getBackend()
-                ->getChannel($chanId)
-                ->send($contents, $type, $level);
+                ->send($chanId, $contents, $type, $level);
 
         } catch (ChannelDoesNotExistException $e) {
             // Nothing to do, no channel means no subscription
