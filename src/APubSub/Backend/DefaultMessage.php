@@ -65,37 +65,21 @@ class DefaultMessage extends AbstractObject implements MessageInterface
         $this->level          = $level;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getId()
-     */
     public function getId()
     {
         return $this->id;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getType()
-     */
     public function getType()
     {
         return $this->type;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getContents()
-     */
     public function getContents()
     {
         return $this->contents;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getLevel()
-     */
     public function getLevel()
     {
         return $this->level;

@@ -37,46 +37,26 @@ class DefaultChanType implements ChanTypeInterface
         $this->isVisible   = $isVisible;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\ChanTypeInterface::getType()
-     */
     public function getType()
     {
         return $this->type;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\ChanTypeInterface::getDescription()
-     */
     public function getDescription()
     {
         return $this->description;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\RegistryItemInterface::getGroupId()
-     */
     public function getGroupId()
     {
         return $this->groupId;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\ChanTypeInterface::isVisible()
-     */
     public function isVisible()
     {
         return $this->isVisible;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\ChanTypeInterface::getSubscriptionLabel()
-     */
     public function getSubscriptionLabel($id)
     {
         if (null === $this->description) {

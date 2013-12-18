@@ -19,10 +19,6 @@ class D7MessageCursor extends AbstractD7Cursor
      */
     private $distinct = true;
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\CursorInterface::getAvailableSorts()
-     */
     public function getAvailableSorts()
     {
         return array(
@@ -151,10 +147,6 @@ class D7MessageCursor extends AbstractD7Cursor
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Backend\Drupal7\Cursor\AbstractD7Cursor::createObjectInstance()
-     */
     protected function createObjectInstance(\stdClass $record)
     {
         if ($record->read_timestamp) {
@@ -176,10 +168,6 @@ class D7MessageCursor extends AbstractD7Cursor
             (int)$record->level);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Backend\Drupal7\Cursor\AbstractD7Cursor::buildQuery()
-     */
     protected function buildQuery()
     {
         /*
@@ -302,10 +290,6 @@ class D7MessageCursor extends AbstractD7Cursor
         return $tempTableName;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\CursorInterface::update()
-     */
     public function delete()
     {
         // Deleting messages in queue implicates doing it using the queue id:
@@ -336,10 +320,6 @@ class D7MessageCursor extends AbstractD7Cursor
         $cx->query("DROP TABLE {" . $tempTableName . "}");
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\CursorInterface::update()
-     */
     public function update(array $values)
     {
         if (empty($values)) {

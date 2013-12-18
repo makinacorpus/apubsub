@@ -78,28 +78,16 @@ class DefaultMessageInstance extends DefaultMessage implements
         $this->readTimestamp  = $readTimestamp;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInstanceInterface::getQueueId()
-     */
     public function getQueueId()
     {
         return $this->queueId;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::isUnread()
-     */
     public function isUnread()
     {
         return $this->unread;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::setReadStatus()
-     */
     public function setUnread($toggle = false)
     {
         if ($this->unread !== $toggle) {
@@ -122,10 +110,6 @@ class DefaultMessageInstance extends DefaultMessage implements
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getSendTimestamp()
-     */
     public function getSendTimestamp()
     {
         return $this->sendTime;
@@ -141,28 +125,16 @@ class DefaultMessageInstance extends DefaultMessage implements
         $this->sendTime = $sendTime;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getReadTimestamp()
-     */
     public function getReadTimestamp()
     {
         return $this->readTimestamp;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getSubscriptionId()
-     */
     public function getSubscriptionId()
     {
-      return $this->subscriptionId;
+        return $this->subscriptionId;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getSubscription()
-     */
     public function getSubscription()
     {
         return $this

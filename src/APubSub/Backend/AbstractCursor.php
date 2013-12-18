@@ -47,10 +47,6 @@ abstract class AbstractCursor extends AbstractObject implements
         $this->context = $context;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\CursorInterface::addSort()
-     */
     final public function addSort($sort, $direction = CursorInterface::SORT_ASC)
     {
         if ($this->run) {
@@ -79,10 +75,6 @@ abstract class AbstractCursor extends AbstractObject implements
         return $this->sorts;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\CursorInterface::setLimit()
-     */
     final public function setLimit($limit)
     {
         if ($this->run) {
@@ -104,10 +96,6 @@ abstract class AbstractCursor extends AbstractObject implements
         return $this->limit;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\CursorInterface::setOffset()
-     */
     final public function setOffset($offset)
     {
         if ($this->run) {
@@ -119,10 +107,6 @@ abstract class AbstractCursor extends AbstractObject implements
         return $this;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\CursorInterface::setOffset()
-     */
     final public function setRange($limit, $offset)
     {
         if ($this->run) {

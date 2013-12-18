@@ -86,10 +86,6 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
      */
     abstract protected function createObjectInstance(\stdClass $record);
 
-    /**
-     * (non-PHPdoc)
-     * @see \IteratorAggregate::getIterator()
-     */
     public function getIterator()
     {
         if (null === $this->iterator) {
@@ -110,19 +106,11 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
         return $this->iterator;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \Countable::count()
-     */
     final public function count()
     {
         return count($this->getIterator());
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \Countable::count()
-     */
     final public function getTotalCount()
     {
         if (null === $this->count) {

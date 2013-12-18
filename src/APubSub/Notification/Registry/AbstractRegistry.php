@@ -45,28 +45,16 @@ abstract class AbstractRegistry implements RegistryInterface
      */
     private $groups = array();
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\RegistryInterface::setDebugMode()
-     */
     final public function setDebugMode($toggle = true)
     {
         $this->deubg = $toggle;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\RegistryInterface::typeExists()
-     */
     final public function typeExists($type)
     {
         return isset($this->data[$type]);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\RegistryInterface::registerType()
-     */
     public function registerType($type, array $options)
     {
         if (isset($options['class']) && !class_exists($options['class'])) {
@@ -93,10 +81,6 @@ abstract class AbstractRegistry implements RegistryInterface
         return $this;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\RegistryInterface::registerInstance()
-     */
     public function registerInstance(RegistryItemInterface $instance)
     {
         $type = $instance->getType();
@@ -186,10 +170,6 @@ abstract class AbstractRegistry implements RegistryInterface
             isset($data['group']) ? $data['group'] : null);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\RegistryInterface::getInstance()
-     */
     final public function getInstance($type)
     {
         if (!isset($this->instances[$type])) {
@@ -224,10 +204,6 @@ abstract class AbstractRegistry implements RegistryInterface
         return $this->groups;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\RegistryInterface::getAllInstancesByGroup()
-     */
     final public function getAllInstancesByGroup($group)
     {
         $ret = array();
@@ -241,10 +217,6 @@ abstract class AbstractRegistry implements RegistryInterface
         return $ret;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\RegistryInterface::getAllInstances()
-     */
     final public function getAllInstances()
     {
         $ret = array();

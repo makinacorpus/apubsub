@@ -73,10 +73,6 @@ class D7Context extends DefaultContext
         $this->typeRegistry = new TypeRegistry($this);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ContextInterface::setOptions()
-     */
     public function setOptions($options)
     {
         foreach ($options as $key => $value) {
@@ -97,10 +93,6 @@ class D7Context extends DefaultContext
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ContextInterface::getOptions()
-     */
     public function getOptions()
     {
         return array(

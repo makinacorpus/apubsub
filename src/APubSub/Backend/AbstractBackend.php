@@ -13,10 +13,6 @@ use APubSub\Field;
 abstract class AbstractBackend extends AbstractObject implements
     BackendInterface
 {
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::setOptions()
-     */
     public function setOptions(array $options)
     {
         $this
@@ -24,10 +20,6 @@ abstract class AbstractBackend extends AbstractObject implements
             ->setOptions($options);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::getChannel()
-     */
     public function getChannel($id)
     {
         $cursor = $this->fetchChannels(array(
@@ -43,10 +35,6 @@ abstract class AbstractBackend extends AbstractObject implements
         return reset($ret);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::deleteChannel()
-     */
     public function deleteChannel($id, $ignoreErrors = false)
     {
         $cursor = $this->fetchChannels(array(
@@ -75,10 +63,6 @@ abstract class AbstractBackend extends AbstractObject implements
         return $ret;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::getSubscription()
-     */
     public function getSubscription($id)
     {
         $cursor = $this->fetchSubscriptions(array(
@@ -94,10 +78,6 @@ abstract class AbstractBackend extends AbstractObject implements
         return reset($ret);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::getSubscription()
-     */
     public function getSubscriptions($idList)
     {
         $cursor = $this->fetchSubscriptions(array(
@@ -113,10 +93,6 @@ abstract class AbstractBackend extends AbstractObject implements
         return $ret;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::setUnread()
-     */
     public function setUnread($queueId, $toggle = false)
     {
         $this
@@ -131,10 +107,6 @@ abstract class AbstractBackend extends AbstractObject implements
             ));
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::flush()
-     */
     public function flush()
     {
         $this

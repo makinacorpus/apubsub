@@ -34,28 +34,16 @@ abstract class AbstractRegistryItem implements RegistryItemInterface
         $this->groupId     = $groupId;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\RegistryItemInterface::getType()
-     */
     final public function getType()
     {
         return $this->type;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\RegistryItemInterface::getDescription()
-     */
     final public function getDescription()
     {
         return $this->description;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\RegistryItemInterface::getGroupId()
-     */
     final public function getGroupId()
     {
         return $this->groupId;

@@ -37,19 +37,11 @@ class DefaultContext implements ContextInterface
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ContextInterface::getBackend()
-     */
     final public function getBackend()
     {
         return $this->backend;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ContextInterface::setOptions()
-     */
     public function setOptions($options)
     {
         if (is_array($options)) {
@@ -64,28 +56,16 @@ class DefaultContext implements ContextInterface
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ContextInterface::getOptions()
-     */
     public function getOptions()
     {
         return $this->options;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ContextInterface::has()
-     */
     final public function has($key)
     {
         return array_key_exists($name, $this->options);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ContextInterface::get()
-     */
     final public function get($key)
     {
         if (isset($this->options[$key])) {
@@ -93,10 +73,6 @@ class DefaultContext implements ContextInterface
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ContextInterface::__get()
-     */
     final public function __get($name)
     {
         if (isset($this->options[$key])) {
@@ -104,10 +80,6 @@ class DefaultContext implements ContextInterface
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ContextInterface::__isset()
-     */
     final public function __isset($name)
     {
         return array_key_exists($name, $this->options);

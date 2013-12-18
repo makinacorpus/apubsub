@@ -45,19 +45,11 @@ class DefaultSubscriber extends AbstractMessageContainer implements
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::getId()
-     */
     final public function getId()
     {
         return $this->id;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::getSubscriptions()
-     */
     public function getSubscriptions()
     {
         return $this
@@ -66,19 +58,11 @@ class DefaultSubscriber extends AbstractMessageContainer implements
             ->getSubscriptions(array_values($this->idList));
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::hasSubscriptionFor()
-     */
     final public function hasSubscriptionFor($chanId)
     {
         return isset($this->idList[$chanId]);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::getSubscriptionFor()
-     */
     public function getSubscriptionFor($chanId)
     {
         if (!isset($this->idList[$chanId])) {
@@ -96,10 +80,6 @@ class DefaultSubscriber extends AbstractMessageContainer implements
             ->getSubscription($this->idList[$chanId]);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::subscribe()
-     */
     public function subscribe($chanId)
     {
         $subscription = $this
@@ -112,10 +92,6 @@ class DefaultSubscriber extends AbstractMessageContainer implements
         return $subscription;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::unsubscribe()
-     */
     public function unsubscribe($chanId)
     {
         try {
