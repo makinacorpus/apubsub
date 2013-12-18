@@ -581,8 +581,7 @@ function notification_follow_form_submit($form, &$form_state) {
   $chanId       = $form_state['values']['cid'];
   $subscriberId = $form_state['values']['sid'];
   $service      = notification_service_get();
-  $backend      = $service->getBackend();
-  $subscriber   = $backend->getSubscriber($subscriberId);
+  $subscriber   = $service->getSubscriber($subscriberId);
 
   // FIXME: This needs fixing
   //  * operation must be set in form, else submit may differ from button label
@@ -591,18 +590,11 @@ function notification_follow_form_submit($form, &$form_state) {
   try {
     // Throws an exception if the user is not following the channel.
     $subscriber->getSubscriptionFor($chanId);
-    $subscription = $subscriber->unsubscribe($chanId);
+    $service->unsubscribe($chanId, $subscriberId);
     drupal_set_message(t("You are not following this channel!"));
   } catch (SubscriptionDoesNotExistException $e) {
-    try {
-      $subscriber->subscribe($chanId);
-      drupal_set_message(t("You are now following this channel!"));
-    } catch (ChannelDoesNotExistException $e) {
-      // Lazy channel registration for this user account.
-      $chan = $backend->createChannel($chanId);
-      $subscriber->subscribe($chanId);
-      drupal_set_message(t("You are now following this channel!"));
-    }
+    $service->subscribe($chanId, $subscriberId);
+    drupal_set_message(t("You are now following this channel!"));
   }
 }
 
