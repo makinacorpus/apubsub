@@ -692,10 +692,6 @@ function notification_block_render($account) {
 
     $notification = $service->getNotification($message);
 
-    if (!$notification->isValid()) {
-        continue;
-    }
-
     ++$totalCount;
 
     if ($message->isUnread()) {
