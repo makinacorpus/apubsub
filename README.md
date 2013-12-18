@@ -136,32 +136,6 @@ If you're dealing with user notifications for example, and want to keep them
 persistent for a while, you'll need to store the messages into your own business
 API.
 
-Performance considerations
-==========================
-
-General matters
----------------
-
-Performance will highly depend upon the backend implementation. For example, the
-Drupal 7 implementation is not optimized to be used with subscribers, but will
-be much more efficient by using directly subscriptions instead.
-
-Good pratices
--------------
-
-The provided default backend will attempt lazy loading whenever possible: please
-consider that you should never get an object instance when not necessary.
-
-For example, if you need a channel identifier from a message, do not do this:
-
-    $chanId = $message->getChannel()->getId();
-
-But always do this instead:
-
-    $chanId = $message->getChannelId();
-
-Because the channel is lazy loaded on demand by the default implementation.
-
 History
 =======
 

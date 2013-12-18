@@ -389,18 +389,25 @@ class D7Backend extends AbstractBackend
         throw new \Exception("Not implemented yet");
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::send()
-     */
     public function send($chanId, $contents, $type = null, $level = 0, $sendTime = null)
     {
-        $cx     = $this->context->dbConnection;
-        $tx     = null;
-        $id     = null;
-        $typeId = null;
-        $chan   = $this->getChannel($chanId);
-        $dbId   = $chan->getDatabaseId();
+        if (!is_array($chanId)) { // Ensure this is a list
+            $chanId = array($chanId);
+        }
+        if (empty($chanId)) { // Short-circuit empty chan list
+            return;
+        }
+
+        $cx       = $this->context->dbConnection;
+        $tx       = null;
+        $id       = null;
+        $typeId   = null;
+        $chanList = $this->getChannels($chanId);
+        $dbIdList = array();
+
+        foreach ($chanList as $channel) {
+            $dbIdList[] = $channel->getDatabaseId();
+        }
 
         if (null !== $type) {
             $typeId = $this
@@ -419,7 +426,6 @@ class D7Backend extends AbstractBackend
             $cx
                 ->insert('apb_msg')
                 ->fields(array(
-                    'chan_id'  => $dbId,
                     'created'  => $sendTime,
                     'contents' => serialize($contents),
                     'type_id'  => $typeId,
@@ -429,6 +435,15 @@ class D7Backend extends AbstractBackend
 
             $seq = ($cx->driver() === 'pgsql') ? 'apb_msg_id_seq' : null;
             $id = (int)$cx->lastInsertId($seq);
+
+            // Insert channel references
+            $q = $cx
+                ->insert('apb_msg_chan')
+                ->fields(array('msg_id', 'chan_id'));
+            foreach ($dbIdList as $dbId) {
+                $q->values(array($id, $dbId));
+            }
+            $q->execute();
 
             // Send message to all subscribers
             $cx
@@ -440,11 +455,11 @@ class D7Backend extends AbstractBackend
                             1        AS unread,
                             :created AS created
                         FROM {apb_sub} s
-                        WHERE s.chan_id = :chanId
+                        WHERE s.chan_id IN (:chanId)
                         AND s.status = 1
                     ", array(
                         ':msgId'   => $id,
-                        ':chanId'  => $dbId,
+                        ':chanId'  => $dbIdList,
                         ':created' => $sendTime,
                     ));
 

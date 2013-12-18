@@ -17,7 +17,7 @@ class MessageTest extends AbstractMessageTest
     {
         // Test could have been skipped
         if (null !== $this->dbConnection) {
-            foreach (array('apb_queue', 'apb_msg', 'apb_sub_map', 'apb_sub', 'apb_chan') as $table) {
+            foreach (array('apb_queue', 'apb_msg', 'apb_msg_chan', 'apb_sub_map', 'apb_sub', 'apb_chan') as $table) {
                 $this->dbConnection->query("TRUNCATE {" . $table . "}");
             }
         }

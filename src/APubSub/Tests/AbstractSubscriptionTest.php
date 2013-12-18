@@ -120,7 +120,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         // the delete behavior is not documented at the interface level, we
         // don't care about that anyway, at least ensure that non fully dequeued
         // messages are still here
-        $messages = $this->chan->fetch(array(
+        $messages = $sub2->fetch(array(
             Field::MSG_ID => $msg3->getId(),
         ));
 

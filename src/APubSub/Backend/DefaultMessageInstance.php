@@ -37,13 +37,6 @@ class DefaultMessageInstance extends DefaultMessage implements
     private $readTimestamp;
 
     /**
-     * Channel identifier
-     *
-     * @var string
-     */
-    private $chanId;
-
-    /**
      * Subscription identifier
      *
      * @var string
@@ -54,7 +47,6 @@ class DefaultMessageInstance extends DefaultMessage implements
      * Default constructor
      *
      * @param ContextInterface $context Context
-     * @param string $chanId            Channel identifier
      * @param string $subscriptionId    Subscription identifier
      * @param mixed $contents           Message contents
      * @param scalar $id                Message identifier
@@ -67,7 +59,6 @@ class DefaultMessageInstance extends DefaultMessage implements
      */
     public function __construct(
         ContextInterface $context,
-        $chanId,
         $subscriptionId,
         $contents,
         $id,
@@ -81,7 +72,6 @@ class DefaultMessageInstance extends DefaultMessage implements
         parent::__construct($context, $contents, $id, $type, $level);
 
         $this->queueId        = $queueId;
-        $this->chanId         = $chanId;
         $this->subscriptionId = $subscriptionId;
         $this->sendTime       = $sendTime;
         $this->unread         = $isUnread;
@@ -180,27 +170,5 @@ class DefaultMessageInstance extends DefaultMessage implements
             ->getBackend()
             ->getSubscription(
                 $this->subscriptionId);
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getChannelId()
-     */
-    public function getChannelId()
-    {
-        return $this->chanId;
-    }
-
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageInterface::getChannel()
-     */
-    public function getChannel()
-    {
-        return $this
-            ->context
-            ->getBackend()
-            ->getChannel(
-                $this->chanId);
     }
 }
