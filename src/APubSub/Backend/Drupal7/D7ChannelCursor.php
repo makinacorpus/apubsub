@@ -168,8 +168,22 @@ class D7ChannelCursor extends AbstractD7Cursor
             $tempTableName = $this->createTempTable();
 
             $cx->query("
+                DELETE FROM {apb_msg}
+                WHERE
+                    id IN (
+                        SELECT msg_id
+                        FROM {apb_msg_chan}
+                        WHERE
+                            chan_id IN (
+                                SELECT id
+                                FROM {" . $tempTableName ."}
+                            )
+                    )
+            ");
+
+            $cx->query("
                 DELETE
-                FROM {apb_msg}
+                FROM {apb_msg_chan}
                 WHERE
                     chan_id IN (
                         SELECT id

@@ -78,13 +78,6 @@ function apb_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'chan_id' => array(
-        'description' => "Channel internal int32 identifier",
-        'type' => 'int',
-        'size' => 'normal',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
       'type_id' => array(
         'description' => "Message type",
         'type' => 'int',
@@ -122,6 +115,37 @@ function apb_schema() {
       'apb_msg_type_id_fk' => array(
         'table' => 'apb_msg_type',
         'columns' => array('type_id' => 'id'),
+      ),
+    ),
+  );
+
+  $schema['apb_msg_chan'] = array(
+    'description' => "APubSub messages channels relationship",
+    'fields' => array(
+      'msg_id' => array(
+        'description' => "Message identifier",
+        'type' => 'int',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'chan_id' => array(
+        'description' => "Channel internal int32 identifier",
+        'type' => 'int',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('msg_id', 'chan_id'),
+    'foreign keys' => array(
+      'apb_msg_chan_msg_id_fk' => array(
+        'table' => 'apb_msg',
+        'columns' => array('msg_id' => 'id'),
+      ),
+      'apb_msg_chan_chan_id_fk' => array(
+        'table' => 'apb_chan',
+        'columns' => array('chan_id' => 'id'),
       ),
     ),
   );
@@ -387,5 +411,16 @@ function apb_update_7004() {
     // Could have used a temporary table but wasn't sure about the result.
     // Better have stalling data than lost data.
     db_drop_table('temp_apb_queue');
+  }
+}
+
+/**
+ * Adds the {apb_msg_chan} table.
+ */
+function apb_update_7005() {
+  if (db_field_exists('apb_msg', 'chan_id')) {
+    db_create_table('apb_msg_chan', drupal_get_schema_unprocessed('apb', 'apb_msg_chan'));
+    db_query("INSERT INTO {apb_msg_chan} (msg_id, chan_id) SELECT id, chan_id FROM apb_msg");
+    db_drop_field('apb_msg', 'chan_id');
   }
 }

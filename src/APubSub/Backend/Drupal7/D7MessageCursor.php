@@ -80,21 +80,6 @@ class D7MessageCursor extends AbstractD7Cursor
                     $this->queryOnSuber = true;
                     break;
 
-
-                case Field::CHAN_ID:
-                    // FIXME: Find a better way
-                    $ret['m.chan_id'] = $this
-                        ->context
-                        ->dbConnection
-                        ->query("
-                                SELECT id
-                                FROM {apb_chan}
-                                WHERE name IN (:name)",
-                        array(
-                            ':name' => $value,
-                        ))->fetchCol();
-                    break;
-
                 case Field::MSG_LEVEL:
                     $ret['m.level'] = $value;
                     break;
@@ -132,10 +117,6 @@ class D7MessageCursor extends AbstractD7Cursor
 
                 switch ($sort)
                 {
-                    case Field::CHAN_ID:
-                        $this->query->orderBy('m.chan_id', $direction);
-                        break;
-
                     case Field::MSG_ID:
                     case Field::MSG_SENT:
                         $query
@@ -184,7 +165,6 @@ class D7MessageCursor extends AbstractD7Cursor
 
         return new DefaultMessageInstance(
             $this->context,
-            (string)$record->chan_id,
             (int)$record->sub_id,
             unserialize($record->contents),
             (int)$record->msg_id,
@@ -336,11 +316,20 @@ class D7MessageCursor extends AbstractD7Cursor
         $cx = $this->context->dbConnection;
 
         $cx->query("
+            DELETE FROM {apb_msg_chan}
+            WHERE
+                msg_id IN (
+                    SELECT id
+                    FROM {" . $tempTableName ."}
+                )
+        ");
+
+        $cx->query("
             DELETE FROM {apb_queue}
             WHERE
                 id IN (
                     SELECT id
-                    FROM " . $tempTableName ."
+                    FROM {" . $tempTableName ."}
                 )
         ");
 

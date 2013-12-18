@@ -195,19 +195,6 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         $this->assertCount(3, $cursor, "Sub 1 is still full");
         $cursor = $suber->fetch();
         $this->assertCount(3, $cursor, "Sub 3 is still full");
-
-        $chan
-            ->fetch(array(
-                Field::MSG_ID => $messageId,
-            ))
-            ->delete();
-
-        $cursor = $sub1->fetch();
-        $this->assertCount(2, $cursor, "Sub 1 has now 2 messages");
-        $cursor = $sub2->fetch();
-        $this->assertCount(2, $cursor, "Sub 2 still has 2 messages");
-        $cursor = $sub3->fetch();
-        $this->assertCount(2, $cursor, "Sub 3 has now 2 messages");
     }
 
     public function testUpdate()

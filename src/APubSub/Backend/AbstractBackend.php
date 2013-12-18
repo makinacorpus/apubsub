@@ -60,10 +60,6 @@ abstract class AbstractBackend extends AbstractObject implements
         $cursor->delete();
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::getChannels()
-     */
     public function getChannels($idList)
     {
         $cursor = $this->fetchChannels(array(
@@ -76,7 +72,7 @@ abstract class AbstractBackend extends AbstractObject implements
             throw new ChannelDoesNotExistException();
         }
 
-        return reset($ret);
+        return $ret;
     }
 
     /**
