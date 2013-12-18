@@ -6,10 +6,6 @@ use APubSub\Notification\Notification;
 
 class RawTextFormatter extends AbstractFormatter
 {
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\FormatterInterface::format()
-     */
     public function format(Notification $notification)
     {
         $stringList = array();
@@ -26,10 +22,6 @@ class RawTextFormatter extends AbstractFormatter
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\FormatterInterface::getImageURI()
-     */
     public function getImageURI(Notification $notification)
     {
         switch ($notification->get('a')) {

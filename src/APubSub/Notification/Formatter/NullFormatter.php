@@ -10,19 +10,11 @@ use APubSub\Notification\FormatterInterface;
  */
 class NullFormatter extends AbstractFormatter
 {
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Follow\NotificationTypeInterface::format()
-     */
     public function format(Notification $notification)
     {
         return t("Something happened.");
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Follow\NotificationTypeInterface::getImageURI()
-     */
     public function getImageURI(Notification $notification)
     {
         return null;

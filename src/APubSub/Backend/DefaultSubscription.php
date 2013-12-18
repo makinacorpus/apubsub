@@ -85,28 +85,16 @@ class DefaultSubscription extends AbstractMessageContainer implements
         $this->active = $isActive;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::getId()
-     */
     public function getId()
     {
         return $this->id;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::getChannelId()
-     */
     public function getChannelId()
     {
         return $this->chanId;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::getChannel()
-     */
     public function getChannel()
     {
         return $this
@@ -115,28 +103,16 @@ class DefaultSubscription extends AbstractMessageContainer implements
             ->getChannel($this->chanId);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see APubSub.ChannelInterface::getCreationTime()
-     */
     public function getCreationTime()
     {
         return $this->created;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::isActive()
-     */
     public function isActive()
     {
         return $this->active;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::getStartTime()
-     */
     public function getStartTime()
     {
         if (!$this->active) {
@@ -146,10 +122,6 @@ class DefaultSubscription extends AbstractMessageContainer implements
         return $this->activatedTime;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::getStopTime()
-     */
     public function getStopTime()
     {
         if ($this->active) {
@@ -159,10 +131,6 @@ class DefaultSubscription extends AbstractMessageContainer implements
         return $this->deactivatedTime;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::deactivate()
-     */
     public function deactivate()
     {
         $deactivated = time();
@@ -182,10 +150,6 @@ class DefaultSubscription extends AbstractMessageContainer implements
         $this->deactivatedTime = $deactivated;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriptionInterface::activate()
-     */
     public function activate()
     {
         $activated = time();

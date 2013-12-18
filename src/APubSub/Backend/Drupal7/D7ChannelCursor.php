@@ -11,10 +11,6 @@ use APubSub\Field;
  */
 class D7ChannelCursor extends AbstractD7Cursor
 {
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\CursorInterface::getAvailableSorts()
-     */
     public function getAvailableSorts()
     {
         return array(
@@ -23,10 +19,6 @@ class D7ChannelCursor extends AbstractD7Cursor
         );
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Backend\Drupal7\Cursor\AbstractD7Cursor::applyConditions()
-     */
     protected function applyConditions(array $conditions)
     {
         $ret = array();
@@ -52,10 +44,6 @@ class D7ChannelCursor extends AbstractD7Cursor
         return $ret;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Backend\Drupal7\Cursor\AbstractD7Cursor::applySorts()
-     */
     protected function applySorts(\SelectQueryInterface $query, array $sorts)
     {
         if (empty($sorts)) {
@@ -86,10 +74,6 @@ class D7ChannelCursor extends AbstractD7Cursor
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Backend\Drupal7\Cursor\AbstractD7Cursor::createObjectInstance()
-     */
     protected function createObjectInstance(\stdClass $record)
     {
         return new D7Channel(
@@ -100,10 +84,6 @@ class D7ChannelCursor extends AbstractD7Cursor
             empty($record->title) ? null : $record->title);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Backend\Drupal7\Cursor\AbstractD7Cursor::buildQuery()
-     */
     protected function buildQuery()
     {
         return $this
@@ -150,10 +130,6 @@ class D7ChannelCursor extends AbstractD7Cursor
         return $tempTableName;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\CursorInterface::update()
-     */
     public function delete()
     {
         $cx = $this->context->dbConnection;
@@ -237,10 +213,6 @@ class D7ChannelCursor extends AbstractD7Cursor
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\CursorInterface::update()
-     */
     public function update(array $values)
     {
         if (empty($values)) {

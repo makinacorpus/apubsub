@@ -64,10 +64,6 @@ abstract class AbstractMessageContainer extends AbstractObject implements
         return $conditions;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::fetch()
-     */
     public function fetch(array $conditions = null)
     {
         return $this
@@ -77,10 +73,6 @@ abstract class AbstractMessageContainer extends AbstractObject implements
                 $this->ensureConditions($conditions));
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\MessageContainerInterface::flush()
-     */
     public function flush()
     {
         return $this

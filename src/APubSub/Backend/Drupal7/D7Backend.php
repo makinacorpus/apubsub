@@ -36,10 +36,6 @@ class D7Backend extends AbstractBackend
                 $options));
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\SubscriberInterface::fetch()
-     */
     public function fetch(array $conditions = null)
     {
         $cursor = new D7MessageCursor($this->context);
@@ -51,10 +47,6 @@ class D7Backend extends AbstractBackend
         return $cursor;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::fetchChannels()
-     */
     public function fetchChannels(array $conditions = null)
     {
         $cursor = new D7ChannelCursor($this->context);
@@ -66,10 +58,6 @@ class D7Backend extends AbstractBackend
         return $cursor;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::createChannel()
-     */
     public function createChannel($id, $title = null, $ignoreErrors = false)
     {
         $chan    = null;
@@ -128,10 +116,6 @@ class D7Backend extends AbstractBackend
         return $chan;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::createChannels()
-     */
     public function createChannels($idList, $ignoreErrors = false)
     {
         if (empty($idList)) {
@@ -199,10 +183,6 @@ class D7Backend extends AbstractBackend
         return iterator_to_array($ret);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::fetchSubscriptions()
-     */
     public function fetchSubscriptions(array $conditions = null)
     {
         $cursor = new D7SubscriptionCursor($this->context);
@@ -214,10 +194,6 @@ class D7Backend extends AbstractBackend
         return $cursor;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::getSubscriber()
-     */
     public function getSubscriber($id)
     {
         $idList = $this
@@ -240,10 +216,6 @@ class D7Backend extends AbstractBackend
         return new DefaultSubscriber($id, $this->context, $idList);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::deleteSubscriber()
-     */
     public function deleteSubscriber($id)
     {
         $cx         = $this->context->dbConnection;
@@ -286,10 +258,6 @@ class D7Backend extends AbstractBackend
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::deleteSubscribers()
-     */
     public function deleteSubscribers($idList)
     {
         // FIXME: Find a more elegant way of doing this
@@ -298,10 +266,6 @@ class D7Backend extends AbstractBackend
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::subscribe()
-     */
     public function subscribe($chanId, $subscriberId = null)
     {
         $deactivated  = time();
@@ -380,10 +344,6 @@ class D7Backend extends AbstractBackend
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::fetchSubscribers()
-     */
     public function fetchSubscribers(array $conditions = null)
     {
         throw new \Exception("Not implemented yet");
@@ -483,19 +443,11 @@ class D7Backend extends AbstractBackend
             $this->context, $contents, $id, $type, $level);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::flushCaches()
-     */
     public function flushCaches()
     {
         $this->context->flushCaches();
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\BackendInterface::garbageCollection()
-     */
     public function garbageCollection()
     {
         // Drop all messages for inactive subscriptions

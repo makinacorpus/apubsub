@@ -50,28 +50,16 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::getId()
-     */
     final public function getId()
     {
         return $this->id;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::getTitle()
-     */
     final public function getTitle()
     {
         return $this->title;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::setTitle()
-     */
     final public function setTitle($title)
     {
         if ($this->title !== $title) {
@@ -90,19 +78,11 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::getCreationTime()
-     */
     final public function getCreationTime()
     {
         return $this->creationTime;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::send()
-     */
     final public function send($contents, $type = null, $level = 0, $sendTime = null)
     {
         return $this
@@ -116,10 +96,6 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
                 $sendTime);
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\ChannelInterface::subscribe()
-     */
     final public function subscribe()
     {
         return $this

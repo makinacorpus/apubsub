@@ -12,18 +12,10 @@ use APubSub\Notification\Registry\AbstractRegistryItem;
 abstract class AbstractFormatter extends AbstractRegistryItem implements
     FormatterInterface
 {
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\FormatterInterface::getImageURI()
-     */
     public function getImageURI(Notification $notification)
     {
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\FormatterInterface::getSubscriptionLabel()
-     */
     public function getSubscriptionLabel($id)
     {
         if (null === $this->description) {

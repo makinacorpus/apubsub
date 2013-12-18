@@ -9,28 +9,16 @@ use APubSub\Notification\Formatter\NullFormatter;
  */
 class FormatterRegistry extends AbstractRegistry
 {
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\Registry\AbstractRegistry::createNullInstance()
-     */
     protected function createNullInstance()
     {
         return new NullFormatter();
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\Registry\AbstractRegistry::getDefaultClass()
-     */
     protected function getDefaultClass()
     {
         return null;
     }
 
-    /**
-     * (non-PHPdoc)
-     * @see \APubSub\Notification\Registry\AbstractRegistry::getInstanceFromData()
-     */
     protected function getInstanceFromData($type, $data)
     {
         $class       = null;
