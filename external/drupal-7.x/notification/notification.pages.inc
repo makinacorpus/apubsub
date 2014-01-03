@@ -19,7 +19,7 @@ function notification_page_user_list($form, &$form_state, $account) {
 
   $service     = notification_service_get();
   $backend     = $service->getBackend();
-  $subscriber  = $service->getSubscriber($account->uid);
+  $subscriber  = $service->getSubscriberFor(ACCOUNT_SUB, $account->uid);
   $displayed   = 0;
   $total       = 0;
   $limit       = variable_get(APB_VAR_USER_PAGER_LIMIT, APB_DEF_USER_PAGER_LIMIT);
@@ -108,7 +108,7 @@ function notification_page_user_list($form, &$form_state, $account) {
 function notification_page_user_list_submit_unread($form, &$form_state) {
 
   $service    = notification_service_get();
-  $subscriber = $service->getSubscriber($form_state['values']['uid']);
+  $subscriber = $service->getSubscriberFor(ACCOUNT_SUB, $form_state['values']['uid']);
   $count      = 0;
 
   foreach ($form_state['values']['list'] as $msgid => $enabled) {
@@ -137,7 +137,7 @@ function notification_page_user_list_submit_unread($form, &$form_state) {
 function notification_page_user_list_submit_delete($form, &$form_state) {
 
   $service    = notification_service_get();
-  $subscriber = $service->getSubscriber($form_state['values']['uid']);
+  $subscriber = $service->getSubscriberFor(ACCOUNT_SUB, $form_state['values']['uid']);
   $count      = 0;
   $list       = array();
 
@@ -166,7 +166,7 @@ function notification_page_user_subscriptions($form, &$form_state, $account) {
 
   $service          = notification_service_get();
   $chanTypeRegistry = $service->getChanTypeRegistry();
-  $subscriber       = $service->getSubscriber($account->uid);
+  $subscriber       = $service->getSubscriberFor(ACCOUNT_SUB, $account->uid);
 
   $options = array();
   foreach ($subscriber->getSubscriptions() as $subscription) {
@@ -242,7 +242,7 @@ function notification_page_user_subscriptions_submit_enable($form, &$form_state)
 
   $service    = notification_service_get();
   $uid        = $form_state['values']['uid'];
-  $subscriber = $service->getSubscriber($uid);
+  $subscriber = $service->getSubscriberFor(ACCOUNT_SUB, $uid);
 
   $selected   = array();
 
@@ -276,7 +276,7 @@ function notification_page_user_subscriptions_submit_disable($form, &$form_state
 
   $service    = notification_service_get();
   $uid        = $form_state['values']['uid'];
-  $subscriber = $service->getSubscriber($uid);
+  $subscriber = $service->getSubscriberFor(ACCOUNT_SUB, $uid);
 
   $selected   = array();
 
@@ -310,7 +310,7 @@ function notification_page_user_subscriptions_submit_delete($form, &$form_state)
 
   $service    = notification_service_get();
   $uid        = $form_state['values']['uid'];
-  $subscriber = $service->getSubscriber($uid);
+  $subscriber = $service->getSubscriberFor(ACCOUNT_SUB, $uid);
 
   $selected   = array();
 

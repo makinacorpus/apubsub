@@ -108,8 +108,22 @@ class NotificationService
      * Get subscriber
      *
      * @param string $type
-     *   Susbcriber type identifier: pass a strict null if $id is already the
-     *   complete identifier
+     *   Susbcriber type identifier
+     * @param scalar $id
+     *   Susbcriber identifier
+     *
+     * @return SubscriberInterface Subscriber
+     */
+    public function getSubscriberFor($type, $id)
+    {
+        return $this->backend->getSubscriber($this->getSubscriberName($type, $id));
+    }
+
+    /**
+     * Get subscriber
+     *
+     * @param string $type
+     *   Susbcriber type identifier
      * @param scalar $id
      *   Susbcriber identifier
      *
