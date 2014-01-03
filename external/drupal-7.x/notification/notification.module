@@ -140,6 +140,11 @@ const APB_VAR_CACHE_TYPES = 'apb_follow_cache_types';
 const APB_DEF_CACHE_TYPES = false;
 
 /**
+ * User account subscription type.
+ */
+const ACCOUNT_SUB = 'u';
+
+/**
  * Build component type info using the Drupal Way (TM).
  *
  * This should never be called manually: use the manager instead.
@@ -536,14 +541,15 @@ function notification_follow_form(
   &$form_state,
   $targetId,
   $targetType,
-  $followLabel   = null,
-  $unfollowLabel = null)
+  $subscriberType = ACCOUNT_SUB,
+  $followLabel    = null,
+  $unfollowLabel  = null)
 {
   global $user;
 
   $service    = notification_service_get();
   $chanId     = $service->getChanId($targetType, $targetId);
-  $subscriber = $service->getSubscriber($user->uid);
+  $subscriber = $service->getSubscriberFor(ACCOUNT_SUB, $user->uid);
 
   $form['cid'] = array(
     '#type' => 'value',
@@ -667,7 +673,7 @@ function notification_block_render($account) {
   );
 
   $service     = notification_service_get();
-  $subscriber  = $service->getSubscriber($account->uid);
+  $subscriber  = $service->getSubscriberFor(ACCOUNT_SUB, $account->uid);
   $unreadCount = 0;
   $totalCount  = 0;
   $limit       = variable_get(APB_VAR_USER_BLOCK_LIMIT, APB_DEF_USER_BLOCK_LIMIT);
