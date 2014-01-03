@@ -131,7 +131,7 @@ class NotificationService
      */
     public function getSubscriberName($type, $id)
     {
-        return $id. ':' . $type;
+        return $type . ':' . $id;
     }
 
     /**
