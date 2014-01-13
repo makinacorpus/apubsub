@@ -17,7 +17,7 @@ class MessageWorker
     /**
      * Number of iterations to do whithout checking for ram or time limit
      */
-    const BLIND_ITERATIONS_COUNT = 50;
+    const BLIND_ITERATIONS_COUNT = 30;
 
     /**
      * @var callable
@@ -68,7 +68,7 @@ class MessageWorker
     public function processSingle()
     {
         if ($message = next($this->cursor)) {
-            if ($message instanceof MessageInterface) {
+            if ($message instanceof MessageInstanceInterface) {
 
                 call_user_func($this->workerCallback, $message);
 
@@ -140,10 +140,6 @@ class MessageWorker
                     return false;
                 }
             }
-
-            if (!$this->processSingle()) {
-                return true;
-            }
-        } while (true);
+        } while ($this->processSingle());
     }
 }
