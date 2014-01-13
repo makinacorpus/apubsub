@@ -17,6 +17,11 @@ class D7MessageCursor extends AbstractD7Cursor
     /**
      * @var boolean
      */
+    private $queryOnChan = false;
+
+    /**
+     * @var boolean
+     */
     private $distinct = true;
 
     public function getAvailableSorts()
@@ -78,6 +83,31 @@ class D7MessageCursor extends AbstractD7Cursor
 
                 case Field::MSG_LEVEL:
                     $ret['m.level'] = $value;
+                    break;
+
+                case Field::CHAN_ID:
+
+                    // FIXME: This is sad and ugly and not fully working
+                    try {
+                        $backend = $this->getContext()->getBackend();
+
+                        if (is_array($value)) {
+                            $idList = $value;
+                            $value = array();
+                            foreach ($backend->getChannels($value) as $channel) {
+                                $value[] = $channel->getDatabaseId();
+                            }
+                        } else {
+                            $value = $backend->getChannel($value)->getDatabaseId();
+                        }
+
+                        $ret['mc.chan_id'] = $value;
+                        $this->queryOnChan = true;
+
+                    } catch (ChannelDoesNotExistException $e) {
+                        // No result no chan (tududu dudu).
+                        $ret['q.id'] = -1;
+                    }
                     break;
 
                 default:
@@ -232,6 +262,12 @@ class D7MessageCursor extends AbstractD7Cursor
             $query
                 ->fields('m')
                 ->fields('q');
+        }
+
+        if ($this->queryOnChan) {
+
+            $query
+                ->join('apb_msg_chan', 'mc', 'q.msg_id = mc.msg_id');
         }
 
         // Disallow message duplicates, remember that trying to read the
