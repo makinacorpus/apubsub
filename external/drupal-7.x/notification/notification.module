@@ -549,7 +549,7 @@ function notification_follow_form(
 
   $service    = notification_service_get();
   $chanId     = $service->getChanId($targetType, $targetId);
-  $subscriber = $service->getSubscriberFor(ACCOUNT_SUB, $user->uid);
+  $subscriber = $service->getSubscriberFor($subscriberType, $user->uid);
 
   $form['cid'] = array(
     '#type' => 'value',
