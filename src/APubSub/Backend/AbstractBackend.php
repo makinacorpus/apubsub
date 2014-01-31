@@ -80,6 +80,10 @@ abstract class AbstractBackend extends AbstractObject implements
 
     public function getSubscriptions($idList)
     {
+        if (empty($idList)) {
+            return array();
+        }
+
         $cursor = $this->fetchSubscriptions(array(
             Field::SUB_ID => $idList,
         ));
