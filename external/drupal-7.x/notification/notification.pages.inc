@@ -196,7 +196,7 @@ function notification_page_user_subscriptions($form, &$form_state, $account) {
           'status' => $subscription->isActive() ? t("Enabled") : t("Disabled"),
         );
       }
-    } 
+    }
   }
 
   $form['uid'] = array(
@@ -212,29 +212,33 @@ function notification_page_user_subscriptions($form, &$form_state, $account) {
       'status' => t("Stats"),
     ),
     '#options' => $options,
+    '#empty' => t('There is no subscription.'),
   );
 
-  $form['actions'] = array(
-    '#type'     => 'actions',
-  );
-  $form['actions']['enable'] = array(
-    '#type'     => 'submit',
-    '#value'    => t("Enable"),
-    '#submit'   => array('notification_page_user_subscriptions_submit_enable'),
-    '#disabled' => empty($options),
-  );
-  $form['actions']['disable'] = array(
-    '#type'     => 'submit',
-    '#value'    => t("Disable"),
-    '#submit'   => array('notification_page_user_subscriptions_submit_disable'),
-    '#disabled' => empty($options),
-  );
-  $form['actions']['delete'] = array(
-    '#type'     => 'submit',
-    '#value'    => t("Unfollow"),
-    '#submit'   => array('notification_page_user_subscriptions_submit_delete'),
-    '#disabled' => empty($options),
-  );
+  if ($options) {
+
+    $form['actions'] = array(
+      '#type'     => 'actions',
+    );
+    $form['actions']['enable'] = array(
+      '#type'     => 'submit',
+      '#value'    => t("Enable"),
+      '#submit'   => array('notification_page_user_subscriptions_submit_enable'),
+      '#disabled' => empty($options),
+    );
+    $form['actions']['disable'] = array(
+      '#type'     => 'submit',
+      '#value'    => t("Disable"),
+      '#submit'   => array('notification_page_user_subscriptions_submit_disable'),
+      '#disabled' => empty($options),
+    );
+    $form['actions']['delete'] = array(
+      '#type'     => 'submit',
+      '#value'    => t("Unfollow"),
+      '#submit'   => array('notification_page_user_subscriptions_submit_delete'),
+      '#disabled' => empty($options),
+    );
+  }
 
   return $form;
 }
