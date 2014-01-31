@@ -230,4 +230,17 @@ abstract class AbstractSubscriberTest extends AbstractBackendBasedTest
             }
         }
     }
+
+    function testEmptySubscriber()
+    {
+        // This was failing due to a wrong query IN () statement
+        $subscriber = $this->backend->getSubscriber('empty');
+        $this->assertEmpty($subscriber->getSubscriptions());
+
+        // This should return an null object cursor
+        $cursor = $subscriber->fetch();
+        foreach ($cursor as $message) {
+            throw new \RuntimeException("I am supposed to be empty");
+        }
+    }
 }
