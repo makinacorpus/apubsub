@@ -145,10 +145,8 @@
                 data: {since_id: Drupal.settings.notification.currentlyDisplayed},
                 async: true,
                 cache: false,
-                success: function (data, textStatus, jqXHR) {
-                },
-                error: function () {
-                },
+                success: function (data, textStatus, jqXHR) {},
+                error: function () {},
                 type: 'POST'
               });
             }
