@@ -183,6 +183,16 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         $this->assertCount(0, $suber2->fetch());
         $this->assertCount(1, $suber3->fetch());
         $this->assertCount(0, $suber4->fetch());
+
+        $this->backend->send(array($chan1->getId()), "test", 'foo', 0, array(
+            $sub2->getId(),
+            $sub3->getId(),
+        ));
+
+        $this->assertCount(2, $suber1->fetch());
+        $this->assertCount(0, $suber2->fetch());
+        $this->assertCount(1, $suber3->fetch());
+        $this->assertCount(1, $suber4->fetch());
     }
 
     public function testMassUpdate()
