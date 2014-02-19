@@ -83,7 +83,12 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
         return $this->creationTime;
     }
 
-    final public function send($contents, $type = null, $level = 0, $sendTime = null)
+    final public function send(
+        $contents,
+        $type           = null,
+        $level          = 0,
+        array $excluded = null,
+        $sendTime       = null)
     {
         return $this
             ->context
@@ -93,7 +98,9 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
                 $contents,
                 $type,
                 $level,
-                $sendTime);
+                $excluded,
+                $sendTime
+            );
     }
 
     final public function subscribe()

@@ -40,15 +40,25 @@ interface ChannelInterface extends MessageContainerInterface
      *
      * Alias of BackendInterface::send()
      *
-     * @param mixed $contents   Any kind of contents (will be serialized)
-     * @param string $type      Message type
-     * @param int $level        Arbitrary business level
-     * @param int $sendTime     If set the creation/send timestamp will be
-     *                          forced to the given value
+     * @param mixed $contents
+     *   Any kind of contents (will be serialized)
+     * @param string $type
+     *   Message type
+     * @param int $level
+     *   Arbitrary business level
+     * @param scalar[] $excluded
+     *   Excluded subscription identifiers from recipient list
+     * @param int $sendTime
+     *   If set the creation/send timestamp will be forced to the given value
      *
      * @return MessageInterface The new message
      */
-    public function send($contents, $type = null, $level = 0, $sendTime = null);
+    public function send(
+        $contents,
+        $type           = null,
+        $level          = 0,
+        array $excluded = null,
+        $sendTime       = null);
 
     /**
      * Create a new subscription to this channel.
