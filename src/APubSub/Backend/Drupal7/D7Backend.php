@@ -22,6 +22,15 @@ class D7Backend extends AbstractBackend
     protected $context;
 
     /**
+     * The most efficient caching point (and probably the only one that
+     * really is useful) is the subscriber cache
+     *
+     * @param DefaultSubscriber[]
+     *   List of cache subscribers keyed by name
+     */
+    protected $subscribersCache = array();
+
+    /**
      * Default constructor
      *
      * @param DatabaseConnection $dbConnection Drupal database connexion
@@ -196,6 +205,10 @@ class D7Backend extends AbstractBackend
 
     public function getSubscriber($id)
     {
+        if (isset($this->subscribersCache[$id])) {
+            return $this->subscribersCache[$id];
+        }
+
         $idList = $this
             ->context
             ->dbConnection
@@ -213,7 +226,7 @@ class D7Backend extends AbstractBackend
             ))
             ->fetchAllKeyed();
 
-        return new DefaultSubscriber($id, $this->context, $idList);
+        return $this->subscribersCache[$id] = new DefaultSubscriber($id, $this->context, $idList);
     }
 
     public function deleteSubscriber($id)
@@ -246,6 +259,10 @@ class D7Backend extends AbstractBackend
             $cx->query("DELETE FROM {apb_sub_map} WHERE name = :id", $args);
 
             unset($tx); // Explicit commit
+
+            if (isset($this->subscribersCache[$id])) {
+                unset($this->subscribersCache[$id]);
+            }
 
         } catch (\Exception $e) {
             if ($tx) {
