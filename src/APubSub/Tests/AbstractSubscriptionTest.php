@@ -161,6 +161,30 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         }
     }
 
+    public function testExclusion()
+    {
+        $suber1 = $this->backend->getSubscriber('john');
+        $suber2 = $this->backend->getSubscriber('doe');
+        $suber3 = $this->backend->getSubscriber('jane');
+        $suber4 = $this->backend->getSubscriber('smith');
+
+        $chan1      = $this->chan;
+        $sub1       = $suber1->subscribe($chan1->getId());
+        $sub2       = $suber2->subscribe($chan1->getId());
+        $sub3       = $suber3->subscribe($chan1->getId());
+        $sub4       = $suber4->subscribe($chan1->getId());
+
+        $chan1->send("test", 'foo', 0, array(
+            $sub2->getId(),
+            $sub4->getId(),
+        ));
+
+        $this->assertCount(1, $suber1->fetch());
+        $this->assertCount(0, $suber2->fetch());
+        $this->assertCount(1, $suber3->fetch());
+        $this->assertCount(0, $suber4->fetch());
+    }
+
     public function testMassUpdate()
     {
         $subscriber = $this->backend->getSubscriber('baz');

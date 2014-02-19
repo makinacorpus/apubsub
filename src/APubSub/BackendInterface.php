@@ -174,14 +174,24 @@ interface BackendInterface extends
     /**
      * Send a single message to one or more channels
      *
-     * @param string|string[] $chanId List of channels or single channel to send
-     *                                the message too
-     * @param string $type            Message type
-     * @param int $level              Arbitrary business level
-     * @param int $sendTime           If set the creation/send timestamp will be
-     *                                forced to the given value
+     * @param string|string[] $chanId
+     *   List of channels or single channel to send the message too
+     * @param string $type
+     *   Message type
+     * @param int $level
+     *   Arbitrary business level
+     * @param scalar[] $exclude
+     *   Excluded subscription identifiers to the send recipients
+     * @param int $sendTime
+     *   If set the creation/send timestamp will be forced to the given value
      */
-    public function send($chanId, $contents, $type = null, $level = 0, $sendTime = null);
+    public function send(
+        $chanId,
+        $contents,
+        $type          = null,
+        $level         = 0,
+        array $exclude = null,
+        $sendTime      = null);
 
     /**
      * Set the unread status of a specific message

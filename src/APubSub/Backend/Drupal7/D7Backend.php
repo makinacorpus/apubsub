@@ -349,7 +349,13 @@ class D7Backend extends AbstractBackend
         throw new \Exception("Not implemented yet");
     }
 
-    public function send($chanId, $contents, $type = null, $level = 0, $sendTime = null)
+    public function send(
+        $chanId,
+        $contents,
+        $type           = null,
+        $level          = 0,
+        array $excluded = null,
+        $sendTime       = null)
     {
         if (!is_array($chanId)) { // Ensure this is a list
             $chanId = array($chanId);
@@ -406,22 +412,44 @@ class D7Backend extends AbstractBackend
             $q->execute();
 
             // Send message to all subscribers
-            $cx
-                ->query("
-                    INSERT INTO {apb_queue} (msg_id, sub_id, unread, created)
-                        SELECT
-                            :msgId   AS msg_id,
-                            s.id     AS sub_id,
-                            1        AS unread,
-                            :created AS created
-                        FROM {apb_sub} s
-                        WHERE s.chan_id IN (:chanId)
-                        AND s.status = 1
-                    ", array(
-                        ':msgId'   => $id,
-                        ':chanId'  => $dbIdList,
-                        ':created' => $sendTime,
-                    ));
+            if (empty($excluded)) {
+                $cx
+                    ->query("
+                        INSERT INTO {apb_queue} (msg_id, sub_id, unread, created)
+                            SELECT
+                                :msgId   AS msg_id,
+                                s.id     AS sub_id,
+                                1        AS unread,
+                                :created AS created
+                            FROM {apb_sub} s
+                            WHERE s.chan_id IN (:chanId)
+                            AND s.status = 1
+                        ", array(
+                            ':msgId'   => $id,
+                            ':chanId'  => $dbIdList,
+                            ':created' => $sendTime,
+                        ));
+            } else {
+                $cx
+                    ->query("
+                        INSERT INTO {apb_queue} (msg_id, sub_id, unread, created)
+                            SELECT
+                                :msgId   AS msg_id,
+                                s.id     AS sub_id,
+                                1        AS unread,
+                                :created AS created
+                            FROM {apb_sub} s
+                            WHERE
+                                s.chan_id IN (:chanId)
+                                AND s.status = 1
+                                AND s.id NOT IN (:excluded)
+                        ", array(
+                            ':msgId'    => $id,
+                            ':chanId'   => $dbIdList,
+                            ':created'  => $sendTime,
+                            ':excluded' => $excluded,
+                        ));
+            }
 
             unset($tx); // Excplicit commit
 
