@@ -77,4 +77,37 @@ abstract class AbstractNotificationServiceTest extends AbstractNotificationBased
             $this->assertSame("2 and 3 are friends yay", $notification->get("message"));
         }
     }
+
+    public function testCurrentSubscriberExclusion()
+    {
+        $service = $this->getService();
+
+        $userId1 = $service->getSubscriberName("u", 1);
+        $userId2 = $service->getSubscriberName("u", 2);
+        $userId3 = $service->getSubscriberName("u", 3);
+
+        // Set context to user1 and send some stuff
+        $service->addCurrentSubscriber($userId1);
+
+        // Register everyone *after* we actually did fetched the subscriber
+        // hoping this would work gracefully: this prooves that subscriber
+        // instance is the same between various load calls; This probably
+        // should not be tested here, but that's actually an excellent use
+        // case for this, since setting the context will happen long enough
+        // in the runtime of a normal user oriented application, and the
+        // same user could subscribe after that
+        $chanId1 = $service->getChanId("friend", 1);
+        $service->subscribe($chanId1, $userId1);
+        $service->subscribe($chanId1, $userId2);
+        $service->subscribe($chanId1, $userId3);
+
+        $service->notify($chanId1, 'friend');
+
+        $messages = $service->getSubscriber($userId1)->fetch();
+        $this->assertCount(0, $messages);
+        $messages = $service->getSubscriber($userId2)->fetch();
+        $this->assertCount(1, $messages);
+        $messages = $service->getSubscriber($userId3)->fetch();
+        $this->assertCount(1, $messages);
+    }
 }
