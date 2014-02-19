@@ -8,6 +8,7 @@ use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\MessageInterface;
 use APubSub\Notification\Registry\ChanTypeRegistry;
 use APubSub\Notification\Registry\FormatterRegistry;
+use APubSub\SubscriberInterface;
 
 /**
  * Notification service, single point of entry for the business layer
@@ -47,6 +48,11 @@ class NotificationService
     private $silentMode = false;
 
     /**
+     * @var string[]
+     */
+    private $currentSubscribers = array();
+
+    /**
      * Default constructor
      *
      * @param BackendInterface $backend Backend
@@ -79,6 +85,31 @@ class NotificationService
     }
 
     /**
+     * Set a new subscriber as being the current one
+     *
+     * Setting a subscriber as being current will allow the notify() function
+     * to automatically exclude him from the notifications recipients and avoid
+     * a user to see his own messages
+     *
+     * @param string $name
+     *   Subscriber name
+     */
+    public function addCurrentSubscriber($name)
+    {
+        if (!in_array($name, $this->currentSubscribers)) {
+            $this->currentSubscribers[] = $name;
+        }
+    }
+
+    /**
+     * Reset current subscriber list
+     */
+    public function resetSubscribers()
+    {
+        $this->currentSubscribers = array();
+    }
+
+    /**
      * Get channel identifier from input parameters
      *
      * @param string $type Source object type
@@ -97,7 +128,8 @@ class NotificationService
      * @param string $name
      *   Subscriber name
      *
-     * @return SubscriberInterface Subscriber
+     * @return SubscriberInterface
+     *   Subscriber
      */
     public function getSubscriber($name)
     {
@@ -112,7 +144,8 @@ class NotificationService
      * @param scalar $id
      *   Susbcriber identifier
      *
-     * @return SubscriberInterface Subscriber
+     * @return SubscriberInterface
+     *   Subscriber
      */
     public function getSubscriberFor($type, $id)
     {
@@ -241,8 +274,11 @@ class NotificationService
      *   Arbitrary level, see Notification::LEVEL_* constants. This value is
      *   purely arbitrary, it is up to the business layer to do something with
      *   it. It does not alters the notification system behavior.
+     * @param boolean $doExcludeCurrent
+     *   If set to false the current subscribers won't be excluded from the
+     *   current notification recipient list
      */
-    public function notify($chanId, $type, array $data = null, $level = null)
+    public function notify($chanId, $type, array $data = null, $level = null, $doExcludeCurrent = true)
     {
         if (!$this->isTypeEnabled($type)) {
             return;
@@ -271,9 +307,30 @@ class NotificationService
                     ->format(new Notification($this, $message));
             }
 
-            $message = $this
-                ->getBackend()
-                ->send($chanId, $contents, $type, $level);
+            if (!$doExcludeCurrent || empty($this->currentSubscribers)) {
+
+                $message = $this
+                    ->getBackend()
+                    ->send($chanId, $contents, $type, $level);
+
+            } else {
+
+                $exclude = array();
+                foreach ($this->currentSubscribers as $name) {
+                    // Using getSubscriptionIds() will avoid an odd number of
+                    // backend queries (at least for SQL backend)
+                    $exclude = array_merge(
+                        $exclude,
+                        $this
+                            ->getSubscriber($name)
+                            ->getSubscriptionsIds()
+                    );
+                }
+
+                $message = $this
+                    ->getBackend()
+                    ->send($chanId, $contents, $type, $level, $exclude);
+            }
 
         } catch (ChannelDoesNotExistException $e) {
             // Nothing to do, no channel means no subscription

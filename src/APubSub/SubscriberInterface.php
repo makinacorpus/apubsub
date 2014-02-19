@@ -24,27 +24,37 @@ interface SubscriberInterface extends MessageContainerInterface
     /**
      * Get all subscriptions
      *
-     * @return array List of SubscriptionInterface instances
+     * @return SubscriptionInterface[]
+     *   List of SubscriptionInterface instances
      */
     public function getSubscriptions();
 
     /**
+     * Get subscriptions identifiers
+     *
+     * @return scalar[] 
+     */
+    public function getSubscriptionsIds();
+
+    /**
      * Has the current subscriber a subscription for the given channel.
      *
-     * @param string $chanId Channel identifier
+     * @param string $chanId
+     *   Channel identifier
      */
     public function hasSubscriptionFor($chanId);
 
     /**
      * Get the subscription for a specific channel if exists
      *
-     * @param string $chanId                  Channel identifier
+     * @param string $chanId
+     *   Channel identifier
      *
-     * @return \APubSub\SubscriptionInterface Subscription instance
+     * @return \APubSub\SubscriptionInterface
+     *   Subscription instance
      *
      * @throws \APubSub\Error\SubscriptionDoesNotExistException
-     *                                        If the subscriber did not
-     *                                        subscribe to the given channel
+     *   If the subscriber did not subscribe to the given channel
      */
     public function getSubscriptionFor($chanId);
 
@@ -56,12 +66,14 @@ interface SubscriberInterface extends MessageContainerInterface
      *
      * If subscription already exists, be silent about about it
      *
-     * @param string $chanId                  Channel identifier
+     * @param string $chanId
+     *   Channel identifier
      *
-     * @return \APubSub\SubscriptionInterface New subscription instance
+     * @return \APubSub\SubscriptionInterface
+     *   New subscription instance
      *
      * @throws \APubSub\Error\ChannelDoesNotExistException
-     *                                        If channel does not exist
+     *   If channel does not exist
      */
     public function subscribe($chanId);
 
@@ -73,7 +85,8 @@ interface SubscriberInterface extends MessageContainerInterface
      *
      * If subscription nor chan do not exist, be silent about it. 
      *
-     * @param string $chanId Channel identifier
+     * @param string $chanId
+     *   Channel identifier
      */
     public function unsubscribe($chanId);
 }

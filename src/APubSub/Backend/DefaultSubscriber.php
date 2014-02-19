@@ -58,6 +58,15 @@ class DefaultSubscriber extends AbstractMessageContainer implements
             ->getSubscriptions(array_values($this->idList));
     }
 
+    public function getSubscriptionsIds()
+    {
+        if (null === $this->idList) {
+            return array();
+        }
+
+        return array_values($this->idList);
+    }
+
     final public function hasSubscriptionFor($chanId)
     {
         return isset($this->idList[$chanId]);
