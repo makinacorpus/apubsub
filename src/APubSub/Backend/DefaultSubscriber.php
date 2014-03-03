@@ -113,6 +113,8 @@ class DefaultSubscriber extends AbstractMessageContainer implements
                         Field::SUB_ID => $this->idList[$chanId], 
                     ))
                     ->delete();
+
+                unset($this->idList[$chanId]);
             }
         } catch (SubscriptionDoesNotExistException $e) {
             // An exception here means a subscription for this channel does
