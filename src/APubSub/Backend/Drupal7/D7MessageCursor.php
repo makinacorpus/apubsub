@@ -249,7 +249,7 @@ class D7MessageCursor extends AbstractD7Cursor
             $query
                 ->join('apb_msg', 'm', 'm.id = q.msg_id');
             $query
-                ->fields('m')
+                ->fields('m', array('type_id', 'contents', 'level'))
                 ->fields('q');
         } else {
 
@@ -260,7 +260,7 @@ class D7MessageCursor extends AbstractD7Cursor
             $query
                 ->join('apb_msg', 'm', 'm.id = q.msg_id');
             $query
-                ->fields('m')
+                ->fields('m', array('type_id', 'contents', 'level'))
                 ->fields('q');
         }
 
