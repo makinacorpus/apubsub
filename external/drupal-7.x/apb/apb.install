@@ -103,15 +103,9 @@ function apb_schema() {
     ),
     'primary key' => array('id'),
     'indexes' => array(
-      // Needed for deletion.
-      'apb_msg_id_idx' => array('chan_id'),
       'apb_msg_level_idx' => array('level'),
     ),
     'foreign keys' => array(
-      'apb_msg_chan_id_fk' => array(
-        'table' => 'apb_chan',
-        'columns' => array('chan_id' => 'id'),
-      ),
       'apb_msg_type_id_fk' => array(
         'table' => 'apb_msg_type',
         'columns' => array('type_id' => 'id'),
