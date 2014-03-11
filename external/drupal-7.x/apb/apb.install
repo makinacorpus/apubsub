@@ -413,8 +413,10 @@ function apb_update_7004() {
  */
 function apb_update_7005() {
   if (db_field_exists('apb_msg', 'chan_id')) {
-    db_create_table('apb_msg_chan', drupal_get_schema_unprocessed('apb', 'apb_msg_chan'));
-    db_query("INSERT INTO {apb_msg_chan} (msg_id, chan_id) SELECT id, chan_id FROM apb_msg");
+    if (!db_table_exists('apb_msg_chan')) {
+      db_create_table('apb_msg_chan', drupal_get_schema_unprocessed('apb', 'apb_msg_chan'));
+      db_query("INSERT INTO {apb_msg_chan} (msg_id, chan_id) SELECT id, chan_id FROM apb_msg");
+    }
     db_drop_field('apb_msg', 'chan_id');
   }
 }
