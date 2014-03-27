@@ -547,13 +547,16 @@ function notification_follow_form(
   $targetType,
   $subscriberType = ACCOUNT_SUB,
   $followLabel    = null,
-  $unfollowLabel  = null)
+  $unfollowLabel  = null,
+  $what           = null)
 {
   global $user;
 
   $service    = notification_service_get();
   $chanId     = $service->getChanId($targetType, $targetId);
   $subscriber = $service->getSubscriberFor($subscriberType, $user->uid);
+
+  $form['#what'] = null === $what ? t("this channel") : $what;
 
   $form['cid'] = array(
     '#type' => 'value',
@@ -601,10 +604,10 @@ function notification_follow_form_submit($form, &$form_state) {
     // Throws an exception if the user is not following the channel.
     $subscriber->getSubscriptionFor($chanId);
     $service->unsubscribe($chanId, $subscriberId);
-    drupal_set_message(t("You are not following this channel!"));
+    drupal_set_message(t("You are no longer following !what", array('!what' => $form['#what'])));
   } catch (SubscriptionDoesNotExistException $e) {
     $service->subscribe($chanId, $subscriberId);
-    drupal_set_message(t("You are now following this channel!"));
+    drupal_set_message(t("You are now following !what", array('!what' => $form['#what'])));
   }
 }
 
