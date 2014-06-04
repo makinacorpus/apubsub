@@ -81,10 +81,16 @@
       async: true,
       cache: false,
       success: function (data, textStatus, jqXHR) {
-        self.element.innerHTML = data.html;
-        self.neverUnfolded = true;
-        Drupal.settings.notification.currentlyDisplayed = data.since_id;
-        Drupal.behaviors.NotificationDropDown.attach(self.element.parentNode);
+        if (data.html && "string" === typeof data.html) {
+          self.element.innerHTML = data.html;
+          self.neverUnfolded = true;
+          Drupal.settings.notification.currentlyDisplayed = data.since_id;
+          Drupal.behaviors.NotificationDropDown.attach(self.element.parentNode);
+        } else {
+          // An error happened, could not reproduce the bug some users
+          // actually complain seeing an "undefined" displayed sometime
+          self.stopTimer();
+        }
       },
       error: function () {
         // Whatever is the error, we cannot let the user with an incomplete
