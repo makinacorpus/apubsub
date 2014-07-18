@@ -318,7 +318,8 @@ class NotificationService
                 $exclude = array();
                 foreach ($this->currentSubscribers as $name) {
                     // Using getSubscriptionIds() will avoid an odd number of
-                    // backend queries (at least for SQL backend)
+                    // backend queries (at least for SQL backend). I do hope
+                    // that our current subscriber does not have thousands...
                     $exclude = array_merge(
                         $exclude,
                         $this
