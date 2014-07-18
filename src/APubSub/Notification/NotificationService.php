@@ -5,6 +5,7 @@ namespace APubSub\Notification;
 use APubSub\BackendInterface;
 use APubSub\Backend\DefaultMessage;
 use APubSub\Error\ChannelDoesNotExistException;
+use APubSub\Field;
 use APubSub\MessageInterface;
 use APubSub\Notification\Registry\ChanTypeRegistry;
 use APubSub\Notification\Registry\FormatterRegistry;
@@ -168,6 +169,29 @@ class NotificationService
     }
 
     /**
+     * Get subscriber names list
+     *
+     * @param string $type
+     *   Susbcriber type identifier
+     * @param scalar $idList
+     *   Susbcriber identifiers list
+     *
+     * @return SubscriberInterface Subscriber
+     */
+    public function getSubscriberNameList($type, $idList)
+    {
+        if (!is_array($idList)) {
+            $idList = array($idList);
+        }
+
+        array_walk($idList, function (&$id) {
+            $id = $type . ':' . $id;
+        });
+
+        return $idList;
+    }
+
+    /**
      * Subscribe to a chan
      *
      * This method will implicetely create the channel if non existant
@@ -194,14 +218,25 @@ class NotificationService
      *
      * @param string|array $chanId
      *   Channel identifier list or single value
-     * @param string $name
+     * @param string|array|\Traversable $name
      *   Subscriber name
      */
     public function unsubscribe($chanId, $name)
     {
-        $subscriber = $this
-            ->getSubscriber($name)
-            ->unsubscribe($chanId);
+        if (is_array($name) || $name instanceof \Traversable) {
+            $subscriber = $this
+                ->backend
+                ->fetchSubscriptions(array(
+                    Field::CHAN_ID => $chanId,
+                    Field::SUBER_NAME => $name,
+                ))
+                ->delete();
+        } else {
+            $subscriber = $this
+                ->backend
+                ->getSubscriber($name)
+                ->unsubscribe($chanId);
+        }
     }
 
     /**
