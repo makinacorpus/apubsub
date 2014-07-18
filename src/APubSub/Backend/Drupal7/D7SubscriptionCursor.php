@@ -12,6 +12,21 @@ use APubSub\Field;
  */
 class D7SubscriptionCursor extends AbstractD7Cursor
 {
+    /**
+     * Helper flag for the buildQuery() method
+     *
+     * @var boolean
+     *
+     * @see D7SubscriptionCursor::applyConditions()
+     * @see D7SubscriptionCursor::buildQuery()
+     */
+    private $queryOnSuber = false;
+
+    /**
+     * @var boolean
+     */
+    private $distinct = true;
+
     public function getAvailableSorts()
     {
         return array(
@@ -43,6 +58,11 @@ class D7SubscriptionCursor extends AbstractD7Cursor
 
                 case Field::CHAN_ID:
                     $ret['c.name'] = $value;
+                    break;
+
+                case Field::SUBER_NAME:
+                    $ret['m.name'] = $value;
+                    $this->queryOnSuber = true;
                     break;
 
                 default:
@@ -86,6 +106,11 @@ class D7SubscriptionCursor extends AbstractD7Cursor
                         $query->orderBy('c.name', $direction);
                         break;
 
+                    case Field::SUBER_NAME:
+                        $query->orderBy('m.name', $direction);
+                        $this->queryOnSuber = true;
+                        break;
+
                     default:
                         throw new \InvalidArgumentException("Unsupported sort field");
                 }
@@ -113,12 +138,37 @@ class D7SubscriptionCursor extends AbstractD7Cursor
             ->select('apb_sub', 's')
             ->fields('s');
 
-        // FIXME: Get rid of JOIN
-        $query
-            ->join('apb_chan', 'c', 's.chan_id = c.id');
+        if ($this->queryOnSuber) {
+            //
+            // FIXME: Get rid of JOIN, right now must keep it for sort
+            // But ideally should be replaced by a WHERE EXISTS in case
+            // of performance problems: this also would get rid of the
+            // need to have a GROUP BY on identifier
+            //
+            // Actually, this needs extensive testing. When passing
+            // subscriber identifiers as WHERE condition in this query,
+            // most SQL databases are supposed to optimize by querying
+            // the 'apb_sub_map' table first then JOIN'ing with others,
+            // if you ever pass only a few subscribers names (let's say
+            // even a thousand would actually make your buffer break)
+            // the query will actually be very fast even working in
+            // a temporary table.
+            //
+            // Note that using MySQL the TEMPORARY TABLE usage is only
+            // due to the GROUP BY clause, and not by the various JOIN
+            // statements.
+            //
+            $query->join('apb_sub_map', 'm', 'm.sub_id = s.id');
+        }
 
-        $query
-            ->fields('c', array('name'));
+        // FIXME: Get rid of JOIN, right now must keep it for sort
+        $query->join('apb_chan', 'c', 's.chan_id = c.id');
+        $query->fields('c', array('name'));
+
+        if ($this->distinct) {
+            // Use GROUP BY for better PostgreSQL support
+            $query->groupBy('s.id');
+        }
 
         return $query;
     }
