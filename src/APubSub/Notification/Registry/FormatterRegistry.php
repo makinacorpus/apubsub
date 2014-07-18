@@ -11,7 +11,7 @@ class FormatterRegistry extends AbstractRegistry
 {
     protected function createNullInstance()
     {
-        return new NullFormatter();
+        return new NullFormatter('null', null);
     }
 
     protected function getDefaultClass()
