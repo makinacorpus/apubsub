@@ -15,7 +15,7 @@ function notification_ajax_user_notifications() {
 
   $content = notification_block_render($user, true);
 
-  if (is_array($content) && !empty($content['#list'])) {
+  if (is_array($content)) {
     $build['since_id'] = max(array_keys($content['#list']));
     $build['html'] = drupal_render($content);
     drupal_json_output($build);
