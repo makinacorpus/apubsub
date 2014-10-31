@@ -316,12 +316,9 @@ class D7MessageCursor extends AbstractD7Cursor
         // Create a temp table containing identifiers to update: this is
         // mandatory because you cannot use the apb_queue in the UPDATE
         // query subselect
-        $tempTableName = $this
-            ->context
-            ->dbConnection
-            ->queryTemporary(
-                (string)$query,
-                $query->getArguments());
+        $cx = $this->context->dbConnection;
+        $tempTableName = $cx->queryTemporary((string)$query, $query->getArguments());
+        $cx->schema()->addIndex($tempTableName, $tempTableName . '_idx', array('id'));
 
         return $tempTableName;
     }
