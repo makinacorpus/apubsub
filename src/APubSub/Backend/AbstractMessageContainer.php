@@ -2,15 +2,15 @@
 
 namespace APubSub\Backend;
 
-use APubSub\ContextInterface;
 use APubSub\MessageContainerInterface;
 use APubSub\CursorInterface;
+use APubSub\BackendInterface;
 
 /**
  * Default implementation of the message container interface that would fit most
  * objects for most backends
  */
-abstract class AbstractMessageContainer extends AbstractObject implements
+abstract class AbstractMessageContainer implements
     MessageContainerInterface
 {
     /**
@@ -24,14 +24,21 @@ abstract class AbstractMessageContainer extends AbstractObject implements
     protected $invariant = array();
 
     /**
+     * @var BackendInterface
+     */
+    private $backend;
+
+    /**
      * Default constructor
      *
-     * @param ContextInterface $context Context
-     * @param array $invariant          Default filters for cursors
+     * @param BackendInterface $backend
+     *   Backend
+     * @param array $invariant
+     *   Default filters for cursors
      */
-    public function __construct(ContextInterface $context, array $invariant = null)
+    public function __construct(BackendInterface $backend, array $invariant = null)
     {
-        parent::__construct($context);
+        $this->backend = $backend;
 
         if (!empty($invariant)) {
             $this->invariant = $invariant;
@@ -64,10 +71,14 @@ abstract class AbstractMessageContainer extends AbstractObject implements
         return $conditions;
     }
 
+    public function getBackend()
+    {
+        return $this->backend;
+    }
+
     public function fetch(array $conditions = null)
     {
         return $this
-            ->context
             ->getBackend()
             ->fetch(
                 $this->ensureConditions($conditions));
@@ -76,7 +87,6 @@ abstract class AbstractMessageContainer extends AbstractObject implements
     public function flush()
     {
         return $this
-            ->context
             ->getBackend()
             ->fetch(
                  $this->ensureConditions())

@@ -10,14 +10,11 @@ use APubSub\Field;
 /**
  * Common base implementation for most backends
  */
-abstract class AbstractBackend extends AbstractObject implements
-    BackendInterface
+abstract class AbstractBackend implements BackendInterface
 {
-    public function setOptions(array $options)
+    public function getBackend()
     {
-        $this
-            ->context
-            ->setOptions($options);
+        return $this;
     }
 
     public function getChannel($id)
@@ -100,8 +97,6 @@ abstract class AbstractBackend extends AbstractObject implements
     public function setUnread($queueId, $toggle = false)
     {
         $this
-            ->context
-            ->getBackend()
             ->fetch(array(
                 Field::MSG_QUEUE_ID => $queueId
             ))

@@ -127,13 +127,6 @@ function apb_backend_get($name = 'default') {
       $class = APB_DEFAULT_CLASS;
     }
 
-    // Check for options and set them if any.
-    if (isset($conf[$name]['options'])) {
-      $options = $conf[$name]['options'];
-    } else {
-      $options = null;
-    }
-
     // Does a specific case for known backends.
     switch ($class) {
 
@@ -154,10 +147,6 @@ function apb_backend_get($name = 'default') {
       default:
         $backend = new $class();
         break;
-    }
-
-    if (null !== $options) {
-      $backend->setOptions($options);
     }
 
     $backends[$name] = $backend;

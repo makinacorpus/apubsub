@@ -2,8 +2,6 @@
 
 namespace APubSub;
 
-use APubSub\ObjectInterface;
-
 /**
  * A message instance is what lives into the queue: it is tied to one or more
  * channels and to one or more subscriptions, and has a state

@@ -3,7 +3,7 @@
 namespace APubSub\Backend\Drupal7;
 
 use APubSub\Backend\AbstractCursor;
-use APubSub\ContextInterface;
+use APubSub\BackendInterface;
 use APubSub\CursorInterface;
 use APubSub\Field;
 use APubSub\Misc;
@@ -37,12 +37,16 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
     /**
      * Default constructor
      *
-     * @param ContextInterface $context    Context
-     * @param \QueryConditionInterface $query Message query
+     * @param BackendInterface $backend
+     *   Backend
+     * @param \QueryConditionInterface $query
+     *   Message query
      */
-    final public function __construct(ContextInterface $context)
+    final public function __construct(D7Backend $backend)
     {
-        parent::__construct($context);
+        parent::__construct($backend);
+
+        $this->backend = $backend;
     }
 
     /**

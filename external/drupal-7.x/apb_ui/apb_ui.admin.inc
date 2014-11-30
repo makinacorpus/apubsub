@@ -76,22 +76,6 @@ function apb_ui_content_backend_overview_page(BackendInterface $backend) {
     '#suffix' => '</h2>',
     '#markup' => t("Configuration"),
   );
-  $rows = array();
-  foreach ($backend->getContext()->getOptions() as $key => $value) {
-    if (is_null($value)) {
-      $value = '<em>null</em>';
-    } else if (is_bool($value)) {
-      $value = '<em>' . ($value ? "true" : "false") . '</em>';
-    } else if (is_int($value)) {
-      $value = number_format($value); 
-    } else if (is_string($value)) {
-      $value = '"' . $value . '"';
-    } else {
-      $value = '<em>' . t("Undisplayable value type") . '</em>';
-    }
-    $rows[] = array($key, $value);
-  }
-  $build['options']['content']['#markup'] = theme('table', array('rows' => $rows));
 
   return $build;
 }

@@ -79,7 +79,7 @@ class D7ChannelCursor extends AbstractD7Cursor
         return new D7Channel(
             (int)$record->id,
             $record->name,
-            $this->context,
+            $this->getBackend(),
             (int)$record->created,
             empty($record->title) ? null : $record->title);
     }
@@ -87,8 +87,8 @@ class D7ChannelCursor extends AbstractD7Cursor
     protected function buildQuery()
     {
         return $this
-            ->context
-            ->dbConnection
+            ->getBackend()
+            ->getConnection()
             ->select('apb_chan', 'c')
             ->fields('c');
     }
@@ -120,7 +120,7 @@ class D7ChannelCursor extends AbstractD7Cursor
         // Create a temp table containing identifiers to update: this is
         // mandatory because you cannot use the apb_queue in the UPDATE
         // query subselect
-        $cx = $this->context->dbConnection;
+        $cx = $this->getBackend()->getConnection();
         $tempTableName = $cx->queryTemporary((string)$query, $query->getArguments());
         $cx->schema()->addIndex($tempTableName, $tempTableName . '_idx', array('id'));
 
@@ -129,7 +129,7 @@ class D7ChannelCursor extends AbstractD7Cursor
 
     public function delete()
     {
-        $cx = $this->context->dbConnection;
+        $cx = $this->getBackend()->getConnection();
         $tx = null;
 
         try {
@@ -238,7 +238,7 @@ class D7ChannelCursor extends AbstractD7Cursor
         // cases) we need to proceed using a temporary table
         $tempTableName = $this->createTempTable();
 
-        $cx = $this->context->dbConnection;
+        $cx = $this->getBackend()->getConnection();
 
         $select = $cx
             ->select($tempTableName, 't')

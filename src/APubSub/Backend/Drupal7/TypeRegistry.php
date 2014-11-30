@@ -2,13 +2,11 @@
 
 namespace APubSub\Backend\Drupal7;
 
-use APubSub\Backend\AbstractObject;
-
 /**
  * Handles message type normalisation using an external database table in
  * order to leave the apb_msg table lightweight
  */
-class TypeRegistry extends AbstractObject
+class TypeRegistry
 {
     /**
      * Known types cache
@@ -18,13 +16,23 @@ class TypeRegistry extends AbstractObject
     private $types;
 
     /**
+     * @var D7Backend
+     */
+    private $backend;
+
+    public function __construct(D7Backend $backend)
+    {
+        $this->backend = $backend;
+    }
+
+    /**
      * Load or refresh types cache
      */
     protected function loadCache()
     {
         $this->types = $this
-            ->getContext()
-            ->dbConnection
+            ->backend
+            ->getConnection()
             ->query("SELECT id, type FROM {apb_msg_type}")
             ->fetchAllKeyed();
     }
@@ -46,8 +54,8 @@ class TypeRegistry extends AbstractObject
 
             try {
                 $this
-                    ->getContext()
-                    ->dbConnection
+                    ->backend
+                    ->getConnection()
                     ->insert('apb_msg_type')
                     ->fields(array('type' => $type))
                     ->execute();

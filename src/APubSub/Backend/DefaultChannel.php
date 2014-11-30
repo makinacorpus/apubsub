@@ -2,8 +2,8 @@
 
 namespace APubSub\Backend;
 
+use APubSub\BackendInterface;
 use APubSub\ChannelInterface;
-use APubSub\ContextInterface;
 use APubSub\Field;
 
 /**
@@ -29,14 +29,18 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
     /**
      * Default constructor
      *
-     * @param string $id        Channel identifier
-     * @param ContextInterface  Context
-     * @param int $creationTime Creation time UNIX timestamp
-     * @param string $title     Human readable title
+     * @param string $id
+     *   Channel identifier
+     * @param BackendInterface $backend
+     *   Backend
+     * @param int $creationTime
+     *   Creation time UNIX timestamp
+     * @param string $title
+     *   Human readable title
      */
-    public function __construct($id, ContextInterface $context, $creationTime = null, $title = null)
+    public function __construct($id, BackendInterface $backend, $creationTime = null, $title = null)
     {
-        parent::__construct($context, array(
+        parent::__construct($backend, array(
             Field::CHAN_ID => $id,
         ));
 
@@ -65,7 +69,6 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
         if ($this->title !== $title) {
 
             $this
-                ->context
                 ->getBackend()
                 ->fetchChannels(array(
                     Field::CHAN_ID => $this->getId(),
@@ -91,7 +94,6 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
         $sendTime       = null)
     {
         return $this
-            ->context
             ->getBackend()
             ->send(
                 $this->id,
@@ -106,7 +108,6 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
     final public function subscribe()
     {
         return $this
-            ->context
             ->getBackend()
             ->subscribe($this->id);
     }
