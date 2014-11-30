@@ -10,7 +10,10 @@ namespace APubSub;
  *
  * Objects can or cannot set a default limit, although they always should
  */
-interface CursorInterface extends ObjectInterface, \Traversable, \Countable
+interface CursorInterface extends
+    BackendAwareInterface,
+    \Traversable,
+    \Countable
 {
     /**
      * No limit

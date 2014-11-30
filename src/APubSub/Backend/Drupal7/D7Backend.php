@@ -17,9 +17,19 @@ use APubSub\Field;
 class D7Backend extends AbstractBackend
 {
     /**
-     * @var D7Context
+     * @var D7Backend
      */
-    protected $context;
+    protected $backend;
+
+    /**
+     * @var \DatabaseConnection
+     */
+    protected $db;
+
+    /**
+     * @var TypeRegistry
+     */
+    protected $typeRegistry;
 
     /**
      * The most efficient caching point (and probably the only one that
@@ -33,21 +43,40 @@ class D7Backend extends AbstractBackend
     /**
      * Default constructor
      *
-     * @param DatabaseConnection $dbConnection Drupal database connexion
-     * @param array|Traversable $options       Options
+     * @param DatabaseConnection $dbConnection
+     *   Drupal database connexion
+     * @param array|Traversable $options
+     *   Options
      */
     public function __construct(\DatabaseConnection $dbConnection, $options = null)
     {
-        parent::__construct(
-            new D7Context(
-                $dbConnection,
-                $this,
-                $options));
+        $this->db = $dbConnection;
+        $this->typeRegistry = new TypeRegistry($this);
+    }
+
+    /**
+     * Get database connection
+     *
+     * @return \DatabaseConnection
+     */
+    public function getConnection()
+    {
+        return $this->db;
+    }
+
+    /**
+     * Get type registry
+     *
+     * @return TypeRegistry
+     */
+    public function getTypeRegistry()
+    {
+        return $this->typeRegistry;
     }
 
     public function fetch(array $conditions = null)
     {
-        $cursor = new D7MessageCursor($this->context);
+        $cursor = new D7MessageCursor($this);
 
         if (!empty($conditions)) {
             $cursor->setConditions($conditions);
@@ -58,7 +87,7 @@ class D7Backend extends AbstractBackend
 
     public function fetchChannels(array $conditions = null)
     {
-        $cursor = new D7ChannelCursor($this->context);
+        $cursor = new D7ChannelCursor($this);
 
         if (!empty($conditions)) {
             $cursor->setConditions($conditions);
@@ -72,7 +101,7 @@ class D7Backend extends AbstractBackend
         $chan    = null;
         $created = time();
         $dbId    = null;
-        $cx      = $this->context->dbConnection;
+        $cx      = $this->db;
         $tx      = null;
 
         try {
@@ -107,7 +136,7 @@ class D7Backend extends AbstractBackend
                 $seq = ($cx->driver() === 'pgsql') ? 'apb_chan_id_seq' : null;
                 $dbId = (int)$cx->lastInsertId($seq);
 
-                $chan = new D7Channel($dbId, $id, $this->context, $created, $title);
+                $chan = new D7Channel($dbId, $id, $this, $created, $title);
             }
 
             unset($tx); // Explicit commit
@@ -134,7 +163,7 @@ class D7Backend extends AbstractBackend
         $ret      = array();
         $created  = time();
         $dbId     = null;
-        $cx       = $this->context->dbConnection;
+        $cx       = $this->db;
         $tx       = $cx->startTransaction();
 
         try {
@@ -194,7 +223,7 @@ class D7Backend extends AbstractBackend
 
     public function fetchSubscriptions(array $conditions = null)
     {
-        $cursor = new D7SubscriptionCursor($this->context);
+        $cursor = new D7SubscriptionCursor($this);
 
         if (!empty($conditions)) {
             $cursor->setConditions($conditions);
@@ -210,8 +239,7 @@ class D7Backend extends AbstractBackend
         }
 
         $idList = $this
-            ->context
-            ->dbConnection
+            ->db
             // This query will also remove non existing stalling subscriptions
             // from the subscriber map thanks to the JOIN statements, thus
             // avoiding potential exceptions being thrown at single subscription
@@ -226,12 +254,12 @@ class D7Backend extends AbstractBackend
             ))
             ->fetchAllKeyed();
 
-        return $this->subscribersCache[$id] = new DefaultSubscriber($id, $this->context, $idList);
+        return $this->subscribersCache[$id] = new DefaultSubscriber($id, $this, $idList);
     }
 
     public function deleteSubscriber($id)
     {
-        $cx         = $this->context->dbConnection;
+        $cx         = $this->db;
         $tx         = null;
         $subscriber = $this->getSubscriber($id);
 
@@ -287,7 +315,7 @@ class D7Backend extends AbstractBackend
     {
         $deactivated  = time();
         $created      = $deactivated;
-        $cx           = $this->context->dbConnection;
+        $cx           = $this->db;
         $tx           = null;
         $chan         = $this->getChannel($chanId);
         $subscriber   = null;
@@ -344,7 +372,7 @@ class D7Backend extends AbstractBackend
 
             $subscription = new DefaultSubscription(
                 $chanId, $id, $created, 0,
-                $deactivated, false, $this->context);
+                $deactivated, false, $this);
 
             unset($tx); // Explicit commit
 
@@ -381,7 +409,7 @@ class D7Backend extends AbstractBackend
             return;
         }
 
-        $cx       = $this->context->dbConnection;
+        $cx       = $this->db;
         $tx       = null;
         $id       = null;
         $typeId   = null;
@@ -394,7 +422,6 @@ class D7Backend extends AbstractBackend
 
         if (null !== $type) {
             $typeId = $this
-                ->context
                 ->typeRegistry
                 ->getTypeId($type);
         }
@@ -470,9 +497,9 @@ class D7Backend extends AbstractBackend
 
             unset($tx); // Excplicit commit
 
-            if (!$this->context->delayChecks) {
-                $this->context->getBackend()->cleanUpMessageQueue();
-                $this->context->getBackend()->cleanUpMessageLifeTime();
+            if (true /* Delay checks */) {
+                //$this->getBackend()->cleanUpMessageQueue();
+                //$this->getBackend()->cleanUpMessageLifeTime();
             }
         } catch (\Exception $e) {
             if ($tx) {
@@ -484,21 +511,18 @@ class D7Backend extends AbstractBackend
             throw $e;
         }
 
-        return new DefaultMessage(
-            $this->context, $contents, $id, $type, $level);
+        return new DefaultMessage($this, $contents, $id, $type, $level);
     }
 
     public function flushCaches()
     {
-        $this->context->flushCaches();
     }
 
     public function garbageCollection()
     {
         // Drop all messages for inactive subscriptions
         $this
-            ->context
-            ->dbConnection
+            ->db
             ->query("
                     DELETE
                     FROM {apb_queue}
@@ -510,21 +534,19 @@ class D7Backend extends AbstractBackend
                 ");
 
         // Clean up expired messages
-        if ($this->context->messageMaxLifetime) {
+        if (false /* Max message lifetime */) {
             $this
-                ->context
-                ->dbConnection
+                ->db
                 ->query("DELETE FROM {apb_msg} WHERE created < :time", array(
                     ':time' => time() - $this->context->messageMaxLifetime,
                 ));
         }
 
         // Limit queue size if configured for
-        if ($this->context->queueGlobalLimit) {
+        if (false /* Global queue limit */) {
 
             $min = $this
-                ->context
-                ->dbConnection
+                ->db
                 ->query("
                         SELECT msg_id
                         FROM {apb_queue}
@@ -541,8 +563,7 @@ class D7Backend extends AbstractBackend
                 // a lower id ensures that we may be close enought to this
                 // limit
                 $this
-                    ->context
-                    ->dbConnection
+                    ->db
                     ->query("DELETE FROM {apb_queue} WHERE msg_id < :min", array(
                         ':min' => $min,
                     ));
@@ -551,8 +572,7 @@ class D7Backend extends AbstractBackend
 
         // Clean up orphaned messages
         $this
-            ->context
-            ->dbConnection
+            ->db
             ->query("
                     DELETE
                     FROM {apb_msg}
@@ -564,8 +584,7 @@ class D7Backend extends AbstractBackend
 
         // Clean up orphaned subsribers
         $this
-            ->context
-            ->dbConnection
+            ->db
             ->query("
                     DELETE
                     FROM {apb_sub_map}
@@ -578,7 +597,7 @@ class D7Backend extends AbstractBackend
 
     public function getAnalysis()
     {
-        $cx = $this->context->dbConnection;
+        $cx = $this->db;
 
         $chanCount       = (int)$cx->query("SELECT COUNT(*) FROM {apb_chan}")->fetchField();
         $msgCount        = (int)$cx->query("SELECT COUNT(*) FROM {apb_msg}")->fetchField();

@@ -2,7 +2,7 @@
 
 namespace APubSub\Backend;
 
-use APubSub\ContextInterface;
+use APubSub\BackendInterface;
 use APubSub\MessageInstanceInterface;
 
 class DefaultMessageInstance extends DefaultMessage implements
@@ -46,19 +46,29 @@ class DefaultMessageInstance extends DefaultMessage implements
     /**
      * Default constructor
      *
-     * @param ContextInterface $context Context
-     * @param string $subscriptionId    Subscription identifier
-     * @param mixed $contents           Message contents
-     * @param scalar $id                Message identifier
-     * @param scalar $queueId           Queue identifier
-     * @param int $sendTime             Send time UNIX timestamp
-     * @param string $type              Message type
-     * @param bool $isUnread            Is this message unread
-     * @param int $readTimestamp        Read timestamp
-     * @param int $level                Level
+     * @param BackendInterface $backend
+     *   Backend
+     * @param string $subscriptionId
+     *   Subscription identifier
+     * @param mixed $contents
+     *   Message contents
+     * @param scalar $id
+     *   Message identifier
+     * @param scalar $queueId
+     *   Queue identifier
+     * @param int $sendTime
+     *   Send time UNIX timestamp
+     * @param string $type
+     *   Message type
+     * @param bool $isUnread
+     *   Is this message unread
+     * @param int $readTimestamp
+     *   Read timestamp
+     * @param int $level
+     *   Level
      */
     public function __construct(
-        ContextInterface $context,
+        BackendInterface $backend,
         $subscriptionId,
         $contents,
         $id,
@@ -69,7 +79,7 @@ class DefaultMessageInstance extends DefaultMessage implements
         $readTimestamp = null,
         $level         = 0)
     {
-        parent::__construct($context, $contents, $id, $type, $level);
+        parent::__construct($backend, $contents, $id, $type, $level);
 
         $this->queueId        = $queueId;
         $this->subscriptionId = $subscriptionId;
@@ -99,7 +109,6 @@ class DefaultMessageInstance extends DefaultMessage implements
             }
 
             $this
-                ->context
                 ->getBackend()
                 ->setUnread(
                     $this->queueId,
@@ -138,7 +147,6 @@ class DefaultMessageInstance extends DefaultMessage implements
     public function getSubscription()
     {
         return $this
-            ->context
             ->getBackend()
             ->getSubscription(
                 $this->subscriptionId);

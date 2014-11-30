@@ -330,9 +330,7 @@ class NotificationService
                 // exist in order to create a false notification, so we can
                 // force it to be rendered before the message exists
                 $message = new DefaultMessage(
-                    $this
-                        ->getBackend()
-                        ->getContext(),
+                    $this->getBackend(),
                     $contents,
                     $type);
 

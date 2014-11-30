@@ -127,14 +127,14 @@ class D7SubscriptionCursor extends AbstractD7Cursor
             (int)$record->activated,
             (int)$record->deactivated,
             (bool)$record->status,
-            $this->context);
+            $this->getBackend());
     }
 
     protected function buildQuery()
     {
         $query = $this
-            ->context
-            ->dbConnection
+            ->getBackend()
+            ->getConnection()
             ->select('apb_sub', 's')
             ->fields('s');
 
@@ -200,7 +200,7 @@ class D7SubscriptionCursor extends AbstractD7Cursor
         // Create a temp table containing identifiers to update: this is
         // mandatory because you cannot use the apb_queue in the UPDATE
         // query subselect
-        $cx = $this->context->dbConnection;
+        $cx = $this->getBackend()->getConnection();
         $tempTableName = $cx->queryTemporary((string)$query, $query->getArguments());
         $cx->schema()->addIndex($tempTableName, $tempTableName . '_idx', array('id'));
 
@@ -209,7 +209,7 @@ class D7SubscriptionCursor extends AbstractD7Cursor
 
     public function delete()
     {
-        $cx = $this->context->dbConnection;
+        $cx = $this->getBackend()->getConnection();
         $tx = null;
 
         try {
@@ -303,7 +303,7 @@ class D7SubscriptionCursor extends AbstractD7Cursor
         // cases) we need to proceed using a temporary table
         $tempTableName = $this->createTempTable();
 
-        $cx = $this->context->dbConnection;
+        $cx = $this->getBackend()->getConnection();
 
         $select = $cx
             ->select($tempTableName, 't')

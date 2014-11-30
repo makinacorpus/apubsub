@@ -2,10 +2,10 @@
 
 namespace APubSub\Backend;
 
-use APubSub\ContextInterface;
+use APubSub\BackendInterface;
 use APubSub\Error\SubscriptionDoesNotExistException;
-use APubSub\SubscriberInterface;
 use APubSub\Field;
+use APubSub\SubscriberInterface;
 
 /**
  * Default subscriber implementation that will fit most backends
@@ -26,15 +26,17 @@ class DefaultSubscriber extends AbstractMessageContainer implements
     /**
      * Default constructor
      *
-     * @param int $id                   Identifier
-     * @param ContextInterface $context Context
-     * @param array $subIdList          Subscription identifiers list where
-     *                                  keys are channel identifiers and values
-     *                                  are subscriptions identifiers
+     * @param int $id
+     *   Identifier
+     * @param BackendInterface $backend
+     *   Backend
+     * @param array $subIdList
+     *   Subscription identifiers list where keys are channel identifiers and
+     *   values are subscriptions identifiers
      */
-    public function __construct($id, ContextInterface $context, array $subIdList = null)
+    public function __construct($id, BackendInterface $backend, array $subIdList = null)
     {
-        parent::__construct($context, array(
+        parent::__construct($backend, array(
             Field::SUBER_NAME => $id,
         ));
 
@@ -53,7 +55,6 @@ class DefaultSubscriber extends AbstractMessageContainer implements
     public function getSubscriptions()
     {
         return $this
-            ->context
             ->getBackend()
             ->getSubscriptions(array_values($this->idList));
     }
@@ -84,7 +85,6 @@ class DefaultSubscriber extends AbstractMessageContainer implements
         // happen, nothing prevent you from deleting a subscription using the
         // backend after you loaded this subscriber instance
         return $this
-            ->context
             ->getBackend()
             ->getSubscription($this->idList[$chanId]);
     }
@@ -92,7 +92,6 @@ class DefaultSubscriber extends AbstractMessageContainer implements
     public function subscribe($chanId)
     {
         $subscription = $this
-            ->context
             ->getBackend()
             ->subscribe($chanId, $this->id);
 
@@ -107,7 +106,6 @@ class DefaultSubscriber extends AbstractMessageContainer implements
             if (isset($this->idList[$chanId])) {
                 // See the getSubscriptionFor() implementation
                 $this
-                    ->context
                     ->getBackend()
                     ->fetchSubscriptions(array(
                         Field::SUB_ID => $this->idList[$chanId], 

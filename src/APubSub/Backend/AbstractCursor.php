@@ -2,13 +2,13 @@
 
 namespace APubSub\Backend;
 
-use APubSub\ContextInterface;
+use APubSub\BackendInterface;
 use APubSub\CursorInterface;
 
 /**
  * Base implementation for cursor, suitable for most implementations
  */
-abstract class AbstractCursor extends AbstractObject implements
+abstract class AbstractCursor implements
     \IteratorAggregate,
     CursorInterface
 {
@@ -38,13 +38,24 @@ abstract class AbstractCursor extends AbstractObject implements
     private $count = null;
 
     /**
+     * @var BackendInterface
+     */
+    private $backend;
+
+    /**
      * Default constructor
      *
-     * @param ContextInterface $context Context
+     * @param BackendInterface $backend
+     *   Backend
      */
-    public function __construct(ContextInterface $context)
+    public function __construct(BackendInterface $backend)
     {
-        $this->context = $context;
+        $this->backend = $backend;
+    }
+
+    public function getBackend()
+    {
+        return $this->backend;
     }
 
     final public function addSort($sort, $direction = CursorInterface::SORT_ASC)

@@ -2,13 +2,13 @@
 
 namespace APubSub\Backend;
 
-use APubSub\ContextInterface;
+use APubSub\BackendInterface;
 use APubSub\MessageInterface;
 
 /**
  * Default message implementation suitable for most backends
  */
-class DefaultMessage extends AbstractObject implements MessageInterface
+class DefaultMessage implements MessageInterface
 {
     /**
      * Message identifier
@@ -37,32 +37,36 @@ class DefaultMessage extends AbstractObject implements MessageInterface
     private $level;
 
     /**
+     * @var BackendInterface
+     */
+    private $backend;
+
+    /**
      * Default constructor
      *
-     * @param ContextInterface $context Context
-     * @param string $chanId            Channel identifier
-     * @param string $subscriptionId    Subscription identifier
-     * @param mixed $contents           Message contents
-     * @param scalar $id                Message identifier
-     * @param int $sendTime             Send time UNIX timestamp
-     * @param string $type              Message type
-     * @param bool $isUnread            Is this message unread
-     * @param int $readTimestamp        Read timestamp
-     * @param int $level                Level
+     * @param BackendInterface $backend
+     *   Backend
+     * @param mixed $contents
+     *   Message contents
+     * @param scalar $id
+     *   Message identifier
+     * @param string $type
+     *   Message type
+     * @param int $level
+     *   Level
      */
     public function __construct(
-        ContextInterface $context,
+        BackendInterface $backend,
         $contents,
         $id,
         $type          = null,
         $level         = 0)
     {
-        parent::__construct($context);
-
-        $this->id             = $id;
-        $this->contents       = $contents;
-        $this->type           = $type;
-        $this->level          = $level;
+        $this->backend  = $backend;
+        $this->id       = $id;
+        $this->contents = $contents;
+        $this->type     = $type;
+        $this->level    = $level;
     }
 
     public function getId()
@@ -83,5 +87,10 @@ class DefaultMessage extends AbstractObject implements MessageInterface
     public function getLevel()
     {
         return $this->level;
+    }
+
+    public function getBackend()
+    {
+        return $this->backend;
     }
 }

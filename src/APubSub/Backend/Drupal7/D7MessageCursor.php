@@ -3,7 +3,6 @@
 namespace APubSub\Backend\Drupal7;
 
 use APubSub\Backend\DefaultMessageInstance;
-use APubSub\ContextInterface;
 use APubSub\CursorInterface;
 use APubSub\Field;
 
@@ -59,7 +58,7 @@ class D7MessageCursor extends AbstractD7Cursor
 
                 case Field::MSG_TYPE:
 
-                    $typeRegistry = $this->getContext()->typeRegistry;
+                    $typeRegistry = $this->getBackend()->getTypeRegistry();
 
                     if (is_array($value)) {
                         array_walk($value, function (&$value) use ($typeRegistry) {
@@ -89,7 +88,7 @@ class D7MessageCursor extends AbstractD7Cursor
 
                     // FIXME: This is sad and ugly and not fully working
                     try {
-                        $backend = $this->getContext()->getBackend();
+                        $backend = $this->getBackend();
 
                         if (is_array($value)) {
                             $idList = $value;
@@ -186,13 +185,13 @@ class D7MessageCursor extends AbstractD7Cursor
         }
 
         return new DefaultMessageInstance(
-            $this->context,
+            $this->getBackend(),
             (int)$record->sub_id,
             unserialize($record->contents),
             (int)$record->msg_id,
             (int)$record->id,
             (int)$record->created,
-            $this->context->typeRegistry->getType($record->type_id),
+            $this->getBackend()->getTypeRegistry()->getType($record->type_id),
             (bool)$record->unread,
             $readTime,
             (int)$record->level);
@@ -239,8 +238,8 @@ class D7MessageCursor extends AbstractD7Cursor
         if ($this->queryOnSuber) {
 
             $query = $this
-                ->context
-                ->dbConnection
+                ->getBackend()
+                ->getConnection()
                 ->select('apb_sub_map', 'mp');
 
             // @todo Smart conditions for subscriber and subscription
@@ -254,8 +253,8 @@ class D7MessageCursor extends AbstractD7Cursor
         } else {
 
             $query = $this
-                ->context
-                ->dbConnection
+                ->getBackend()
+                ->getConnection()
                 ->select('apb_queue', 'q');
             $query
                 ->join('apb_msg', 'm', 'm.id = q.msg_id');
@@ -316,7 +315,7 @@ class D7MessageCursor extends AbstractD7Cursor
         // Create a temp table containing identifiers to update: this is
         // mandatory because you cannot use the apb_queue in the UPDATE
         // query subselect
-        $cx = $this->context->dbConnection;
+        $cx = $this->getBackend()->getConnection();
         $tempTableName = $cx->queryTemporary((string)$query, $query->getArguments());
         $cx->schema()->addIndex($tempTableName, $tempTableName . '_idx', array('id'));
 
@@ -330,7 +329,7 @@ class D7MessageCursor extends AbstractD7Cursor
         // cases) we need to proceed using a temporary table
         $tempTableName = $this->createTempTable();
 
-        $cx = $this->context->dbConnection;
+        $cx = $this->getBackend()->getConnection();
 
         $cx->query("
             DELETE FROM {apb_msg_chan}
@@ -385,7 +384,7 @@ class D7MessageCursor extends AbstractD7Cursor
         // cases) we need to proceed using a temporary table
         $tempTableName = $this->createTempTable();
 
-        $cx = $this->context->dbConnection;
+        $cx = $this->getBackend()->getConnection();
 
         $select = $cx
             ->select($tempTableName, 't')

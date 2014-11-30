@@ -6,9 +6,7 @@ namespace APubSub;
  * Backend entry point: allows you to retrieve and create channels and
  * subscriptions.
  */
-interface BackendInterface extends
-    ObjectInterface,
-    MessageContainerInterface
+interface BackendInterface extends MessageContainerInterface
 {
     /**
      * Helper method for loading one single channel
@@ -231,11 +229,4 @@ interface BackendInterface extends
      *               can be prone to translation attempts
      */
     public function getAnalysis();
-
-    /**
-     * Set backend specific options
-     *
-     * @param array $options Options to set
-     */
-    public function setOptions(array $options);
 }

@@ -5,7 +5,7 @@ namespace APubSub;
 /**
  * Describes a component that handles messages
  */
-interface MessageContainerInterface extends ObjectInterface
+interface MessageContainerInterface extends BackendAwareInterface
 {
     /**
      * Fetch messages in message queue

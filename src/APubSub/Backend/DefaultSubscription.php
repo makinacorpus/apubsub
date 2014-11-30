@@ -2,9 +2,9 @@
 
 namespace APubSub\Backend;
 
-use APubSub\ContextInterface;
-use APubSub\SubscriptionInterface;
+use APubSub\BackendInterface;
 use APubSub\Field;
+use APubSub\SubscriptionInterface;
 
 class DefaultSubscription extends AbstractMessageContainer implements
     SubscriptionInterface
@@ -56,13 +56,20 @@ class DefaultSubscription extends AbstractMessageContainer implements
     /**
      * Default constructor
      *
-     * @param int $chanId          Channel identifier
-     * @param int $id              Subscription identifier
-     * @param int $created         Creation UNIX timestamp
-     * @param int $activatedTime   Latest activation UNIX timestamp
-     * @param int $deactivatedTime Latest deactivation UNIX timestamp
-     * @param bool $isActive       Is this subscription active
-     * @param ContextInterface     Context
+     * @param int $chanId
+     *   Channel identifier
+     * @param int $id
+     *   Subscription identifier
+     * @param int $created
+     *   Creation UNIX timestamp
+     * @param int $activatedTime
+     *   Latest activation UNIX timestamp
+     * @param int $deactivatedTime
+     *   Latest deactivation UNIX timestamp
+     * @param bool $isActive
+     *   Is this subscription active
+     * @param BackendInterface $backend
+     *   Backend
      */
     public function __construct(
         $chanId,
@@ -71,9 +78,9 @@ class DefaultSubscription extends AbstractMessageContainer implements
         $activatedTime,
         $deactivatedTime,
         $isActive,
-        ContextInterface $context)
+        BackendInterface $backend)
     {
-        parent::__construct($context, array(
+        parent::__construct($backend, array(
             Field::SUB_ID => $id,
         ));
 
@@ -98,7 +105,6 @@ class DefaultSubscription extends AbstractMessageContainer implements
     public function getChannel()
     {
         return $this
-            ->context
             ->getBackend()
             ->getChannel($this->chanId);
     }
@@ -136,7 +142,6 @@ class DefaultSubscription extends AbstractMessageContainer implements
         $deactivated = time();
 
         $this
-            ->context
             ->getBackend()
             ->fetchSubscriptions(array(
                 Field::SUB_ID => $this->id,
@@ -155,7 +160,6 @@ class DefaultSubscription extends AbstractMessageContainer implements
         $activated = time();
 
         $this
-            ->context
             ->getBackend()
             ->fetchSubscriptions(array(
                 Field::SUB_ID => $this->id,

@@ -2,12 +2,10 @@
 
 namespace APubSub;
 
-use APubSub\ObjectInterface;
-
 /**
  * A message is the raw arbitrary information sent.
  */
-interface MessageInterface extends ObjectInterface
+interface MessageInterface extends BackendAwareInterface
 {
     /**
      * Get internal message identifier
