@@ -91,7 +91,6 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
         if (null === $this->iterator) {
 
             $result  = array();
-            $context = $this->getContext();
             $query   = $this->getQuery();
 
             $this->applySorts($this->query, $this->getSorts());
