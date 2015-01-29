@@ -107,7 +107,8 @@
      */
     attach: function (context) {
 
-      var jContainer = jQuery(context).find("#notifications"),
+      var
+        jContainer = jQuery(context).find("#notifications"),
         jTop = jContainer.find(".top"),
         jList = jContainer.find(".list"),
         displayed = false,
@@ -117,7 +118,10 @@
 
       jList.hide();
 
-      jTop.mouseup(function (event) {
+      jTop.click(function (event) {
+        event.stopPropagation();
+        event.preventDefault();
+
         jTop.toggleClass('open');
 
         if (displayed) {
