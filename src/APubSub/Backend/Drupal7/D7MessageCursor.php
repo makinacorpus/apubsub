@@ -91,7 +91,6 @@ class D7MessageCursor extends AbstractD7Cursor
                         $backend = $this->getBackend();
 
                         if (is_array($value)) {
-                            $idList = $value;
                             $value = array();
                             foreach ($backend->getChannels($value) as $channel) {
                                 $value[] = $channel->getDatabaseId();
@@ -289,7 +288,7 @@ class D7MessageCursor extends AbstractD7Cursor
      * @return string New temporary table name, filled in with query primary
      *                identifiers only
      */
-    private function createTempTable()
+    private function createTempTable(array $additionalConditions = null)
     {
         $query = clone $this->getQuery();
         $query->distinct(false);
@@ -311,6 +310,12 @@ class D7MessageCursor extends AbstractD7Cursor
         }
 
         $query->fields('q', array('id'));
+
+        if (null !== $additionalConditions) {
+            foreach ($this->applyConditions($additionalConditions) as $column => $value) {
+                $query->condition($column, $value);
+            }
+        }
 
         // Create a temp table containing identifiers to update: this is
         // mandatory because you cannot use the apb_queue in the UPDATE
@@ -360,12 +365,17 @@ class D7MessageCursor extends AbstractD7Cursor
 
         $queryValues = array();
 
+        // We are going to compute a set of additional condition to create
+        // a minimal temporary table matching only what we want to update
+        $additionalConditions = array();
+
         // First build values and ensure the users don't do anything stupid
         foreach ($values as $key => $value) {
             switch ($key) {
 
                 case Field::MSG_UNREAD:
                     $queryValues['unread'] = (int)$value;
+                    $additionalConditions[$key] = (int)!$value;
                     break;
 
                 case Field::MSG_READ_TS:
@@ -382,7 +392,7 @@ class D7MessageCursor extends AbstractD7Cursor
         // Updating messages in queue implicates doing it using the queue id:
         // because the 'apb_queue' table is our primary FROM table (in most
         // cases) we need to proceed using a temporary table
-        $tempTableName = $this->createTempTable();
+        $tempTableName = $this->createTempTable($additionalConditions);
 
         $cx = $this->getBackend()->getConnection();
 
