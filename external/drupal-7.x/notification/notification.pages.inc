@@ -18,14 +18,14 @@ use APubSub\SubscriptionInterface;
 function notification_page_user_list($form, &$form_state, $account) {
 
   $service     = notification_service_get();
-  $backend     = $service->getBackend();
   $subscriber  = $service->getSubscriberFor(ACCOUNT_SUB, $account->uid);
   $displayed   = 0;
   $total       = 0;
   $limit       = variable_get(APB_VAR_USER_PAGER_LIMIT, APB_DEF_USER_PAGER_LIMIT);
   $element     = PagerDefault::$maxElement++;
   $offset      = pager_find_page($element) * $limit;
-  $unmark      = variable_get(APB_VAR_UNREAD_UNFOLD, APB_DEF_UNREAD_UNFOLD);
+  $unmarkAll   = variable_get(APB_VAR_UNREAD_UNFOLD_ALL, APB_DEF_UNREAD_UNFOLD);
+  $unmark      = $unmarkAll || variable_get(APB_VAR_UNREAD_UNFOLD, APB_DEF_UNREAD_UNFOLD);
 
   $cursor = $subscriber
     ->fetch()
@@ -67,9 +67,15 @@ function notification_page_user_list($form, &$form_state, $account) {
       'type'   => $notification->getType(),
     );
 
-    if ($unmark && $message->isUnread()) {
+    if (!$unmarkAll && $unmark && $message->isUnread()) {
       $message->setUnread(false);
     }
+  }
+
+  if ($unmarkAll) {
+    $subscriber
+      ->fetch()
+      ->update(array(Field::MSG_UNREAD => 0));
   }
 
   $form['top']['#markup'] = format_plural(

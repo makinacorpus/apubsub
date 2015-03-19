@@ -70,6 +70,11 @@ const APB_VAR_BACKEND = 'apb_follow_backend';
 const APB_DEF_BACKEND = 'default';
 
 /**
+ * Read all older messages when reading the list variable name.
+ */
+const APB_VAR_UNREAD_UNFOLD_ALL = 'apb_follow_unread_all_on_list';
+
+/**
  * Read messages when unfolding the block variable name.
  */
 const APB_VAR_UNREAD_UNFOLD = 'apb_follow_unread_on_click';
@@ -192,12 +197,11 @@ function notification_type_info_get($target = APB_INFO_FORMATTER) {
       $info += $defaults;
 
       // Avoid duplicates and wild overrides.
-      if (isset($types[$key])) {
-        watchdog('apb_follow', "Module @module overrides the @key notification type, dropping", array(
+      if (isset($ret[$key])) {
+        watchdog('apb_follow', "Module @module overrides the @key notification type", array(
           '@module' => $module,
           '@key'    => $key,
         ), WATCHDOG_WARNING);
-        continue;
       }
 
       if (!isset($info['description'])) {
