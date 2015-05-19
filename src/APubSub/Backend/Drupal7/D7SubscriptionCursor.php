@@ -5,6 +5,7 @@ namespace APubSub\Backend\Drupal7;
 use APubSub\Backend\DefaultSubscription;
 use APubSub\CursorInterface;
 use APubSub\Field;
+use APubSub\Misc;
 
 /**
  * Message cursor is a bit tricky: the query will be provided by the caller
@@ -123,11 +124,12 @@ class D7SubscriptionCursor extends AbstractD7Cursor
         return new DefaultSubscription(
             $record->name,
             (int)$record->id,
-            (int)$record->created,
-            (int)$record->activated,
-            (int)$record->deactivated,
+            \DateTime::createFromFormat(Misc::SQL_DATETIME, $record->created),
+            \DateTime::createFromFormat(Misc::SQL_DATETIME, $record->activated),
+            \DateTime::createFromFormat(Misc::SQL_DATETIME, $record->deactivated),
             (bool)$record->status,
-            $this->getBackend());
+            $this->getBackend())
+        ;
     }
 
     protected function buildQuery()
@@ -136,7 +138,8 @@ class D7SubscriptionCursor extends AbstractD7Cursor
             ->getBackend()
             ->getConnection()
             ->select('apb_sub', 's')
-            ->fields('s');
+            ->fields('s')
+        ;
 
         if ($this->queryOnSuber) {
             //
@@ -284,17 +287,18 @@ class D7SubscriptionCursor extends AbstractD7Cursor
                     break;
 
                 case Field::SUB_ACTIVATED:
-                    $queryValues['activated'] = (int)$value;
+                    $queryValues['activated'] = (string)$value;
                     break;
 
                 case Field::SUB_DEACTIVATED:
-                    $queryValues['deactivated'] = (int)$value;
+                    $queryValues['deactivated'] = (string)$value;
                     break;
 
                 default:
                     throw new \RuntimeException(sprintf(
                         "%s field is unsupported for update",
-                        $key));
+                        $key
+                    ));
             }
         }
 

@@ -181,16 +181,16 @@ interface BackendInterface extends MessageContainerInterface
      *   Arbitrary business level
      * @param scalar[] $exclude
      *   Excluded subscription identifiers to the send recipients
-     * @param int $sendTime
-     *   If set the creation/send timestamp will be forced to the given value
+     * @param \DateTime $sentAt
+     *   If set the sent date will be forced to the given value
      */
     public function send(
         $chanId,
         $contents,
-        $type          = null,
-        $level         = 0,
-        array $exclude = null,
-        $sendTime      = null
+        $type               = null,
+        $level              = 0,
+        array $exclude      = null,
+        \DateTime $sentAt   = null
     );
 
     /**
@@ -198,8 +198,10 @@ interface BackendInterface extends MessageContainerInterface
      *
      * Method is silent if message does not exist in this subscription queue
      *
-     * @param scalar $queueId Message identifier in queue
-     * @param bool $toggle    True for unread, false for read
+     * @param scalar $queueId
+     *   Message identifier in queue
+     * @param bool $toggle
+     *   True for unread, false for read
      */
     public function setUnread($queueId, $toggle = false);
 
@@ -226,9 +228,10 @@ interface BackendInterface extends MessageContainerInterface
      * Backends can return null here if no analysis information can fetched or
      * if this method is not implemented/not important
      *
-     * @return array Key/value pairs, keys are english names and values are
-     *               any value you would ever want to display. String values
-     *               can be prone to translation attempts
+     * @return array
+     *   Key/value pairs, keys are english names and values are any value you
+     *   would ever want to display. String values can be prone to translation
+     *   attempts
      */
     public function getAnalysis();
 }

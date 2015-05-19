@@ -16,11 +16,11 @@ class DefaultMessageInstance extends DefaultMessage implements
     private $queueId;
 
     /**
-     * Send time UNIX timestamp
+     * Send time date
      *
-     * @var int
+     * @var \DateTime
      */
-    private $sendTime;
+    private $sentAt;
 
     /**
      * Is this message unread
@@ -30,11 +30,11 @@ class DefaultMessageInstance extends DefaultMessage implements
     private $unread = true;
 
     /**
-     * Read timestamp
+     * Read date (can be null)
      *
-     * @var int
+     * @var \DateTime
      */
-    private $readTimestamp;
+    private $readAt;
 
     /**
      * Subscription identifier
@@ -56,14 +56,14 @@ class DefaultMessageInstance extends DefaultMessage implements
      *   Message identifier
      * @param scalar $queueId
      *   Queue identifier
-     * @param int $sendTime
-     *   Send time UNIX timestamp
+     * @param \DateTime $sentAt
+     *   Send date
      * @param string $type
      *   Message type
      * @param bool $isUnread
      *   Is this message unread
-     * @param int $readTimestamp
-     *   Read timestamp
+     * @param \DateTime $readAt
+     *   Read date
      * @param int $level
      *   Level
      */
@@ -73,19 +73,19 @@ class DefaultMessageInstance extends DefaultMessage implements
         $contents,
         $id,
         $queueId,
-        $sendTime,
-        $type          = null,
-        $isUnread      = true,
-        $readTimestamp = null,
-        $level         = 0)
+        \DateTime $sentAt,
+        $type               = null,
+        $isUnread           = true,
+        \DateTime $readAt   = null,
+        $level              = 0)
     {
         parent::__construct($backend, $contents, $id, $type, $level);
 
-        $this->queueId        = $queueId;
-        $this->subscriptionId = $subscriptionId;
-        $this->sendTime       = $sendTime;
-        $this->unread         = $isUnread;
-        $this->readTimestamp  = $readTimestamp;
+        $this->queueId          = $queueId;
+        $this->subscriptionId   = $subscriptionId;
+        $this->sentAt           = $sentAt;
+        $this->unread           = $isUnread;
+        $this->readAt           = $readAt;
     }
 
     /**
@@ -112,9 +112,9 @@ class DefaultMessageInstance extends DefaultMessage implements
         if ($this->unread !== $toggle) {
 
             if ($toggle) {
-                $timestamp = null;
+                $readAt = null;
             } else {
-                $timestamp = time();
+                $readAt = new \DateTime();
             }
 
             $this
@@ -122,7 +122,7 @@ class DefaultMessageInstance extends DefaultMessage implements
                 ->setUnread($this->queueId, $toggle)
             ;
 
-            $this->readTimestamp = $timestamp;
+            $this->readAt = $readAt;
             $this->unread = $toggle;
         }
     }
@@ -130,28 +130,27 @@ class DefaultMessageInstance extends DefaultMessage implements
     /**
      * {@inheritdoc}
      */
-    public function getSendTimestamp()
+    public function getSendDate()
     {
-        return $this->sendTime;
+        return $this->sentAt;
     }
 
     /**
-     * Set sent timestamp
+     * Set send date
      *
-     * @param int $sendTime
-     *   UNIX timestamp when the message is being sent
+     * @param \DateTime $sendTime
      */
-    public function setSendTimestamp($sendTime)
+    public function setSendDate($sentAt)
     {
-        $this->sendTime = $sendTime;
+        $this->sentAt = $sentAt;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getReadTimestamp()
+    public function getReadDate()
     {
-        return $this->readTimestamp;
+        return $this->readAt;
     }
 
     /**

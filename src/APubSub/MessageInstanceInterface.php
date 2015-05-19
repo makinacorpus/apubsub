@@ -32,18 +32,18 @@ interface MessageInstanceInterface extends MessageInterface
     public function setUnread($toggle = true);
 
     /**
-     * Get send UNIX timestamp
+     * Get send date
      *
-     * @return int Send time UNIX timestamp
+     * @return \DateTime
      */
-    public function getSendTimestamp();
+    public function getSendDate();
 
     /**
-     * Get read timestamp
+     * Get read date
      *
-     * @return int Read UNIX timestamp or null if never been read
+     * @return \DateTime
      */
-    public function getReadTimestamp();
+    public function getReadDate();
 
     /**
      * Get subscription identifier
@@ -51,7 +51,8 @@ interface MessageInstanceInterface extends MessageInterface
      * Use this method rather than getSubscription() whenever possible, in
      * order to avoid backends lookup in most implementations
      *
-     * @return mixed Subscription identifier
+     * @return mixed
+     *   Subscription identifier
      */
     public function getSubscriptionId();
 

@@ -48,6 +48,7 @@ function notification_page_user_list($form, &$form_state, $account) {
     '#value' => $account->uid,
   );
 
+  /* @var $cursor APubSub\MessageInstanceInterface[] */
   foreach ($cursor as $message) {
     $notification = $service->getNotification($message);
 
@@ -61,7 +62,7 @@ function notification_page_user_list($form, &$form_state, $account) {
 
     $form['list']['#options'][$message->getId()] = array(
       'image'  => $image,
-      'time'   => $message->getSendTimestamp(),
+      'time'   => $message->getSendDate()->getTimestamp(),
       'unread' => $message->isUnread(),
       'text'   => $notification->format(),
       'type'   => $notification->getType(),
@@ -178,28 +179,26 @@ function notification_page_user_subscriptions($form, &$form_state, $account) {
 
   $options = array();
   foreach ($subscriber->getSubscriptions() as $subscription) {
-    if ($subscription instanceof SubscriptionInterface) {
 
-      $chan        = $subscription->getChannel();
-      $chan_name   = $chan->getId();
-      $id          = null;
-      $chanType = null;
-      $created     = $subscription->getCreationTime();
+    $chan        = $subscription->getChannel();
+    $chan_name   = $chan->getId();
+    $id          = null;
+    $chanType = null;
+    $created     = $subscription->getCreationDate()->getTimestamp();
 
-      if (FALSE !== strpos($chan_name, ':')) {
-        list($type, $id)   = explode(':', $chan_name, 2);
-        $chanType = $chanTypeRegistry->getInstance($type);
-      } else {
-        $chanType = $chanTypeRegistry->getInstance(null);
-      }
+    if (FALSE !== strpos($chan_name, ':')) {
+      list($type, $id)   = explode(':', $chan_name, 2);
+      $chanType = $chanTypeRegistry->getInstance($type);
+    } else {
+      $chanType = $chanTypeRegistry->getInstance(null);
+    }
 
-      if ($chanType->isVisible()) {
-        $options[$chan_name] = array(
-          'desc'   => $chanType->getSubscriptionLabel($id),
-          'since'  => format_date($created) . " / " . format_interval(time() - $created),
-          'status' => $subscription->isActive() ? t("Enabled") : t("Disabled"),
-        );
-      }
+    if ($chanType->isVisible()) {
+      $options[$chan_name] = array(
+        'desc'   => $chanType->getSubscriptionLabel($id),
+        'since'  => format_date($created) . " / " . format_interval(time() - $created),
+        'status' => $subscription->isActive() ? t("Enabled") : t("Disabled"),
+      );
     }
   }
 
