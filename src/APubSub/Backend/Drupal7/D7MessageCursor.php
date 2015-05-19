@@ -24,6 +24,9 @@ class D7MessageCursor extends AbstractD7Cursor
      */
     private $distinct = true;
 
+    /**
+     * {@inheritdoc}
+     */
     public function getAvailableSorts()
     {
         return array(
@@ -38,6 +41,9 @@ class D7MessageCursor extends AbstractD7Cursor
         );
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function applyConditions(array $conditions)
     {
         $ret = array();
@@ -119,6 +125,9 @@ class D7MessageCursor extends AbstractD7Cursor
         return $ret;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function applySorts(\SelectQueryInterface $query, array $sorts)
     {
         if (empty($sorts)) {
@@ -130,7 +139,8 @@ class D7MessageCursor extends AbstractD7Cursor
             // life they do until very high values)
             $query
                 ->orderBy('q.created', 'ASC')
-                ->orderBy('q.msg_id', 'ASC');
+                ->orderBy('q.msg_id', 'ASC')
+            ;
         } else {
             foreach ($sorts as $sort => $order) {
 
@@ -176,6 +186,9 @@ class D7MessageCursor extends AbstractD7Cursor
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function createObjectInstance(\stdClass $record)
     {
         if ($record->read_at) {
@@ -198,6 +211,9 @@ class D7MessageCursor extends AbstractD7Cursor
         );
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function buildQuery()
     {
         /*
@@ -329,6 +345,9 @@ class D7MessageCursor extends AbstractD7Cursor
         return $tempTableName;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function delete()
     {
         // Deleting messages in queue implicates doing it using the queue id:
@@ -359,6 +378,9 @@ class D7MessageCursor extends AbstractD7Cursor
         $cx->query("DROP TABLE {" . $tempTableName . "}");
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function update(array $values)
     {
         if (empty($values)) {

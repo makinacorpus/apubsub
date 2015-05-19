@@ -12,6 +12,23 @@ use APubSub\Misc;
  */
 class D7ChannelCursor extends AbstractD7Cursor
 {
+    /**
+     * Should JOIN with subscriptions and subscribers
+     *
+     * @var boolean
+     */
+    protected $queryOnSuber = false;
+
+    /**
+     * Should JOIN with subscriptions
+     *
+     * @var boolean
+     */
+    protected $queryOnSub = false;
+
+    /**
+     * {@inheritdoc}
+     */
     public function getAvailableSorts()
     {
         return array(
@@ -20,6 +37,9 @@ class D7ChannelCursor extends AbstractD7Cursor
         );
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function applyConditions(array $conditions)
     {
         $ret = array();
@@ -35,6 +55,16 @@ class D7ChannelCursor extends AbstractD7Cursor
                     $ret['c.created'] = $value;
                     break;
 
+                case Field::SUB_ID:
+                    $ret['s.id'] = $value;
+                    $this->queryOnSub = true;
+                    break;
+
+                case Field::SUBER_NAME:
+                    $ret['mp.name'] = $value;
+                    $this->queryOnSuber = true;
+                    break;
+
                 default:
                     trigger_error(sprintf("% does not support filter %d yet",
                         get_class($this), $field));
@@ -45,6 +75,9 @@ class D7ChannelCursor extends AbstractD7Cursor
         return $ret;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function applySorts(\SelectQueryInterface $query, array $sorts)
     {
         if (empty($sorts)) {
@@ -75,6 +108,9 @@ class D7ChannelCursor extends AbstractD7Cursor
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function createObjectInstance(\stdClass $record)
     {
         return new D7Channel(
@@ -86,14 +122,26 @@ class D7ChannelCursor extends AbstractD7Cursor
         ;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function buildQuery()
     {
-        return $this
+        $query = $this
             ->getBackend()
             ->getConnection()
             ->select('apb_chan', 'c')
             ->fields('c')
         ;
+
+        if ($this->queryOnSub || $this->queryOnSuber) {
+            $query->join('apb_sub', 's', "s.chan_id = c.id");
+        }
+        if ($this->queryOnSuber) {
+            $query->leftJoin('apb_sub_map', 's', "s.chan_id = c.id");
+        }
+
+        return $query;
     }
 
     /**
@@ -130,6 +178,9 @@ class D7ChannelCursor extends AbstractD7Cursor
         return $tempTableName;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function delete()
     {
         $cx = $this->getBackend()->getConnection();
@@ -213,6 +264,9 @@ class D7ChannelCursor extends AbstractD7Cursor
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function update(array $values)
     {
         if (empty($values)) {
