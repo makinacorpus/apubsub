@@ -2,12 +2,12 @@
 
 namespace APubSub\Backend\Drupal7;
 
+use APubSub\Backend\DefaultChannel;
 use APubSub\BackendInterface;
 use APubSub\ChannelInterface;
-use APubSub\Backend\DefaultChannel;
 use APubSub\CursorInterface;
 
-class D7Channel extends DefaultChannel implements ChannelInterface
+class D7Channel extends DefaultChannel
 {
     /**
      * Internal database identifier

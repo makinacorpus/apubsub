@@ -90,6 +90,9 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
      */
     abstract protected function createObjectInstance(\stdClass $record);
 
+    /**
+     * {@inheritdoc}
+     */
     public function getIterator()
     {
         if (null === $this->iterator) {
@@ -109,11 +112,17 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
         return $this->iterator;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     final public function count()
     {
         return count($this->getIterator());
     }
 
+    /**
+     * {@inheritdoc}
+     */
     final public function getTotalCount()
     {
         if (null === $this->count) {

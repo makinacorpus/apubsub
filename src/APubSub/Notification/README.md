@@ -23,4 +23,3 @@ There is two new concepts bring with it for this to work:
 * *Channel types*: these objects are registered to the manager too and only
   provide a way to categorize your *channels*, this serves the purpose of
   providing a more complete UI to the final user.
-
