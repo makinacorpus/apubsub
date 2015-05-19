@@ -35,7 +35,8 @@ interface BackendInterface extends MessageContainerInterface
      *
      * @param array $conditions         Conditions
      *
-     * @return \APubSub\CursorInterface Channel cursor
+     * @return \APubSub\CursorInterface|\APubSub\ChannelInterface[]
+     *   Channel cursor
      */
     public function fetchChannels(array $conditions = null);
 
@@ -189,7 +190,8 @@ interface BackendInterface extends MessageContainerInterface
         $type          = null,
         $level         = 0,
         array $exclude = null,
-        $sendTime      = null);
+        $sendTime      = null
+    );
 
     /**
      * Set the unread status of a specific message

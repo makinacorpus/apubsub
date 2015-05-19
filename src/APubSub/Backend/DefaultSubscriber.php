@@ -36,9 +36,7 @@ class DefaultSubscriber extends AbstractMessageContainer implements
      */
     public function __construct($id, BackendInterface $backend, array $subIdList = null)
     {
-        parent::__construct($backend, array(
-            Field::SUBER_NAME => $id,
-        ));
+        parent::__construct($backend, [Field::SUBER_NAME => $id]);
 
         $this->id = $id;
 
@@ -47,11 +45,17 @@ class DefaultSubscriber extends AbstractMessageContainer implements
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     final public function getId()
     {
         return $this->id;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getSubscriptions()
     {
         return $this
@@ -59,6 +63,9 @@ class DefaultSubscriber extends AbstractMessageContainer implements
             ->getSubscriptions(array_values($this->idList));
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getSubscriptionsIds()
     {
         if (null === $this->idList) {
@@ -68,11 +75,17 @@ class DefaultSubscriber extends AbstractMessageContainer implements
         return array_values($this->idList);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     final public function hasSubscriptionFor($chanId)
     {
         return isset($this->idList[$chanId]);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getSubscriptionFor($chanId)
     {
         if (!isset($this->idList[$chanId])) {
@@ -86,20 +99,28 @@ class DefaultSubscriber extends AbstractMessageContainer implements
         // backend after you loaded this subscriber instance
         return $this
             ->getBackend()
-            ->getSubscription($this->idList[$chanId]);
+            ->getSubscription($this->idList[$chanId])
+        ;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function subscribe($chanId)
     {
         $subscription = $this
             ->getBackend()
-            ->subscribe($chanId, $this->id);
+            ->subscribe($chanId, $this->id)
+        ;
 
         $this->idList[$chanId] = $subscription->getId();
 
         return $subscription;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function unsubscribe($chanId)
     {
         try {
@@ -107,10 +128,9 @@ class DefaultSubscriber extends AbstractMessageContainer implements
                 // See the getSubscriptionFor() implementation
                 $this
                     ->getBackend()
-                    ->fetchSubscriptions(array(
-                        Field::SUB_ID => $this->idList[$chanId], 
-                    ))
-                    ->delete();
+                    ->fetchSubscriptions([Field::SUB_ID => $this->idList[$chanId]])
+                    ->delete()
+                ;
 
                 unset($this->idList[$chanId]);
             }

@@ -10,8 +10,7 @@ use APubSub\BackendInterface;
  * Default implementation of the message container interface that would fit most
  * objects for most backends
  */
-abstract class AbstractMessageContainer implements
-    MessageContainerInterface
+abstract class AbstractMessageContainer implements MessageContainerInterface
 {
     /**
      * Default conditions to force for each operation on this object
@@ -71,25 +70,34 @@ abstract class AbstractMessageContainer implements
         return $conditions;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getBackend()
     {
         return $this->backend;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function fetch(array $conditions = null)
     {
         return $this
             ->getBackend()
-            ->fetch(
-                $this->ensureConditions($conditions));
+            ->fetch($this->ensureConditions($conditions))
+        ;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function flush()
     {
         return $this
             ->getBackend()
-            ->fetch(
-                 $this->ensureConditions())
-            ->delete();
+            ->fetch($this->ensureConditions())
+            ->delete()
+        ;
     }
 }

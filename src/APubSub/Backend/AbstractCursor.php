@@ -8,9 +8,7 @@ use APubSub\CursorInterface;
 /**
  * Base implementation for cursor, suitable for most implementations
  */
-abstract class AbstractCursor implements
-    \IteratorAggregate,
-    CursorInterface
+abstract class AbstractCursor implements \IteratorAggregate, CursorInterface
 {
     /**
      * @var array
@@ -53,11 +51,17 @@ abstract class AbstractCursor implements
         $this->backend = $backend;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getBackend()
     {
         return $this->backend;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     final public function addSort($sort, $direction = CursorInterface::SORT_ASC)
     {
         if ($this->run) {
@@ -86,6 +90,9 @@ abstract class AbstractCursor implements
         return $this->sorts;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     final public function setLimit($limit)
     {
         if ($this->run) {
@@ -107,6 +114,9 @@ abstract class AbstractCursor implements
         return $this->limit;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     final public function setOffset($offset)
     {
         if ($this->run) {
@@ -118,6 +128,9 @@ abstract class AbstractCursor implements
         return $this;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     final public function setRange($limit, $offset)
     {
         if ($this->run) {

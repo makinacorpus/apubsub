@@ -69,26 +69,41 @@ class DefaultMessage implements MessageInterface
         $this->level    = $level;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getId()
     {
         return $this->id;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getType()
     {
         return $this->type;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getContents()
     {
         return $this->contents;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getLevel()
     {
         return $this->level;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getBackend()
     {
         return $this->backend;
