@@ -80,9 +80,7 @@ class DefaultSubscription extends AbstractMessageContainer implements
         $isActive,
         BackendInterface $backend)
     {
-        parent::__construct($backend, array(
-            Field::SUB_ID => $id,
-        ));
+        parent::__construct($backend, [Field::SUB_ID => $id]);
 
         $this->id = $id;
         $this->chanId = $chanId;
@@ -92,33 +90,52 @@ class DefaultSubscription extends AbstractMessageContainer implements
         $this->active = $isActive;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getId()
     {
         return $this->id;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getChannelId()
     {
         return $this->chanId;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getChannel()
     {
         return $this
             ->getBackend()
-            ->getChannel($this->chanId);
+            ->getChannel($this->chanId)
+        ;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getCreationTime()
     {
         return $this->created;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function isActive()
     {
         return $this->active;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getStartTime()
     {
         if (!$this->active) {
@@ -128,6 +145,9 @@ class DefaultSubscription extends AbstractMessageContainer implements
         return $this->activatedTime;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getStopTime()
     {
         if ($this->active) {
@@ -137,37 +157,45 @@ class DefaultSubscription extends AbstractMessageContainer implements
         return $this->deactivatedTime;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function deactivate()
     {
         $deactivated = time();
 
         $this
             ->getBackend()
-            ->fetchSubscriptions(array(
+            ->fetchSubscriptions([
                 Field::SUB_ID => $this->id,
-            ))
-            ->update(array(
+            ])
+            ->update([
                 Field::SUB_STATUS => 0,
                 Field::SUB_DEACTIVATED => $deactivated,
-            ));
+            ])
+        ;
 
         $this->active = false;
         $this->deactivatedTime = $deactivated;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function activate()
     {
         $activated = time();
 
         $this
             ->getBackend()
-            ->fetchSubscriptions(array(
+            ->fetchSubscriptions([
                 Field::SUB_ID => $this->id,
-            ))
-            ->update(array(
+            ])
+            ->update([
                 Field::SUB_STATUS => 1,
                 Field::SUB_DEACTIVATED => $activated,
-            ));
+            ])
+        ;
 
         $this->active = true;
         $this->activatedTime = $activated;

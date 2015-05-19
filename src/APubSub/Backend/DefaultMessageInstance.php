@@ -88,16 +88,25 @@ class DefaultMessageInstance extends DefaultMessage implements
         $this->readTimestamp  = $readTimestamp;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getQueueId()
     {
         return $this->queueId;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function isUnread()
     {
         return $this->unread;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function setUnread($toggle = false)
     {
         if ($this->unread !== $toggle) {
@@ -110,15 +119,17 @@ class DefaultMessageInstance extends DefaultMessage implements
 
             $this
                 ->getBackend()
-                ->setUnread(
-                    $this->queueId,
-                    $toggle);
+                ->setUnread($this->queueId, $toggle)
+            ;
 
             $this->readTimestamp = $timestamp;
             $this->unread = $toggle;
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getSendTimestamp()
     {
         return $this->sendTime;
@@ -127,28 +138,38 @@ class DefaultMessageInstance extends DefaultMessage implements
     /**
      * Set sent timestamp
      *
-     * @param int $sendTime UNIX timestamp when the message is being sent
+     * @param int $sendTime
+     *   UNIX timestamp when the message is being sent
      */
     public function setSendTimestamp($sendTime)
     {
         $this->sendTime = $sendTime;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getReadTimestamp()
     {
         return $this->readTimestamp;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getSubscriptionId()
     {
         return $this->subscriptionId;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getSubscription()
     {
         return $this
             ->getBackend()
-            ->getSubscription(
-                $this->subscriptionId);
+            ->getSubscription($this->subscriptionId)
+        ;
     }
 }
