@@ -33,10 +33,12 @@ function apb_schema() {
         'not null' => FALSE,
       ),
       'created' => array(
-        'description' => "Creation UNIX timestamp",
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
+        'description' => "Creation date",
+        'mysql_type'  => 'datetime',
+        'pgsql_type'  => 'timestamp',
+        'type'        => 'varchar',
+        'length'      => 16,
+        'not null'    => false,
       ),
     ),
     'primary key' => array('id'),
@@ -85,10 +87,12 @@ function apb_schema() {
         'default' => NULL,
       ),
       'created' => array(
-        'description' => "Creation/sending UNIX timestamp",
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
+        'description' => "Creation date",
+        'mysql_type'  => 'datetime',
+        'pgsql_type'  => 'timestamp',
+        'type'        => 'varchar',
+        'length'      => 16,
+        'not null'    => false,
       ),
       'contents' => array(
         'description' => "Contents",
@@ -167,22 +171,28 @@ function apb_schema() {
         'default' => 0,
       ),
       'created' => array(
-        'description' => "Creation UNIX timestamp",
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
+        'description' => "Creation date",
+        'mysql_type'  => 'datetime',
+        'pgsql_type'  => 'timestamp',
+        'type'        => 'varchar',
+        'length'      => 16,
+        'not null'    => false,
       ),
       'activated' => array(
-        'description' => "Latest activation UNIX timestamp",
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
+        'description' => "Latest activation date",
+        'mysql_type'  => 'datetime',
+        'pgsql_type'  => 'timestamp',
+        'type'        => 'varchar',
+        'length'      => 16,
+        'not null'    => false,
       ),
       'deactivated' => array(
-        'description' => "Latest deactivation UNIX timestamp",
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
+        'description' => "Latest deactivation date",
+        'mysql_type'  => 'datetime',
+        'pgsql_type'  => 'timestamp',
+        'type'        => 'varchar',
+        'length'      => 16,
+        'not null'    => false,
       ),
       'extra' => array(
         'description' => "Extra data for business layer",
@@ -223,10 +233,11 @@ function apb_schema() {
       ),
       'accessed' => array(
         'description' => "Last time a queued job accessed this subscriber",
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0,
+        'mysql_type'  => 'datetime',
+        'pgsql_type'  => 'timestamp',
+        'type'        => 'varchar',
+        'length'      => 16,
+        'not null'    => false,
       ),
     ),
     // Subscription can be owned by only one subscriber
@@ -270,9 +281,12 @@ function apb_schema() {
         'not null' => TRUE,
       ),
       'created' => array(
-        'description' => "Creation UNIX timestamp denormalization for performances",
-        'type' => 'int',
-        'not null' => TRUE,
+        'description' => "Creation date denormalization for performances",
+        'mysql_type'  => 'datetime',
+        'pgsql_type'  => 'timestamp',
+        'type'        => 'varchar',
+        'length'      => 16,
+        'not null'    => false,
       ),
       'unread' => array(
         'description' => "Has this message not been read",
@@ -282,11 +296,13 @@ function apb_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
-      'read_timestamp' => array(
-        'description' => "Read UNIX timestamp",
-        'type' => 'int',
-        'not null' => FALSE,
-        'default' => NULL,
+      'read_at' => array(
+        'description' => "Read date",
+        'mysql_type'  => 'datetime',
+        'pgsql_type'  => 'timestamp',
+        'type'        => 'varchar',
+        'length'      => 16,
+        'not null'    => false,
       ),
     ),
     'primary key' => array('id'),
@@ -336,10 +352,12 @@ function apb_schema() {
         'not null' => TRUE,
       ),
       'created' => array(
-        'description' => "Creation UNIX timestamp",
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
+        'description' => "Creation date",
+        'mysql_type'  => 'datetime',
+        'pgsql_type'  => 'timestamp',
+        'type'        => 'varchar',
+        'length'      => 16,
+        'not null'    => false,
       ),
     ),
     'primary key' => array('id'),
@@ -364,10 +382,11 @@ function apb_update_7001() {
   ));
   db_add_field('apb_sub_map', 'accessed', array(
     'description' => "Last time a queued job accessed this subscriber",
-    'type' => 'int',
-    'unsigned' => TRUE,
-    'not null' => TRUE,
-    'default' => 0,
+    'mysql_type'  => 'datetime',
+    'pgsql_type'  => 'timestamp',
+    'type'        => 'varchar',
+    'length'      => 16,
+    'not null'    => false,
   ));
 }
 
@@ -401,7 +420,7 @@ function apb_update_7004() {
     db_query("CREATE TABLE {temp_apb_queue} AS SELECT * FROM {apb_queue}");
     db_drop_table('apb_queue');
     db_create_table('apb_queue', drupal_get_schema_unprocessed('apb', 'apb_queue'));
-    db_query("INSERT INTO {apb_queue} (msg_id, sub_id, created, unread, read_timestamp) SELECT * FROM {temp_apb_queue}");
+    db_query("INSERT INTO {apb_queue} (msg_id, sub_id, created, unread, read_at) SELECT * FROM {temp_apb_queue}");
     // Could have used a temporary table but wasn't sure about the result.
     // Better have stalling data than lost data.
     db_drop_table('temp_apb_queue');

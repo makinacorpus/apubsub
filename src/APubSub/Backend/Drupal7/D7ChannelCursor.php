@@ -4,6 +4,7 @@ namespace APubSub\Backend\Drupal7;
 
 use APubSub\CursorInterface;
 use APubSub\Field;
+use APubSub\Misc;
 
 /**
  * Message cursor is a bit tricky: the query will be provided by the caller
@@ -80,8 +81,9 @@ class D7ChannelCursor extends AbstractD7Cursor
             (int)$record->id,
             $record->name,
             $this->getBackend(),
-            (int)$record->created,
-            empty($record->title) ? null : $record->title);
+            \DateTime::createFromFormat(Misc::SQL_DATETIME, $record->created),
+            empty($record->title) ? null : $record->title)
+        ;
     }
 
     protected function buildQuery()
@@ -90,7 +92,8 @@ class D7ChannelCursor extends AbstractD7Cursor
             ->getBackend()
             ->getConnection()
             ->select('apb_chan', 'c')
-            ->fields('c');
+            ->fields('c')
+        ;
     }
 
     /**

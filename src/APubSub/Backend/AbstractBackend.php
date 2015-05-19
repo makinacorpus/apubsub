@@ -6,6 +6,7 @@ use APubSub\BackendInterface;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\Field;
+use APubSub\Misc;
 
 /**
  * Common base implementation for most backends
@@ -102,7 +103,7 @@ abstract class AbstractBackend implements BackendInterface
             ))
             ->update(array(
                 Field::MSG_UNREAD  => $toggle,
-                Field::MSG_READ_TS => time(),
+                Field::MSG_READ_TS => (new \DateTime())->format(Misc::SQL_DATETIME),
             ));
     }
 

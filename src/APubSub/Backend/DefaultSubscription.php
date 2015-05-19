@@ -5,6 +5,7 @@ namespace APubSub\Backend;
 use APubSub\BackendInterface;
 use APubSub\Field;
 use APubSub\SubscriptionInterface;
+use APubSub\Misc;
 
 class DefaultSubscription extends AbstractMessageContainer implements
     SubscriptionInterface
@@ -24,11 +25,11 @@ class DefaultSubscription extends AbstractMessageContainer implements
     private $chanId;
 
     /**
-     * Creation UNIX timestamp
+     * Creation date
      *
-     * @var int
+     * @var \DateTime
      */
-    private $created;
+    private $createdAt;
 
     /**
      * Is this subscription active
@@ -38,20 +39,18 @@ class DefaultSubscription extends AbstractMessageContainer implements
     private $active = false;
 
     /**
-     * Time when this subscription has been activated for the last time as a
-     * UNIX timestamp
+     * Date when this subscription has been activated for the last time
      *
-     * @var int
+     * @var \DateTime
      */
-    private $activatedTime;
+    private $activatedAt;
 
     /**
-     * Time when this subscription has been deactivated for the last time as a
-     * UNIX timestamp
+     * Date when this subscription has been deactivated for the last time
      *
-     * @var int
+     * @var \DateTime
      */
-    private $deactivatedTime;
+    private $deactivatedAt;
 
     /**
      * Default constructor
@@ -60,12 +59,12 @@ class DefaultSubscription extends AbstractMessageContainer implements
      *   Channel identifier
      * @param int $id
      *   Subscription identifier
-     * @param int $created
-     *   Creation UNIX timestamp
-     * @param int $activatedTime
-     *   Latest activation UNIX timestamp
-     * @param int $deactivatedTime
-     *   Latest deactivation UNIX timestamp
+     * @param \DateTime $createdAt
+     *   Creation date
+     * @param \DateTime $activatedAt
+     *   Latest activation date
+     * @param \DateTime $deactivatedAt
+     *   Latest deactivation date
      * @param bool $isActive
      *   Is this subscription active
      * @param BackendInterface $backend
@@ -74,9 +73,9 @@ class DefaultSubscription extends AbstractMessageContainer implements
     public function __construct(
         $chanId,
         $id,
-        $created,
-        $activatedTime,
-        $deactivatedTime,
+        \DateTime $createdAt,
+        \DateTime $activatedAt,
+        \DateTime $deactivatedAt,
         $isActive,
         BackendInterface $backend)
     {
@@ -84,9 +83,9 @@ class DefaultSubscription extends AbstractMessageContainer implements
 
         $this->id = $id;
         $this->chanId = $chanId;
-        $this->created = $created;
-        $this->activatedTime = $activatedTime;
-        $this->deactivatedTime = $deactivatedTime;
+        $this->createdAt = $createdAt;
+        $this->activatedAt = $activatedAt;
+        $this->deactivatedAt = $deactivatedAt;
         $this->active = $isActive;
     }
 
@@ -120,9 +119,9 @@ class DefaultSubscription extends AbstractMessageContainer implements
     /**
      * {@inheritdoc}
      */
-    public function getCreationTime()
+    public function getCreationDate()
     {
-        return $this->created;
+        return $this->createdAt;
     }
 
     /**
@@ -136,25 +135,25 @@ class DefaultSubscription extends AbstractMessageContainer implements
     /**
      * {@inheritdoc}
      */
-    public function getStartTime()
+    public function getStartDate()
     {
         if (!$this->active) {
             throw new \LogicException("This subscription is not active");
         }
 
-        return $this->activatedTime;
+        return $this->activatedAt;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getStopTime()
+    public function getStopDate()
     {
         if ($this->active) {
             throw new \LogicException("This subscription is active");
         }
 
-        return $this->deactivatedTime;
+        return $this->deactivatedAt;
     }
 
     /**
@@ -162,7 +161,7 @@ class DefaultSubscription extends AbstractMessageContainer implements
      */
     public function deactivate()
     {
-        $deactivated = time();
+        $deactivated = new \DateTime();
 
         $this
             ->getBackend()
@@ -171,12 +170,12 @@ class DefaultSubscription extends AbstractMessageContainer implements
             ])
             ->update([
                 Field::SUB_STATUS => 0,
-                Field::SUB_DEACTIVATED => $deactivated,
+                Field::SUB_DEACTIVATED => $deactivated->format(Misc::SQL_DATETIME),
             ])
         ;
 
         $this->active = false;
-        $this->deactivatedTime = $deactivated;
+        $this->deactivatedAt = $deactivated;
     }
 
     /**
@@ -184,7 +183,7 @@ class DefaultSubscription extends AbstractMessageContainer implements
      */
     public function activate()
     {
-        $activated = time();
+        $activated = new \DateTime();
 
         $this
             ->getBackend()
@@ -193,11 +192,11 @@ class DefaultSubscription extends AbstractMessageContainer implements
             ])
             ->update([
                 Field::SUB_STATUS => 1,
-                Field::SUB_DEACTIVATED => $activated,
+                Field::SUB_DEACTIVATED => $activated->format(Misc::SQL_DATETIME),
             ])
         ;
 
         $this->active = true;
-        $this->activatedTime = $activated;
+        $this->activatedAt = $activated;
     }
 }

@@ -3,37 +3,41 @@
 namespace APubSub;
 
 /**
- * Interface for all channels.
+ * Channel reprensentation
  */
 interface ChannelInterface extends MessageContainerInterface
 {
     /**
      * Get channel identifier
      *
-     * @return string Channel identifier
+     * @return string
+     *   Channel identifier
      */
     public function getId();
 
     /**
      * Get channel title
      *
-     * @return string Humean readable title if set otherwise null
+     * @return string
+     *   Human readable title if set otherwise null
      */
     public function getTitle();
 
     /**
      * Update channel title
      *
-     * @param string $title New title or null to unset it
+     * @param string $title
+     *   New title or null to unset it
      */
     public function setTitle($title);
 
     /**
-     * Get creation time as a UNIX timestamp
+     * Get creation time
      *
-     * @return int UNIX timestamp where the channel was created
+     * @return \DateTime
+     *   Date when the object was created
      */
-    public function getCreationTime();
+    public function getCreationDate();
 
     /**
      * Send a single message to this channel
@@ -48,26 +52,28 @@ interface ChannelInterface extends MessageContainerInterface
      *   Arbitrary business level
      * @param scalar[] $excluded
      *   Excluded subscription identifiers from recipient list
-     * @param int $sendTime
-     *   If set the creation/send timestamp will be forced to the given value
+     * @param \DateTime $sentAt
+     *   If set the creation/send date will be forced to the given value
      *
-     * @return MessageInterface The new message
+     * @return MessageInterface
+     *   The new message
      */
     public function send(
         $contents,
-        $type           = null,
-        $level          = 0,
-        array $excluded = null,
-        $sendTime       = null);
+        $type               = null,
+        $level              = 0,
+        array $excluded     = null,
+        \DateTime $sentAt   = null
+    );
 
     /**
      * Create a new subscription to this channel.
      *
      * Alias of BackendInterface::subscribe()
      *
-     * @return SubscriptionInterface The new subscription object, which is not
-     *                               active per default and whose identifier
-     *                               has been generated
+     * @return SubscriptionInterface
+     *   The new subscription object, which is not active per default and
+     *   whose identifier has been generated
      */
     public function subscribe();
 }

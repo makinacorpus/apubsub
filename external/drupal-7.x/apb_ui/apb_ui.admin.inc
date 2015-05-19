@@ -138,10 +138,11 @@ function apb_ui_content_backend_channel_list(BackendInterface $backend) {
     $list->setOffset($limit * (int)$_GET['page']);
   }
 
+  /* @var $list APubSub\ChannelInterface */
   foreach ($list as $chan) {
     $rows[] = array(
       $chan->getId(),
-      format_date($chan->getCreationTime()),
+      format_date($chan->getCreationDate()->getTimestamp()),
       '',
     );
   }
@@ -183,17 +184,18 @@ function apb_ui_content_backend_subscription_list(BackendInterface $backend) {
     $list->setOffset($limit * (int)$_GET['page']);
   }
 
+  /* @var $list APubSub\SubscriptionInterface */
   foreach ($list as $subscription) {
 
     if ($active = $subscription->isActive()) {
-      $since = $subscription->getStartTime();
+      $since = $subscription->getStartDate()->getTimestamp();
     } else {
-      $since = $subscription->getStopTime();
+      $since = $subscription->getStopDate()->getTimestamp();
     }
 
     $rows[] = array(
       $subscription->getId(),
-      format_date($subscription->getCreationTime()),
+      format_date($subscription->getCreationDate()->getTimestamp()),
       format_date($since),
       check_plain($subscription->getChannelId()), // FIXME: Link?
       $active ? $yes : $no,

@@ -35,13 +35,13 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         $this->assertFalse($subscription->isActive());
 
         try {
-            $subscription->getStartTime();
+            $subscription->getStartDate();
             $this->fail("Subscriber should not have a start time");
         } catch (\Exception $e) {
         }
 
         // Should not raise any exception
-        $subscription->getStopTime();
+        $subscription->getStopDate();
 
         $loaded = $this->backend->getSubscription($subscription->getId());
         $this->assertSame(get_class($subscription), get_class($loaded));
@@ -54,7 +54,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         $subscription->activate();
 
         try {
-            $subscription->getStartTime();
+            $subscription->getStartDate();
         } catch (\Exception $e) {
             $this->fail("Subscriber should have a start time");
         }

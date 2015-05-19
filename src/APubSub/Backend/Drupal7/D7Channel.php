@@ -25,12 +25,12 @@ class D7Channel extends DefaultChannel implements ChannelInterface
      *   Channel identifier
      * @param BackendInterface $backend
      *   Backend
-     * @param int $creationTime
-     *   Creation time UNIX timestamp
+     * @param \DateTime $creationTime
+     *   Creation date
      * @param string $title
      *   Human readable title
      */
-    public function __construct($databaseId, $id, BackendInterface $backend, $creationTime = null, $title = null)
+    public function __construct($databaseId, $id, BackendInterface $backend, \DateTime $creationTime = null, $title = null)
     {
         parent::__construct($id, $backend, $creationTime, $title);
 

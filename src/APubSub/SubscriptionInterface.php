@@ -10,41 +10,42 @@ interface SubscriptionInterface extends MessageContainerInterface
     /**
      * Get subscriber identifier
      *
-     * @return scalar Subsriber identifier Can be any scalar type, depending
-     *                                     on how the channel handles its
-     *                                     subscribers
+     * @return scalar
+     *   Subsriber identifier Can be any scalar type, depending on how the
+     *   channel handles its subscribers
      */
     public function getId();
 
     /**
-     * Get creation time as a UNIX timestamp
+     * Get creation date
      *
-     * @return int UNIX timestamp where the channel was created
+     * @return \DateTime
      */
-    public function getCreationTime();
+    public function getCreationDate();
 
     /**
      * Does this subscription is still active
      *
-     * @return bool Active state
+     * @return bool
      */
     public function isActive();
 
     /**
-     * Get the UNIX timestamp when this subscription started
+     * Get the date when this subscription started
      *
-     * @return int Unix timestamp
+     * @return \DateTime
      */
-    public function getStartTime();
+    public function getStartDate();
 
     /**
-     * Get the UNIX timestamp when this subscription stopped
+     * Get the date when this subscription stopped
      *
-     * @return int               Unix timestamp
+     * @return \DateTime
      *
-     * @throws \RuntimeException If subscription is still active
+     * @throws \RuntimeException
+     *   If subscription is still active
      */
-    public function getStopTime();
+    public function getStopDate();
 
     /**
      * Deactivate this subscription, if it is already deactivated it will

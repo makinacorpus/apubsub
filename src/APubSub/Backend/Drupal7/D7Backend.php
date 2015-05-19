@@ -10,6 +10,7 @@ use APubSub\Error\ChannelAlreadyExistsException;
 use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\Field;
+use APubSub\Misc;
 
 /**
  * Drupal 7 backend implementation
@@ -99,7 +100,7 @@ class D7Backend extends AbstractBackend
     public function createChannel($id, $title = null, $ignoreErrors = false)
     {
         $chan    = null;
-        $created = time();
+        $created = new \DateTime();
         $dbId    = null;
         $cx      = $this->db;
         $tx      = null;
@@ -127,7 +128,7 @@ class D7Backend extends AbstractBackend
                     ->fields(array(
                         'name' => $id,
                         'title' => $title,
-                        'created' => $created,
+                        'created' => $created->format(Misc::SQL_DATETIME),
                     ))
                     ->execute();
 
@@ -157,24 +158,25 @@ class D7Backend extends AbstractBackend
     public function createChannels($idList, $ignoreErrors = false)
     {
         if (empty($idList)) {
-            return $ret;
+            return [];
         }
 
-        $ret      = array();
-        $created  = time();
-        $dbId     = null;
-        $cx       = $this->db;
-        $tx       = $cx->startTransaction();
+        $ret            = [];
+        $created        = new \DateTime();
+        $createdString  = $created->format(Misc::SQL_DATETIME);
+        $cx             = $this->db;
+        $tx             = $cx->startTransaction();
 
         try {
             // Do not ever use cache here, we cannot afford to try to create
             // a channel that have been deleted by another thread
             $existingList = $cx
                 ->select('apb_chan', 'c')
-                ->fields('c', array('name'))
+                ->fields('c', ['name'])
                 ->condition('c.name', $idList, 'IN')
                 ->execute()
-                ->fetchCol();
+                ->fetchCol()
+            ;
 
             if ($existingList && !$ignoreErrors) {
                 throw new ChannelAlreadyExistsException();
@@ -184,17 +186,12 @@ class D7Backend extends AbstractBackend
 
                 $query = $cx
                     ->insert('apb_chan')
-                    ->fields(array(
-                        'name',
-                        'created',
-                    ));
+                    ->fields(['name', 'created'])
+                ;
 
                 // Create only the non existing one, in one query
                 foreach (array_diff($idList, $existingList) as $id) {
-                    $query->values(array(
-                        $id,
-                        $created,
-                    ));
+                    $query->values([$id, $createdString]);
                 }
 
                 $query->execute();
@@ -207,11 +204,10 @@ class D7Backend extends AbstractBackend
             // existing and a second for newly created ones, thus allowing
             // us to keep the list ordered implicitely as long as the get
             // method keeps it ordered too
-            $ret = $this->fetchChannels(array(
-                Field::CHAN_ID => $idList,
-            ));
+            $ret = $this->fetchChannels([Field::CHAN_ID => $idList]);
 
             unset($tx); // Explicit commit
+
         } catch (\Exception $e) {
             $tx->rollback();
 
@@ -266,22 +262,21 @@ class D7Backend extends AbstractBackend
         try {
             $tx   = $cx->startTransaction();
 
-            $args = array(':id' => $id);
+            $args = [':id' => $id];
 
             // FIXME: SELECT FOR UPDATE here in all tables
 
             // Start by deleting all subscriptions.
-            $subIdList = array();
+            $subIdList = [];
             foreach ($subscriber->getSubscriptions() as $subscription) {
                 $subIdList[] = $subscription->getId();
             }
 
             if (!empty($subIdList)) {
-                $cursor = $this
-                    ->fetchSubscriptions(array(
-                        Field::SUB_ID => $subIdList,
-                    ))
-                    ->delete();
+                $this
+                    ->fetchSubscriptions([Field::SUB_ID => $subIdList])
+                    ->delete()
+                ;
             }
 
             $cx->query("DELETE FROM {apb_sub_map} WHERE name = :id", $args);
@@ -313,7 +308,7 @@ class D7Backend extends AbstractBackend
 
     public function subscribe($chanId, $subscriberId = null)
     {
-        $deactivated  = time();
+        $deactivated  = new \DateTime();
         $created      = $deactivated;
         $cx           = $this->db;
         $tx           = null;
@@ -334,13 +329,15 @@ class D7Backend extends AbstractBackend
 
             $cx
                 ->insert('apb_sub')
-                ->fields(array(
+                ->fields([
                     'chan_id'     => $chan->getDatabaseId(),
                     'status'      => (int)(bool)$subscriberId,
-                    'created'     => $created,
-                    'deactivated' => $deactivated,
-                ))
-                ->execute();
+                    'created'     => $created->format(Misc::SQL_DATETIME),
+                    'activated'   => $deactivated->format(Misc::SQL_DATETIME),
+                    'deactivated' => $deactivated->format(Misc::SQL_DATETIME),
+                ])
+                ->execute()
+            ;
 
             // Specify the name of the sequence object for PDO_PGSQL.
             // @see http://php.net/manual/en/pdo.lastinsertid.php.
@@ -353,26 +350,29 @@ class D7Backend extends AbstractBackend
 
                 $exists = $cx
                     ->select('apb_sub_map', 'mp')
-                    ->fields('mp', array('name'))
+                    ->fields('mp', ['name'])
                     ->condition('mp.name', $subscriberId)
                     ->condition('mp.sub_id', $id)
                     ->execute()
-                    ->fetchField();
+                    ->fetchField()
+                ;
 
                 if (!$exists) {
                     $cx
                         ->insert('apb_sub_map')
-                        ->fields(array(
+                        ->fields([
                             'name'   => $subscriberId,
                             'sub_id' => $id,
-                        ))
-                        ->execute();
+                        ])
+                        ->execute()
+                    ;
                 }
             }
 
             $subscription = new DefaultSubscription(
-                $chanId, $id, $created, 0,
-                $deactivated, false, $this);
+                $chanId, $id, $created, $deactivated,
+                $deactivated, false, $this
+            );
 
             unset($tx); // Explicit commit
 
@@ -397,10 +397,10 @@ class D7Backend extends AbstractBackend
     public function send(
         $chanId,
         $contents,
-        $type           = null,
-        $level          = 0,
-        array $excluded = null,
-        $sendTime       = null)
+        $type               = null,
+        $level              = 0,
+        array $excluded     = null,
+        \DateTime $sentAt   = null)
     {
         if (!is_array($chanId)) { // Ensure this is a list
             $chanId = array($chanId);
@@ -421,13 +421,11 @@ class D7Backend extends AbstractBackend
         }
 
         if (null !== $type) {
-            $typeId = $this
-                ->typeRegistry
-                ->getTypeId($type);
+            $typeId = $this->typeRegistry->getTypeId($type);
         }
 
-        if (null === $sendTime) {
-            $sendTime = time();
+        if (null === $sentAt) {
+            $sentAt = new \DateTime();
         }
 
         try {
@@ -435,23 +433,22 @@ class D7Backend extends AbstractBackend
 
             $cx
                 ->insert('apb_msg')
-                ->fields(array(
-                    'created'  => $sendTime,
+                ->fields([
+                    'created'  => $sentAt->format(Misc::SQL_DATETIME),
                     'contents' => serialize($contents),
                     'type_id'  => $typeId,
                     'level'    => $level,
-                ))
-                ->execute();
+                ])
+                ->execute()
+            ;
 
             $seq = ($cx->driver() === 'pgsql') ? 'apb_msg_id_seq' : null;
             $id = (int)$cx->lastInsertId($seq);
 
             // Insert channel references
-            $q = $cx
-                ->insert('apb_msg_chan')
-                ->fields(array('msg_id', 'chan_id'));
+            $q = $cx->insert('apb_msg_chan')->fields(['msg_id', 'chan_id']);
             foreach ($dbIdList as $dbId) {
-                $q->values(array($id, $dbId));
+                $q->values([$id, $dbId]);
             }
             $q->execute();
 
@@ -468,11 +465,11 @@ class D7Backend extends AbstractBackend
                             FROM {apb_sub} s
                             WHERE s.chan_id IN (:chanId)
                             AND s.status = 1
-                        ", array(
+                        ", [
                             ':msgId'   => $id,
                             ':chanId'  => $dbIdList,
-                            ':created' => $sendTime,
-                        ));
+                            ':created' => $sentAt->format(Misc::SQL_DATETIME),
+                        ]);
             } else {
                 $cx
                     ->query("
@@ -487,20 +484,16 @@ class D7Backend extends AbstractBackend
                                 s.chan_id IN (:chanId)
                                 AND s.status = 1
                                 AND s.id NOT IN (:excluded)
-                        ", array(
+                        ", [
                             ':msgId'    => $id,
                             ':chanId'   => $dbIdList,
-                            ':created'  => $sendTime,
+                            ':created'  => $sentAt->format(Misc::SQL_DATETIME),
                             ':excluded' => $excluded,
-                        ));
+                        ]);
             }
 
-            unset($tx); // Excplicit commit
+            unset($tx); // Explicit commit
 
-            if (true /* Delay checks */) {
-                //$this->getBackend()->cleanUpMessageQueue();
-                //$this->getBackend()->cleanUpMessageLifeTime();
-            }
         } catch (\Exception $e) {
             if ($tx) {
                 try {

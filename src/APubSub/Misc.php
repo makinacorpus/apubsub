@@ -5,6 +5,11 @@ namespace APubSub;
 final class Misc
 {
     /**
+     * SQL date time.
+     */
+    const SQL_DATETIME = 'Y-m-d H:i:s';
+
+    /**
      * Tell if the given array has only numeric keys
      *
      * @param array $array

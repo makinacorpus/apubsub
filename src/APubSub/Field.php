@@ -18,7 +18,7 @@ final class Field
     const CHAN_TITLE      = 12;
 
     /**
-     * Channel creation timestamp
+     * Channel creation date
      */
     const CHAN_CREATED_TS = 11;
 
@@ -45,7 +45,7 @@ final class Field
     const MSG_TYPE        = 23;
 
     /**
-     * Read UNIX timestamp
+     * Read date
      */
     const MSG_READ_TS     = 24;
 
@@ -65,7 +65,7 @@ final class Field
     const SUBER_NAME      = 30;
 
     /**
-     * Subscriber last access time
+     * Subscriber last access date
      */
     const SUBER_ACCESS    = 31;
 
@@ -82,17 +82,17 @@ final class Field
     const SUB_STATUS      = 41;
 
     /**
-     * Subscription creation timestamp
+     * Subscription creation date
      */
     const SUB_CREATED_TS  = 42;
 
     /**
-     * Subscription activation timestamp
+     * Subscription activation date
      */
     const SUB_ACTIVATED   = 43;
 
     /**
-     * Subscription deactivation timestamp
+     * Subscription deactivation date
      */
     const SUB_DEACTIVATED = 44;
 }

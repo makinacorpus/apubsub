@@ -17,9 +17,9 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
     private $id;
 
     /**
-     * @var int
+     * @var \DateTime
      */
-    private $creationTime;
+    private $createdAt;
 
     /**
      * @var string
@@ -33,22 +33,22 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
      *   Channel identifier
      * @param BackendInterface $backend
      *   Backend
-     * @param int $creationTime
-     *   Creation time UNIX timestamp
+     * @param \DateTime $createdAt
+     *   Creation date
      * @param string $title
      *   Human readable title
      */
-    public function __construct($id, BackendInterface $backend, $creationTime = null, $title = null)
+    public function __construct($id, BackendInterface $backend, \DateTime $createdAt = null, $title = null)
     {
         parent::__construct($backend, [Field::CHAN_ID => $id]);
 
         $this->id = $id;
         $this->title = $title;
 
-        if (null === $creationTime) {
-            $this->creationTime = time();
+        if (null === $createdAt) {
+            $this->createdAt = time();
         } else {
-            $this->creationTime = $creationTime;
+            $this->createdAt = $createdAt;
         }
     }
 
@@ -88,9 +88,9 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
     /**
      * {@inheritdoc}
      */
-    final public function getCreationTime()
+    final public function getCreationDate()
     {
-        return $this->creationTime;
+        return $this->createdAt;
     }
 
     /**
@@ -98,10 +98,10 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
      */
     final public function send(
         $contents,
-        $type           = null,
-        $level          = 0,
-        array $excluded = null,
-        $sendTime       = null)
+        $type             = null,
+        $level            = 0,
+        array $excluded   = null,
+        \DateTime $sentAt = null)
     {
         return $this
             ->getBackend()
@@ -111,11 +111,14 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
                 $type,
                 $level,
                 $excluded,
-                $sendTime
+                $sentAt
             )
         ;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     final public function subscribe()
     {
         return $this

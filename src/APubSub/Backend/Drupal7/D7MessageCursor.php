@@ -5,6 +5,7 @@ namespace APubSub\Backend\Drupal7;
 use APubSub\Backend\DefaultMessageInstance;
 use APubSub\CursorInterface;
 use APubSub\Field;
+use APubSub\Misc;
 
 class D7MessageCursor extends AbstractD7Cursor
 {
@@ -153,7 +154,7 @@ class D7MessageCursor extends AbstractD7Cursor
                         break;
 
                     case Field::MSG_READ_TS:
-                        $query->orderBy('m.read_timestamp', $direction);
+                        $query->orderBy('m.read_at', $direction);
                         break;
 
                     case Field::MSG_UNREAD:
@@ -177,8 +178,8 @@ class D7MessageCursor extends AbstractD7Cursor
 
     protected function createObjectInstance(\stdClass $record)
     {
-        if ($record->read_timestamp) {
-            $readTime = (int)$record->read_timestamp;
+        if ($record->read_at) {
+            \DateTime::createFromFormat(Misc::SQL_DATETIME, (int)$record->read_at);
         } else {
             $readTime = null;
         }
@@ -189,11 +190,12 @@ class D7MessageCursor extends AbstractD7Cursor
             unserialize($record->contents),
             (int)$record->msg_id,
             (int)$record->id,
-            (int)$record->created,
+            \DateTime::createFromFormat(Misc::SQL_DATETIME, $record->created),
             $this->getBackend()->getTypeRegistry()->getType($record->type_id),
             (bool)$record->unread,
             $readTime,
-            (int)$record->level);
+            (int)$record->level
+        );
     }
 
     protected function buildQuery()
@@ -269,8 +271,8 @@ class D7MessageCursor extends AbstractD7Cursor
         }
 
         // Disallow message duplicates, remember that trying to read the
-        // unread or read timestamp status when requesting from a channel
-        // makes no sense
+        // unread or read date status when requesting from a channel makes
+        // no sense
         // You'd also have to consider that when we're dealing with UPDATE
         // or DELETE operations we want the full result list in order to
         // correctly wipe out the queue
@@ -379,7 +381,7 @@ class D7MessageCursor extends AbstractD7Cursor
                     break;
 
                 case Field::MSG_READ_TS:
-                    $queryValues['read_timestamp'] = (int)$value;
+                    $queryValues['read_at'] = (string)$value;
                     break;
 
                 default:

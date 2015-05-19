@@ -19,12 +19,13 @@ abstract class AbstractMessageTest extends AbstractBackendBasedTest
             $id = $message->getId();
             $this->assertTrue($message->isUnread());
             $this->assertSame("message", $message->getType());
-            $this->assertNull($message->getReadTimestamp());
+            $this->assertNull($message->getReadDate());
             $message->setUnread(false);
 
             break; // There should be only one
         }
 
+        /* @var $messages \APubSub\MessageInstanceInterface[] */
         $messages = $subscriber->fetch();
         foreach ($messages as $message) {
 
@@ -34,8 +35,8 @@ abstract class AbstractMessageTest extends AbstractBackendBasedTest
             // Assert message is now unread
             $this->assertFalse($message->isUnread());
 
-            // Assert message has now a read timestamp
-            $this->assertNotNull($message->getReadTimestamp());
+            // Assert message has now a read date
+            $this->assertNotNull($message->getReadDate());
 
             break;
         }

@@ -58,7 +58,8 @@ class TypeRegistry
                     ->getConnection()
                     ->insert('apb_msg_type')
                     ->fields(array('type' => $type))
-                    ->execute();
+                    ->execute()
+                ;
 
             } catch (\PDOException $e) {
                 // Another thread went doing this at the same time and created
@@ -68,6 +69,7 @@ class TypeRegistry
             $this->loadCache();
 
             return array_search($type, $this->types, true);
+
         } else {
             return $key;
         }
@@ -101,7 +103,7 @@ class TypeRegistry
                 // It seems that the type really does not exists, mark it as
                 // being wrong in order to avoid to refresh the cache too often
                 // and return a null type
-                $this->types[$type] = false;
+                $this->types[$id] = false;
             }
         }
 

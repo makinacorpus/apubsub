@@ -697,6 +697,7 @@ function notification_block_render($account) {
       CursorInterface::SORT_DESC)
     ->setRange($limit, 0);
 
+  /* @var $cursor APubSub\MessageInstanceInterface[] */
   foreach ($cursor as $message) {
 
     $notification = $service->getNotification($message);
@@ -716,7 +717,7 @@ function notification_block_render($account) {
     $build['#list'][$message->getId()] = array(
       'id'     => $message->getId(),
       'image'  => $image,
-      'time'   => $message->getSendTimestamp(),
+      'time'   => $message->getSendDate()->getTimestamp(),
       'text'   => $notification->format(),
       'unread' => $message->isUnread(),
       'type'   => $notification->getType(),
