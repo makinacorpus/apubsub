@@ -61,7 +61,7 @@ class MessengingService implements BackendAwareInterface
      * @param string $subject
      *   Optional thread name
      *
-     * @return \APubSub\ChannelInterface
+     * @return Thread
      *   New thread
      */
     public function createThread($senderUserId, $recipient, $subject = null)
@@ -78,7 +78,7 @@ class MessengingService implements BackendAwareInterface
 
         $chan = $this->backend->createChannel($id, $subject);
 
-        array_unshift($senderUserId, $recipient);
+        array_unshift($recipient, $senderUserId);
 
         // This is the only non-scalable part of the algorithm
         foreach ($recipient as $recipientId) {
@@ -89,7 +89,7 @@ class MessengingService implements BackendAwareInterface
             ;
         }
 
-        return $chan;
+        return new Thread($this, $chan);
     }
 
     /**
