@@ -1,0 +1,151 @@
+<?php
+
+namespace APubSub\Messenging;
+
+use APubSub\BackendAwareInterface;
+use APubSub\BackendInterface;
+use APubSub\Field;
+
+/**
+ * Messenging service, single point of entry for the business layer
+ */
+class MessengingService implements BackendAwareInterface
+{
+    /**
+     * Subscriber prefix for messenging system
+     */
+    const SUBER_PREFIX = '_msg';
+
+    /**
+     * @var \APubSub\BackendInterface
+     */
+    private $backend;
+
+    /**
+     * Default constructor
+     *
+     * @param BackendInterface $backend
+     */
+    public function __construct(BackendInterface $backend)
+    {
+        $this->backend = $backend;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getBackend()
+    {
+        return $this->backend;
+    }
+
+    /**
+     * From user identifier get internal subscriber identifier
+     *
+     * @param string $userId
+     *
+     * @return string
+     */
+    protected function getUserSubscriberId($userId)
+    {
+        return self::SUBER_PREFIX . ':' . $userId;
+    }
+
+    /**
+     * Create a new message thread
+     *
+     * @param string $senderUserId
+     *   Sender user identifier
+     * @param string|string[] $recipient
+     *   Recipient list of user identifiers
+     * @param string $subject
+     *   Optional thread name
+     *
+     * @return \APubSub\ChannelInterface
+     *   New thread
+     */
+    public function createThread($senderUserId, $recipient, $subject = null)
+    {
+        if (!is_array($recipient)) {
+            $recipient = [$recipient];
+        }
+
+        // Generate a unique time based identifier, note that this might
+        // own some risks of conflicts, but very low. SHA-1 gives a 40
+        // character-long string, we have a database limit of 64 with the
+        // Drupal backend, so this is acceptable
+        $id = $senderUserId . ':' . sha1($senderUserId . implode(',', $recipient) . time());
+
+        $chan = $this->backend->createChannel($id, $subject);
+
+        array_unshift($senderUserId, $recipient);
+
+        // This is the only non-scalable part of the algorithm
+        foreach ($recipient as $recipientId) {
+            $this
+                ->backend
+                ->getSubscriber($this->getUserSubscriberId($recipientId))
+                ->subscribe($chan->getId())
+            ;
+        }
+
+        return $chan;
+    }
+
+    /**
+     * Removes user from the given one or more thread
+     *
+     * When no users are left on a thread, it will be deleted.
+     *
+     * @param string|string[] $threadId
+     * @param string $userId
+     */
+    public function deleteThreadForUser($threadId, $userId)
+    {
+        $this
+            ->backend
+            ->getSubscriber($this->getUserSubscriberId($userId))
+            ->unsubscribe($threadId)
+        ;
+    }
+
+    /**
+     * Removes one or more thread for everyone
+     *
+     * @param string|string[] $threadId
+     */
+    public function deleteThread($threadId)
+    {
+        $this
+            ->backend
+            ->fetchChannels([
+                Field::CHAN_ID => $threadId
+            ])
+            ->delete()
+        ;
+    }
+
+    /**
+     * Get user threads
+     *
+     * @return \APubSub\CursorInterface|\APubSub\ChannelInterface[]
+     */
+    public function getUserThreads($userId, array $conditions = [])
+    {
+        $conditions[Field::SUBER_NAME] = $this->getUserSubscriberId($userId);
+
+        return $this->backend->fetchChannels($conditions);
+    }
+
+    /**
+     * Get thread by identifier
+     *
+     * @param string $id
+     *
+     * @return \APubSub\ChannelInterface
+     */
+    public function getThread($id)
+    {
+        return new Thread($this, $this->backend->getChannel($id));
+    }
+}
