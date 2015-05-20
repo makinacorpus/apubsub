@@ -224,18 +224,20 @@ class NotificationService
     public function unsubscribe($chanId, $name)
     {
         if (is_array($name) || $name instanceof \Traversable) {
-            $subscriber = $this
+            $this
                 ->backend
                 ->fetchSubscriptions(array(
                     Field::CHAN_ID => $chanId,
                     Field::SUBER_NAME => $name,
                 ))
-                ->delete();
+                ->delete()
+            ;
         } else {
-            $subscriber = $this
+            $this
                 ->backend
                 ->getSubscriber($name)
-                ->unsubscribe($chanId);
+                ->unsubscribe($chanId)
+            ;
         }
     }
 
@@ -249,7 +251,8 @@ class NotificationService
     {
         $this
             ->getBackend()
-            ->deleteSubscriber($name);
+            ->deleteSubscriber($name)
+        ;
     }
 
     /**
