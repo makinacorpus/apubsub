@@ -48,6 +48,26 @@ class Thread
     }
 
     /**
+     * Get identifier
+     *
+     * @return string
+     */
+    public function getId()
+    {
+        return $this->channel->getId();
+    }
+
+    /**
+     * Get subject
+     *
+     * @return string
+     */
+    public function getSubject()
+    {
+        return $this->channel->getTitle();
+    }
+
+    /**
      * Get thread recipients
      *
      * @return string[]

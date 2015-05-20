@@ -135,13 +135,14 @@ class D7Backend extends AbstractBackend
                 $dateStr = $created->format(Misc::SQL_DATETIME);
                 $cx
                     ->insert('apb_chan')
-                    ->fields(array(
-                        'name' => $id,
-                        'title' => $title,
-                        'created' => $dateStr,
-                        'updated' => $dateStr,
-                    ))
-                    ->execute();
+                    ->fields([
+                        'name'      => $id,
+                        'title'     => $title,
+                        'created'   => $dateStr,
+                        'updated'   => $dateStr,
+                    ])
+                    ->execute()
+                ;
 
                 // Specify the name of the sequence object for PDO_PGSQL.
                 // @see http://php.net/manual/en/pdo.lastinsertid.php.
