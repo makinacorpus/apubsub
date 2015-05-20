@@ -132,12 +132,14 @@ class D7Backend extends AbstractBackend
                     throw new ChannelAlreadyExistsException();
                 }
             } else {
+                $dateStr = $created->format(Misc::SQL_DATETIME);
                 $cx
                     ->insert('apb_chan')
                     ->fields(array(
                         'name' => $id,
                         'title' => $title,
-                        'created' => $created->format(Misc::SQL_DATETIME),
+                        'created' => $dateStr,
+                        'updated' => $dateStr,
                     ))
                     ->execute();
 
@@ -146,7 +148,7 @@ class D7Backend extends AbstractBackend
                 $seq = ($cx->driver() === 'pgsql') ? 'apb_chan_id_seq' : null;
                 $dbId = (int)$cx->lastInsertId($seq);
 
-                $chan = new D7Channel($dbId, $id, $this, $created, $title);
+                $chan = new D7Channel($dbId, $id, $this, $created, null, $title);
             }
 
             unset($tx); // Explicit commit
@@ -198,12 +200,12 @@ class D7Backend extends AbstractBackend
 
                 $query = $cx
                     ->insert('apb_chan')
-                    ->fields(['name', 'created'])
+                    ->fields(['name', 'created', 'updated'])
                 ;
 
                 // Create only the non existing one, in one query
                 foreach (array_diff($idList, $existingList) as $id) {
-                    $query->values([$id, $createdString]);
+                    $query->values([$id, $createdString, $createdString]);
                 }
 
                 $query->execute();
@@ -504,7 +506,8 @@ class D7Backend extends AbstractBackend
                             ':msgId'   => $id,
                             ':chanId'  => $dbIdList,
                             ':created' => $sentAt->format(Misc::SQL_DATETIME),
-                        ]);
+                        ])
+                ;
             } else {
                 $cx
                     ->query("
@@ -524,8 +527,18 @@ class D7Backend extends AbstractBackend
                             ':chanId'   => $dbIdList,
                             ':created'  => $sentAt->format(Misc::SQL_DATETIME),
                             ':excluded' => $excluded,
-                        ]);
+                        ])
+                ;
             }
+
+            $cx
+                ->update('apb_chan')
+                ->fields([
+                    'updated' => (new \DateTime())->format(Misc::SQL_DATETIME),
+                ])
+                ->condition('id', $dbIdList)
+                ->execute()
+            ;
 
             unset($tx); // Explicit commit
 

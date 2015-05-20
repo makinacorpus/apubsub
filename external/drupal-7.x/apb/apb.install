@@ -40,6 +40,14 @@ function apb_schema() {
         'length'      => 16,
         'not null'    => false,
       ),
+      'updated' => array(
+        'description' => "Last update date (latest sent message time)",
+        'mysql_type'  => 'datetime',
+        'pgsql_type'  => 'timestamp',
+        'type'        => 'varchar',
+        'length'      => 16,
+        'not null'    => true,
+      ),
     ),
     'primary key' => array('id'),
     'unique keys' => array(
@@ -49,6 +57,9 @@ function apb_schema() {
     'indexes' => array(
       // Needed for load operations.
       'apb_chan_name_idx' => array('name'),
+      // For sorting, mainly
+      'apb_chan_created_idx' => array('created'),
+      'apb_chan_updated_idx' => array('updated'),
     ),
   );
 
@@ -458,5 +469,39 @@ function apb_update_7006() {
       'length'      => 255,
       'not null'    => false,
     ));
+  }
+}
+
+/**
+ * Adds the {apb_chan}.updated column.
+ */
+function apb_update_7007() {
+  if (!db_field_exists('apb_chan', 'updated')) {
+    db_add_field('apb_chan', 'updated', array(
+      'description' => "Last update date (latest sent message time)",
+      'mysql_type'  => 'datetime',
+      'pgsql_type'  => 'timestamp',
+      'type'        => 'varchar',
+      'length'      => 16,
+      'not null'    => true,
+    ));
+  }
+}
+
+/**
+ * Adds some missing indexes.
+ */
+function apb_update_7008() {
+  if (!db_index_exists('apb_chan', 'apb_chan_created_idx')) {
+    db_add_index('apb_chan', 'apb_chan_created_idx', array('created'));
+  }
+  if (!db_index_exists('apb_chan', 'apb_chan_updated_idx')) {
+    db_add_index('apb_chan', 'apb_chan_updated_idx', array('updated'));
+  }
+  if (!db_index_exists('apb_msg', 'apb_msg_level_idx')) {
+    db_add_index('apb_msg', 'apb_msg_level_idx', array('level'));
+  }
+  if (!db_index_exists('apb_msg', 'apb_msg_origin_idx')) {
+    db_add_index('apb_msg', 'apb_msg_origin_idx', array('origin'));
   }
 }

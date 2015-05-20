@@ -22,6 +22,11 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
     private $createdAt;
 
     /**
+     * @var \DateTime
+     */
+    private $updatedAt;
+
+    /**
      * @var string
      */
     private $title;
@@ -35,10 +40,12 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
      *   Backend
      * @param \DateTime $createdAt
      *   Creation date
+     * @param \DateTime $updatedAt
+     *   Update date
      * @param string $title
      *   Human readable title
      */
-    public function __construct($id, BackendInterface $backend, \DateTime $createdAt = null, $title = null)
+    public function __construct($id, BackendInterface $backend, \DateTime $createdAt = null, \DateTime $updatedAt = null, $title = null)
     {
         parent::__construct($backend, [Field::CHAN_ID => $id]);
 
@@ -46,9 +53,15 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
         $this->title = $title;
 
         if (null === $createdAt) {
-            $this->createdAt = time();
+            $this->createdAt = new \DateTime();
         } else {
             $this->createdAt = $createdAt;
+        }
+
+        if (null === $updatedAt) {
+            $this->updatedAt = clone $this->createdAt;
+        } else {
+            $this->updatedAt = $updatedAt;
         }
     }
 
@@ -91,6 +104,14 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
     final public function getCreationDate()
     {
         return $this->createdAt;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    final public function getLatestUpdateDate()
+    {
+        return $this->updatedAt;
     }
 
     /**
