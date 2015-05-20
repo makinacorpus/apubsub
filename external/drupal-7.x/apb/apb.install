@@ -16,21 +16,21 @@ function apb_schema() {
     'fields' => array(
       'id' => array(
         'description' => "Internal int32 identifier",
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'serial',
+        'unsigned'    => true,
+        'not null'    => true,
       ),
       'name' => array(
         'description' => "Exposed identifier",
-        'type' => 'varchar',
-        'length' => 64,
-        'not null' => TRUE,
+        'type'        => 'varchar',
+        'length'      => 64,
+        'not null'    => true,
       ),
       'title' => array(
         'description' => "Optional human readable title",
-        'type' => 'varchar',
-        'length' => 1024,
-        'not null' => FALSE,
+        'type'        => 'varchar',
+        'length'      => 1024,
+        'not null'    => false,
       ),
       'created' => array(
         'description' => "Creation date",
@@ -57,15 +57,15 @@ function apb_schema() {
     'fields' => array(
       'id' => array(
         'description' => "Internal int32 identifier",
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'serial',
+        'unsigned'    => true,
+        'not null'    => true,
       ),
       'type' => array(
         'description' => "Message type",
-        'type' => 'varchar',
-        'length' => 64,
-        'not null' => TRUE,
+        'type'        => 'varchar',
+        'length'      => 64,
+        'not null'    => true,
       ),
     ),
     'primary key' => array('id'),
@@ -76,15 +76,15 @@ function apb_schema() {
     'fields' => array(
       'id' => array(
         'description' => "Internal int32 identifier",
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'serial',
+        'unsigned'    => true,
+        'not null'    => true,
       ),
       'type_id' => array(
         'description' => "Message type",
-        'type' => 'int',
-        'not null' => FALSE,
-        'default' => NULL,
+        'type'        => 'int',
+        'not null'    => false,
+        'default'     => null,
       ),
       'created' => array(
         'description' => "Creation date",
@@ -96,18 +96,25 @@ function apb_schema() {
       ),
       'contents' => array(
         'description' => "Contents",
-        'type' => 'text',
+        'type'        => 'text',
       ),
       'level' => array(
         'description' => "Level which can be used for any business purpose",
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
+        'type'        => 'int',
+        'not null'    => true,
+        'default'     => 0,
+      ),
+      'origin' => array(
+        'description' => "Origin",
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => false,
       ),
     ),
     'primary key' => array('id'),
     'indexes' => array(
       'apb_msg_level_idx' => array('level'),
+      'apb_msg_origin_idx' => array('origin'),
     ),
     'foreign keys' => array(
       'apb_msg_type_id_fk' => array(
@@ -122,17 +129,17 @@ function apb_schema() {
     'fields' => array(
       'msg_id' => array(
         'description' => "Message identifier",
-        'type' => 'int',
-        'size' => 'normal',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'int',
+        'size'        => 'normal',
+        'unsigned'    => true,
+        'not null'    => true,
       ),
       'chan_id' => array(
         'description' => "Channel internal int32 identifier",
-        'type' => 'int',
-        'size' => 'normal',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'int',
+        'size'        => 'normal',
+        'unsigned'    => true,
+        'not null'    => true,
       ),
     ),
     'primary key' => array('msg_id', 'chan_id'),
@@ -153,22 +160,22 @@ function apb_schema() {
     'fields' => array(
       'id' => array(
         'description' => "Internal int32 identifier",
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'serial',
+        'unsigned'    => true,
+        'not null'    => true,
       ),
       'chan_id' => array(
         'description' => "Channel internal int32 identifier",
-        'type' => 'int',
-        'size' => 'normal',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'int',
+        'size'        => 'normal',
+        'unsigned'    => true,
+        'not null'    => true,
       ),
       'status' => array(
         'description' => "Is active (1 = active, 0 = inactive)",
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
+        'type'        => 'int',
+        'not null'    => true,
+        'default'     => 0,
       ),
       'created' => array(
         'description' => "Creation date",
@@ -197,7 +204,7 @@ function apb_schema() {
       'extra' => array(
         'description' => "Extra data for business layer",
         'type' => 'blob',
-        'not null' => FALSE,
+        'not null' => false,
       ),
     ),
     'primary key' => array('id'),
@@ -220,16 +227,16 @@ function apb_schema() {
     'fields' => array(
       'sub_id' => array(
         'description' => "Subscription internal int32 identifier",
-        'type' => 'int',
-        'size' => 'normal',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'int',
+        'size'        => 'normal',
+        'unsigned'    => true,
+        'not null'    => true,
       ),
       'name' => array(
         'description' => "User given identifier for the subscriber",
-        'type' => 'varchar',
-        'length' => 128,
-        'not null' => TRUE,
+        'type'        => 'varchar',
+        'length'      => 128,
+        'not null'    => true,
       ),
       'accessed' => array(
         'description' => "Last time a queued job accessed this subscriber",
@@ -261,24 +268,24 @@ function apb_schema() {
     'fields' => array(
       'id' => array(
         'description' => "Primary identifier for DELETE statements",
-        'type' => 'serial',
-        'size' => 'normal',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'serial',
+        'size'        => 'normal',
+        'unsigned'    => true,
+        'not null'    => true,
       ),
       'msg_id' => array(
         'description' => "Message internal int32 identifier",
-        'type' => 'int',
-        'size' => 'normal',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'int',
+        'size'        => 'normal',
+        'unsigned'    => true,
+        'not null'    => true,
       ),
       'sub_id' => array(
         'description' => "Channel internal int32 identifier",
-        'type' => 'int',
-        'size' => 'normal',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'int',
+        'size'        => 'normal',
+        'unsigned'    => true,
+        'not null'    => true,
       ),
       'created' => array(
         'description' => "Creation date denormalization for performances",
@@ -290,11 +297,11 @@ function apb_schema() {
       ),
       'unread' => array(
         'description' => "Has this message not been read",
-        'type' => 'int',
-        'size' => 'tiny',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 1,
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'unsigned'    => true,
+        'not null'    => true,
+        'default'     => 1,
       ),
       'read_at' => array(
         'description' => "Read date",
@@ -336,20 +343,20 @@ function apb_schema() {
     'fields' => array(
       'id' => array(
         'description' => "Internal int32 identifier",
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'serial',
+        'unsigned'    => true,
+        'not null'    => true,
       ),
       'name' => array(
         'description' => "Name",
-        'type' => 'varchar',
-        'length' => 128,
-        'not null' => TRUE,
+        'type'        => 'varchar',
+        'length'      => 128,
+        'not null'    => true,
       ),
       'data' => array(
         'description' => "Serialized data blob",
-        'type' => 'text',
-        'not null' => TRUE,
+        'type'        => 'text',
+        'not null'    => true,
       ),
       'created' => array(
         'description' => "Creation date",
@@ -372,13 +379,13 @@ function apb_schema() {
 function apb_update_7001() {
   db_add_field('apb_sub', 'extra', array(
     'description' => "Extra data for business layer",
-    'type' => 'blob',
-    'not null' => FALSE,
+    'type'        => 'blob',
+    'not null'    => false,
   ));
   db_add_field('apb_sub_map', 'extra', array(
     'description' => "Extra data for business layer",
-    'type' => 'blob',
-    'not null' => FALSE,
+    'type'        => 'blob',
+    'not null'    => false,
   ));
   db_add_field('apb_sub_map', 'accessed', array(
     'description' => "Last time a queued job accessed this subscriber",
@@ -404,9 +411,9 @@ function apb_update_7003() {
   if (!db_field_exists('apb_chan', 'title')) {
     db_add_field('apb_chan', 'title', array(
       'description' => "Optional human readable title",
-      'type' => 'varchar',
-      'length' => 1024,
-      'not null' => FALSE,
+      'type'        => 'varchar',
+      'length'      => 1024,
+      'not null'    => false,
     ));
   }
 }
@@ -437,5 +444,19 @@ function apb_update_7005() {
       db_query("INSERT INTO {apb_msg_chan} (msg_id, chan_id) SELECT id, chan_id FROM apb_msg");
     }
     db_drop_field('apb_msg', 'chan_id');
+  }
+}
+
+/**
+ * Adds the {apb_msg}.origin column.
+ */
+function apb_update_7006() {
+  if (!db_field_exists('apb_msg', 'origin')) {
+    db_add_field('apb_msg', 'origin', array(
+      'description' => "Origin",
+      'type'        => 'varchar',
+      'length'      => 255,
+      'not null'    => false,
+    ));
   }
 }

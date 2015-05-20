@@ -60,6 +60,11 @@ final class Field
     const MSG_QUEUE_ID    = 26;
 
     /**
+     * Message origin
+     */
+    const MSG_ORIGIN      = 28;
+
+    /**
      * Subscriber name
      */
     const SUBER_NAME      = 30;

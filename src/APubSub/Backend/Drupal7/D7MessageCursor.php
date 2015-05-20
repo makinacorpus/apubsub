@@ -37,6 +37,7 @@ class D7MessageCursor extends AbstractD7Cursor
             Field::MSG_LEVEL,
             Field::MSG_READ_TS,
             Field::MSG_UNREAD,
+            Field::MSG_ORIGIN,
             Field::SUB_ID,
         );
     }
@@ -57,6 +58,10 @@ class D7MessageCursor extends AbstractD7Cursor
 
                 case Field::MSG_UNREAD:
                     $ret['q.unread'] = $value;
+                    break;
+
+                case Field::MSG_ORIGIN:
+                    $ret['m.origin'] = $value;
                     break;
 
                 case Field::MSG_QUEUE_ID:
@@ -159,6 +164,10 @@ class D7MessageCursor extends AbstractD7Cursor
                             ->orderBy('q.msg_id', $direction);
                         break;
 
+                    case Field::MSG_ORIGIN:
+                        $query->orderBy('m.origin', $direction);
+                        break;
+
                     case Field::MSG_TYPE:
                         $query->orderBy('m.type', $direction);
                         break;
@@ -207,7 +216,8 @@ class D7MessageCursor extends AbstractD7Cursor
             $this->getBackend()->getTypeRegistry()->getType($record->type_id),
             (bool)$record->unread,
             $readTime,
-            (int)$record->level
+            (int)$record->level,
+            empty($record->origin) ? null : (string)$record->origin
         );
     }
 
@@ -265,7 +275,7 @@ class D7MessageCursor extends AbstractD7Cursor
             $query
                 ->join('apb_msg', 'm', 'm.id = q.msg_id');
             $query
-                ->fields('m', array('type_id', 'contents', 'level'))
+                ->fields('m', array('type_id', 'contents', 'level', 'origin'))
                 ->fields('q');
         } else {
 
@@ -276,7 +286,7 @@ class D7MessageCursor extends AbstractD7Cursor
             $query
                 ->join('apb_msg', 'm', 'm.id = q.msg_id');
             $query
-                ->fields('m', array('type_id', 'contents', 'level'))
+                ->fields('m', array('type_id', 'contents', 'level', 'origin'))
                 ->fields('q');
         }
 

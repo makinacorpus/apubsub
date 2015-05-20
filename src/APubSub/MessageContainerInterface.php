@@ -14,7 +14,8 @@ interface MessageContainerInterface extends BackendAwareInterface
      *                           "equal" operation is supported. If value is an
      *                           array, treat it as a "IN" operator
      *
-     * @return CursorInterface   Iterable object of messages
+     * @return CursorInterface|MessageInstanceInterface[]
+     *   Iterable object of messages
      */
     public function fetch(array $conditions = null);
 

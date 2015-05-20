@@ -48,6 +48,8 @@ interface ChannelInterface extends MessageContainerInterface
      *   Any kind of contents (will be serialized)
      * @param string $type
      *   Message type
+     * @param string $origin
+     *   Arbitrary origin text representation
      * @param int $level
      *   Arbitrary business level
      * @param scalar[] $excluded
@@ -61,6 +63,7 @@ interface ChannelInterface extends MessageContainerInterface
     public function send(
         $contents,
         $type               = null,
+        $origin             = null,
         $level              = 0,
         array $excluded     = null,
         \DateTime $sentAt   = null

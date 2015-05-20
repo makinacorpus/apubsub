@@ -99,6 +99,7 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
     final public function send(
         $contents,
         $type             = null,
+        $origin           = null,
         $level            = 0,
         array $excluded   = null,
         \DateTime $sentAt = null)
@@ -109,6 +110,7 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
                 $this->id,
                 $contents,
                 $type,
+                $origin,
                 $level,
                 $excluded,
                 $sentAt
