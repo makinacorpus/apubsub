@@ -137,19 +137,23 @@ class D7ChannelCursor extends AbstractD7Cursor
      */
     protected function buildQuery()
     {
-        $query = $this
+        $cx = $this
             ->getBackend()
             ->getConnection()
-            ->select('apb_chan', 'c')
-            ->fields('c')
         ;
 
-        if ($this->queryOnSub || $this->queryOnSuber) {
-            $query->join('apb_sub', 's', "s.chan_id = c.id");
-        }
         if ($this->queryOnSuber) {
-            $query->leftJoin('apb_sub_map', 's', "s.chan_id = c.id");
+            $query = $cx->select('apb_sub_map', 'mp');
+            $query->join('apb_sub', 's', "s.id = mp.sub_id");
+            $query->join('apb_chan', 'c', 'c.id = s.chan_id');
+        } else if ($this->queryOnSub) {
+            $query = $cx->select('apb_sub', 's');
+            $query->join('apb_chan', 'c', 'c.id = s.chan_id');
+        } else {
+            $query = $cx->select('apb_chan', 'c');
         }
+
+        $query->fields('c');
 
         return $query;
     }
