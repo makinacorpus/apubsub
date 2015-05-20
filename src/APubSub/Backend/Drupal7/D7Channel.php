@@ -4,8 +4,6 @@ namespace APubSub\Backend\Drupal7;
 
 use APubSub\Backend\DefaultChannel;
 use APubSub\BackendInterface;
-use APubSub\ChannelInterface;
-use APubSub\CursorInterface;
 
 class D7Channel extends DefaultChannel
 {
@@ -25,14 +23,16 @@ class D7Channel extends DefaultChannel
      *   Channel identifier
      * @param BackendInterface $backend
      *   Backend
-     * @param \DateTime $creationTime
+     * @param \DateTime $createdAt
      *   Creation date
+     * @param \DateTime $updatedAt
+     *   Update date
      * @param string $title
      *   Human readable title
      */
-    public function __construct($databaseId, $id, BackendInterface $backend, \DateTime $creationTime = null, $title = null)
+    public function __construct($databaseId, $id, BackendInterface $backend, \DateTime $createdAt = null, \DateTime $updatedAt = null, $title = null)
     {
-        parent::__construct($id, $backend, $creationTime, $title);
+        parent::__construct($id, $backend, $createdAt, $updatedAt, $title);
 
         $this->databaseId = $databaseId;
     }

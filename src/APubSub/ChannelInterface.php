@@ -40,6 +40,14 @@ interface ChannelInterface extends MessageContainerInterface
     public function getCreationDate();
 
     /**
+     * Get latest update date
+     *
+     * @return \DateTime
+     *   Date when the latest message was sent
+     */
+    public function getLatestUpdateDate();
+
+    /**
      * Send a single message to this channel
      *
      * Alias of BackendInterface::send()

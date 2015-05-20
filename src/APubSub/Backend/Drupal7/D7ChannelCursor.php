@@ -33,7 +33,8 @@ class D7ChannelCursor extends AbstractD7Cursor
     {
         return array(
             Field::CHAN_ID,
-            Field::CHAN_CREATED_TS
+            Field::CHAN_CREATED_TS,
+            Field::CHAN_UPDATED_TS,
         );
     }
 
@@ -53,6 +54,10 @@ class D7ChannelCursor extends AbstractD7Cursor
 
                 case Field::CHAN_CREATED_TS:
                     $ret['c.created'] = $value;
+                    break;
+
+                case Field::CHAN_UPDATED_TS:
+                    $ret['c.updated'] = $value;
                     break;
 
                 case Field::SUB_ID:
@@ -101,6 +106,10 @@ class D7ChannelCursor extends AbstractD7Cursor
                         $query->orderBy('c.created', $direction);
                         break;
 
+                    case Field::CHAN_UPDATED_TS:
+                        $query->orderBy('c.updated', $direction);
+                        break;
+
                     default:
                         throw new \InvalidArgumentException("Unsupported sort field");
                 }
@@ -118,6 +127,7 @@ class D7ChannelCursor extends AbstractD7Cursor
             $record->name,
             $this->getBackend(),
             \DateTime::createFromFormat(Misc::SQL_DATETIME, $record->created),
+            \DateTime::createFromFormat(Misc::SQL_DATETIME, $record->updated),
             empty($record->title) ? null : $record->title)
         ;
     }

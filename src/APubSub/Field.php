@@ -23,6 +23,11 @@ final class Field
     const CHAN_CREATED_TS = 11;
 
     /**
+     * Channel update date
+     */
+    const CHAN_UPDATED_TS = 12;
+
+    /**
      * Message identifier
      */
     const MSG_ID          = 20;
