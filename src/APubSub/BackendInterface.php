@@ -111,7 +111,8 @@ interface BackendInterface extends MessageContainerInterface
      *
      * @param array $conditions         Conditions
      *
-     * @return \APubSub\CursorInterface Subscription cursor
+     * @return \APubSub\CursorInterface|\APubSub\SubscriptionInterface[]
+     *   Subscription cursor
      */
     public function fetchSubscriptions(array $conditions = null);
 
@@ -166,7 +167,8 @@ interface BackendInterface extends MessageContainerInterface
      *                           "equal" operation is supported. If value is an
      *                           array, treat it as a "IN" operator
      *
-     * @return CursorInterface   Cursor
+     * @return CursorInterface|SubscriberInterface[]
+     *   Cursor
      */
     public function fetchSubscribers(array $conditions = null);
 
@@ -177,6 +179,8 @@ interface BackendInterface extends MessageContainerInterface
      *   List of channels or single channel to send the message too
      * @param string $type
      *   Message type
+     * @param string $origin
+     *   Arbitrary origin text representation
      * @param int $level
      *   Arbitrary business level
      * @param scalar[] $exclude
@@ -188,6 +192,7 @@ interface BackendInterface extends MessageContainerInterface
         $chanId,
         $contents,
         $type               = null,
+        $origin             = null,
         $level              = 0,
         array $exclude      = null,
         \DateTime $sentAt   = null

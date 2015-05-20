@@ -66,6 +66,8 @@ class DefaultMessageInstance extends DefaultMessage implements
      *   Read date
      * @param int $level
      *   Level
+     * @param string $origin
+     *   Origin
      */
     public function __construct(
         BackendInterface $backend,
@@ -77,9 +79,10 @@ class DefaultMessageInstance extends DefaultMessage implements
         $type               = null,
         $isUnread           = true,
         \DateTime $readAt   = null,
-        $level              = 0)
+        $level              = 0,
+        $origin             = null)
     {
-        parent::__construct($backend, $contents, $id, $type, $level);
+        parent::__construct($backend, $contents, $id, $type, $level, $origin);
 
         $this->queueId          = $queueId;
         $this->subscriptionId   = $subscriptionId;

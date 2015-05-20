@@ -174,7 +174,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         $sub3       = $suber3->subscribe($chan1->getId());
         $sub4       = $suber4->subscribe($chan1->getId());
 
-        $chan1->send("test", 'foo', 0, array(
+        $chan1->send("test", 'foo', null, 0, array(
             $sub2->getId(),
             $sub4->getId(),
         ));
@@ -184,7 +184,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         $this->assertCount(1, $suber3->fetch());
         $this->assertCount(0, $suber4->fetch());
 
-        $this->backend->send(array($chan1->getId()), "test", 'foo', 0, array(
+        $this->backend->send(array($chan1->getId()), "test", 'foo', null, 0, array(
             $sub2->getId(),
             $sub3->getId(),
         ));

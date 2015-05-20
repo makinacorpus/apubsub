@@ -75,6 +75,9 @@ class D7Backend extends AbstractBackend
         return $this->typeRegistry;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function fetch(array $conditions = null)
     {
         $cursor = new D7MessageCursor($this);
@@ -86,6 +89,9 @@ class D7Backend extends AbstractBackend
         return $cursor;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function fetchChannels(array $conditions = null)
     {
         $cursor = new D7ChannelCursor($this);
@@ -97,6 +103,9 @@ class D7Backend extends AbstractBackend
         return $cursor;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function createChannel($id, $title = null, $ignoreErrors = false)
     {
         $chan    = null;
@@ -155,6 +164,9 @@ class D7Backend extends AbstractBackend
         return $chan;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function createChannels($idList, $ignoreErrors = false)
     {
         if (empty($idList)) {
@@ -217,6 +229,9 @@ class D7Backend extends AbstractBackend
         return iterator_to_array($ret);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function fetchSubscriptions(array $conditions = null)
     {
         $cursor = new D7SubscriptionCursor($this);
@@ -228,6 +243,9 @@ class D7Backend extends AbstractBackend
         return $cursor;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getSubscriber($id)
     {
         if (isset($this->subscribersCache[$id])) {
@@ -253,6 +271,9 @@ class D7Backend extends AbstractBackend
         return $this->subscribersCache[$id] = new DefaultSubscriber($id, $this, $idList);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function deleteSubscriber($id)
     {
         $cx         = $this->db;
@@ -298,6 +319,9 @@ class D7Backend extends AbstractBackend
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function deleteSubscribers($idList)
     {
         // FIXME: Find a more elegant way of doing this
@@ -306,6 +330,9 @@ class D7Backend extends AbstractBackend
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function subscribe($chanId, $subscriberId = null)
     {
         $deactivated  = new \DateTime();
@@ -389,15 +416,22 @@ class D7Backend extends AbstractBackend
         }
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function fetchSubscribers(array $conditions = null)
     {
         throw new \Exception("Not implemented yet");
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function send(
         $chanId,
         $contents,
         $type               = null,
+        $origin             = null,
         $level              = 0,
         array $excluded     = null,
         \DateTime $sentAt   = null)
@@ -438,6 +472,7 @@ class D7Backend extends AbstractBackend
                     'contents' => serialize($contents),
                     'type_id'  => $typeId,
                     'level'    => $level,
+                    'origin'   => $origin,
                 ])
                 ->execute()
             ;
@@ -507,10 +542,16 @@ class D7Backend extends AbstractBackend
         return new DefaultMessage($this, $contents, $id, $type, $level);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function flushCaches()
     {
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function garbageCollection()
     {
         // Drop all messages for inactive subscriptions
@@ -588,6 +629,9 @@ class D7Backend extends AbstractBackend
                 ");
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getAnalysis()
     {
         $cx = $this->db;

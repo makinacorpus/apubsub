@@ -344,7 +344,8 @@ class NotificationService
 
                 $message = $this
                     ->getBackend()
-                    ->send($chanId, $contents, $type, $level);
+                    ->send($chanId, $contents, $type, null, $level)
+                ;
 
             } else {
 
@@ -363,7 +364,8 @@ class NotificationService
 
                 $message = $this
                     ->getBackend()
-                    ->send($chanId, $contents, $type, $level, $exclude);
+                    ->send($chanId, $contents, $type, null, $level, $exclude)
+                ;
             }
 
         } catch (ChannelDoesNotExistException $e) {

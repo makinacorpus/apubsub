@@ -33,7 +33,9 @@ abstract class AbstractCursorTest extends AbstractBackendBasedTest
             ->setRange(2, 3)
             ->addSort(
                 Field::CHAN_ID,
-                CursorInterface::SORT_DESC);
+                CursorInterface::SORT_DESC
+            )
+        ;
 
         $this->assertCount(2, $cursor);
         $this->assertSame(6, $cursor->getTotalCount());
@@ -53,7 +55,9 @@ abstract class AbstractCursorTest extends AbstractBackendBasedTest
             ->setRange(2, 3)
             ->addSort(
                 Field::CHAN_ID,
-                CursorInterface::SORT_DESC);
+                CursorInterface::SORT_DESC
+            )
+        ;
 
         $this->assertSame(4, $cursor->getTotalCount());
         $this->assertCount(1, $cursor);
@@ -90,7 +94,9 @@ abstract class AbstractCursorTest extends AbstractBackendBasedTest
             ->setLimit(3)
             ->addSort(
                 Field::SUB_STATUS,
-                CursorInterface::SORT_DESC);
+                CursorInterface::SORT_DESC
+            )
+        ;
 
         $this->assertCount(3, $cursor);
         $this->assertSame(4, $cursor->getTotalCount());
@@ -109,7 +115,9 @@ abstract class AbstractCursorTest extends AbstractBackendBasedTest
             ->fetchSubscriptions()
             ->addSort(
                 Field::SUB_STATUS,
-                CursorInterface::SORT_DESC);
+                CursorInterface::SORT_DESC
+            )
+        ;
 
         $this->assertSame(3, $cursor->getTotalCount());
         $this->assertCount(3, $cursor);
@@ -123,7 +131,9 @@ abstract class AbstractCursorTest extends AbstractBackendBasedTest
             ))
             ->addSort(
                 Field::SUB_STATUS,
-                CursorInterface::SORT_DESC);
+                CursorInterface::SORT_DESC
+            )
+        ;
 
         $this->assertSame(2, $cursor->getTotalCount());
         $this->assertCount(2, $cursor);
