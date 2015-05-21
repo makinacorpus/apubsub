@@ -125,6 +125,37 @@ class Thread
     }
 
     /**
+     * Does user is in recipient list
+     *
+     * @param string $userId
+     */
+    public function isInRecipients($userId)
+    {
+        return $this
+            ->service
+            ->getBackend()
+            ->getSubscriber(
+                $this->service->getUserSubscriberId($userId)
+            )
+            ->hasSubscriptionFor(
+                $this->channel->getId()
+            )
+        ;
+    }
+
+    /**
+     * Can user see this thread
+     *
+     * Alias to isInRecipients()
+     *
+     * @param string $userId
+     */
+    public function hasAccess($userId)
+    {
+        return $this->isInRecipients($userId);
+    }
+
+    /**
      * Fetch thread messages for user
      *
      * @param string $userId
