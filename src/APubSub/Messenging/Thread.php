@@ -21,11 +21,12 @@ class Thread
      * Default constructor
      *
      * @param MessengingService $service
+     * @param ChannelInterface $channel
      */
     public function __construct(MessengingService $service, ChannelInterface $channel)
     {
-        $this->service = $service;
-        $this->channel = $channel;
+        $this->service    = $service;
+        $this->channel    = $channel;
     }
 
     /**
@@ -68,6 +69,28 @@ class Thread
     }
 
     /**
+     * Get creation time
+     *
+     * @return \DateTime
+     *   Date when the object was created
+     */
+    public function getCreationDate()
+    {
+        return $this->channel->getCreationDate();
+    }
+
+    /**
+     * Get latest update date
+     *
+     * @return \DateTime
+     *   Date when the latest message was sent
+    */
+    public function getLatestUpdateDate()
+    {
+        return $this->channel->getLatestUpdateDate();
+    }
+
+    /**
      * Get thread recipients
      *
      * @return string[]
@@ -94,12 +117,29 @@ class Thread
     /**
      * Fetch thread messages
      *
+     * @param string $userId
      * @param mixed[] $conditions
      *
      * @return \APubSub\CursorInterface|\APubSub\MessageInstanceInterface[]
      */
-    public function fetchMessages(array $conditions = [])
+    public function fetchMessagesFor($userId, array $conditions = [])
     {
+        $conditions[Field::CHAN_ID] = $this->channel->getId();
+        $conditions[Field::SUBER_NAME] = $this->service->getUserSubscriberId($userId);
+
         return $this->channel->fetch($conditions);
+    }
+
+    /**
+     * Count unread messages for user
+     *
+     * @param string $userId
+     * @param mixed[] $conditions
+     */
+    public function countUnreadFor($userId, array $conditions = [])
+    {
+        $conditions[Field::MSG_UNREAD] = 1;
+
+        return $this->fetchMessagesFor($userId, $conditions)->count();
     }
 }

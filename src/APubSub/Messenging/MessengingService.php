@@ -131,15 +131,16 @@ class MessengingService implements BackendAwareInterface
      * Using the getUserMessages() method, you can provide a message-based
      * UI, while using this method you can provide a thread-based UI.
      *
-     * @return \APubSub\CursorInterface|\APubSub\ChannelInterface[]
+     * @return \APubSub\CursorInterface|\APubSub\ThreadInterface[]
      */
     public function getUserThreads($userId, array $conditions = [])
     {
         $conditions[Field::SUBER_NAME] = $this->getUserSubscriberId($userId);
 
-        // @todo Wrap the iterator to return Thread instances
-        // instead of channels
-        return $this->backend->fetchChannels($conditions);
+        return new ThreadCursor(
+            $this,
+            $this->backend->fetchChannels($conditions)
+        );
     }
 
     /**
