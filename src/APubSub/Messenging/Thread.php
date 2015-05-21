@@ -4,7 +4,6 @@ namespace APubSub\Messenging;
 
 use APubSub\ChannelInterface;
 use APubSub\Field;
-use APubSub\Misc;
 
 class Thread
 {
@@ -28,6 +27,16 @@ class Thread
     {
         $this->service    = $service;
         $this->channel    = $channel;
+    }
+
+    /**
+     * Get messenging service this thread is attached to
+     *
+     * @return \APubSub\Messenging\MessengingService
+     */
+    public function getService()
+    {
+        return $this->service;
     }
 
     /**
@@ -116,7 +125,7 @@ class Thread
     }
 
     /**
-     * Fetch thread messages
+     * Fetch thread messages for user
      *
      * @param string $userId
      * @param mixed[] $conditions
@@ -141,31 +150,24 @@ class Thread
     {
         $conditions[Field::MSG_UNREAD] = 1;
 
-        return $this->fetchMessagesFor($userId, $conditions)->count();
+        return $this
+            ->fetchMessagesFor($userId, $conditions)
+            ->count()
+        ;
     }
 
     /**
      * Mark whole or part of the thread as read
      *
      * @param string $userId
-     * @param string|string[] $messageIdList
      * @param boolean $read = true
+     * @param mixed[] $conditions
      */
-    public function markAsRead($userId, $messageIdList = null, $read = true)
+    public function markAsReadFor($userId, $read = true, array $conditions = [])
     {
-        $conditions = [];
-
-        if (null !== $messageIdList) {
-            $conditions[Field::MSG_ID] = $messageIdList;
-        }
-
         $this
-            ->fetchMessagesFor($userId, $conditions)
-            ->update([
-                Field::MSG_UNREAD => !(bool)$read,
-                // @todo This should be implicit...
-                Field::MSG_READ_TS => (new \DateTime())->format(Misc::SQL_DATETIME),
-            ])
+            ->service
+            ->markAsReadFor($userId, $this->getId(), $read, $conditions)
         ;
     }
 }
