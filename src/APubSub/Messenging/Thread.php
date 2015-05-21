@@ -4,6 +4,7 @@ namespace APubSub\Messenging;
 
 use APubSub\ChannelInterface;
 use APubSub\Field;
+use APubSub\Misc;
 
 class Thread
 {
@@ -141,5 +142,30 @@ class Thread
         $conditions[Field::MSG_UNREAD] = 1;
 
         return $this->fetchMessagesFor($userId, $conditions)->count();
+    }
+
+    /**
+     * Mark whole or part of the thread as read
+     *
+     * @param string $userId
+     * @param string|string[] $messageIdList
+     * @param boolean $read = true
+     */
+    public function markAsRead($userId, $messageIdList = null, $read = true)
+    {
+        $conditions = [];
+
+        if (null !== $messageIdList) {
+            $conditions[Field::MSG_ID] = $messageIdList;
+        }
+
+        $this
+            ->fetchMessagesFor($userId, $conditions)
+            ->update([
+                Field::MSG_UNREAD => !(bool)$read,
+                // @todo This should be implicit...
+                Field::MSG_READ_TS => (new \DateTime())->format(Misc::SQL_DATETIME),
+            ])
+        ;
     }
 }
