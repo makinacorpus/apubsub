@@ -97,27 +97,16 @@ class D7MessageCursor extends AbstractD7Cursor
                     break;
 
                 case Field::CHAN_ID:
-
-                    // FIXME: This is sad and ugly and not fully working
-                    try {
-                        $backend = $this->getBackend();
-
-                        if (is_array($value)) {
-                            $value = array();
-                            foreach ($backend->getChannels($value) as $channel) {
-                                $value[] = $channel->getDatabaseId();
-                            }
-                        } else {
-                            $value = $backend->getChannel($value)->getDatabaseId();
-                        }
-
-                        $ret['mc.chan_id'] = $value;
-                        $this->queryOnChan = true;
-
-                    } catch (ChannelDoesNotExistException $e) {
-                        // No result no chan (tududu dudu).
-                        $ret['q.id'] = -1;
-                    }
+                    $sq = $this
+                        ->getBackend()
+                        ->getConnection()
+                        ->select('apb_msg_chan', 'mc')
+                    ;
+                    $sq->join('apb_chan', 'c', 'c.id = mc.chan_id');
+                    $sq->addExpression("1");
+                    $sq->where("mc.msg_id = m.id");
+                    $sq->condition('c.name', $value);
+                    $ret['exists.c.id'] = array('exists' => $sq);
                     break;
 
                 default:
