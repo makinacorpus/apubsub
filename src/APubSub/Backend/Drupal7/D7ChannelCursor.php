@@ -60,6 +60,42 @@ class D7ChannelCursor extends AbstractD7Cursor
                     $ret['c.updated'] = $value;
                     break;
 
+                // WARNING: NOT PROUD OF THIS ONE!
+                case Field::MSG_TYPE:
+                    // First fetch the type.
+                    if (null !== $value) {
+                        $typeRegistry = $this->getBackend()->getTypeRegistry();
+                        if (is_array($value)) {
+                            array_walk($value, function (&$value) use ($typeRegistry) {
+                                $value = $typeRegistry->getTypeId($value);
+                            });
+                        } else {
+                            $value = $typeRegistry->getTypeId($value);
+                        }
+                    }
+
+                    // Add a WHERE EXISTS sub-query, a bit hackish but
+                    // should work, we'll later for optimization if we
+                    // encounter slow query problems
+                    $sq = $this
+                        ->getBackend()
+                        ->getConnection()
+                        ->select('apb_msg_chan', 'mc')
+                    ;
+                    $sq->join('apb_msg', 'm', 'mc.msg_id = m.id');
+                    $sq->addExpression("1");
+                    $sq->where("mc.chan_id = c.id");
+                    if (null === $value) {
+                        $sq->isNull('m.type_id');
+                    } else {
+                        $sq->condition('m.type_id', $value);
+                    }
+                    // Stupid unique name that does not correspond to
+                    // anything, since it won't be used by the EXISTS
+                    // query
+                    $ret['exists.m.type'] = array('exists' => $sq);
+                    break;
+
                 case Field::SUB_ID:
                     $ret['s.id'] = $value;
                     $this->queryOnSub = true;

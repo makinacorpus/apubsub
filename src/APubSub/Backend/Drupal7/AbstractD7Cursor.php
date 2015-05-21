@@ -161,8 +161,17 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
             foreach ($this->conditions as $statement => $value) {
                 // Check if $value contains an operator (i.e. if is associative array)
                 if (is_array($value) && !Misc::isIndexed($value)) {
+                    // First key will be the operator
                     $keys = array_keys($value);
-                    $this->query->condition($statement, array_values($value), $keys[0]);
+
+                    switch ($keys[0]) {
+                        case 'exists':
+                            $this->query->exists(reset($value));
+                            break;
+                        default:
+                            $this->query->condition($statement, array_values($value), $keys[0]);
+                            break;
+                    }
                 } else {
                     $this->query->condition($statement, $value);
                 }
