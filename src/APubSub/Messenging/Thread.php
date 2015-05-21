@@ -74,14 +74,21 @@ class Thread
      */
     public function getRecipients()
     {
-        return iterator_to_array(
-            $this
-                ->service
-                ->getBackend()
-                ->fetchSubscribers([
-                    Field::CHAN_ID => $this->channel->getId(),
-                ])
-        );
+        $cursor = $this
+            ->service
+            ->getBackend()
+            ->fetchSubscribers([
+                Field::CHAN_ID => $this->channel->getId(),
+            ])
+        ;
+
+        return function () use ($cursor) {
+            /* @var $subscriber \APubSub\SubscriberInterface */
+            foreach ($cursor as $subscriber) {
+                // Yeah, my first PHP generator ever \o/ This worth the comment.
+                yield(explode(':', $subscriber->getId())[1]);
+            }
+        };
     }
 
     /**

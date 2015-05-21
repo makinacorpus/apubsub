@@ -46,7 +46,7 @@ class MessengingService implements BackendAwareInterface
      *
      * @return string
      */
-    protected function getUserSubscriberId($userId)
+    public function getUserSubscriberId($userId)
     {
         return self::SUBER_PREFIX . ':' . $userId;
     }
@@ -128,13 +128,36 @@ class MessengingService implements BackendAwareInterface
     /**
      * Get user threads
      *
+     * Using the getUserMessages() method, you can provide a message-based
+     * UI, while using this method you can provide a thread-based UI.
+     *
      * @return \APubSub\CursorInterface|\APubSub\ChannelInterface[]
      */
     public function getUserThreads($userId, array $conditions = [])
     {
         $conditions[Field::SUBER_NAME] = $this->getUserSubscriberId($userId);
 
+        // @todo Wrap the iterator to return Thread instances
+        // instead of channels
         return $this->backend->fetchChannels($conditions);
+    }
+
+    /**
+     * Get user messages
+     *
+     * This should serve you to have quick and easy count methods over the
+     * unread messages, for example.
+     *
+     * Using the getUserThreads() method, you can provide a thread-based
+     * UI, while using this method you can provide a message-based UI.
+     *
+     * @return \APubSub\CursorInterface|\APubSub\MessageInstanceInterface[]
+     */
+    public function getUserMessages($userId, array $conditions = [])
+    {
+        $conditions[Field::SUBER_NAME] = $this->getUserSubscriberId($userId);
+
+        return $this->backend->fetch($conditions);
     }
 
     /**
