@@ -5,6 +5,7 @@ namespace APubSub\Messenging;
 use APubSub\BackendAwareInterface;
 use APubSub\BackendInterface;
 use APubSub\Field;
+use APubSub\Misc;
 
 /**
  * Messenging service, single point of entry for the business layer
@@ -100,7 +101,7 @@ class MessengingService implements BackendAwareInterface
      * @param string|string[] $threadId
      * @param string $userId
      */
-    public function deleteThreadForUser($threadId, $userId)
+    public function deleteThreadFor($threadId, $userId)
     {
         $this
             ->backend
@@ -122,6 +123,32 @@ class MessengingService implements BackendAwareInterface
                 Field::CHAN_ID => $threadId
             ])
             ->delete()
+        ;
+    }
+
+    /**
+     * Mark one or more thread as read for user
+     *
+     * @param string $userId
+     *   User identifier
+     * @param string|string[] $threadId
+     *   Thread identifier or list of thread identifiers
+     * @param boolean $read
+     *   New read status
+     * @param mixed[] $conditions
+     *   Additional conditions
+     */
+    public function markAsReadFor($userId, $threadId, $read = true, array $conditions = [])
+    {
+        $conditions[Field::CHAN_ID] = $threadId;
+
+        $this
+            ->getUserMessages($userId, $conditions)
+            ->update([
+                Field::MSG_UNREAD => !(bool)$read,
+                // @todo This should be implicit...
+                Field::MSG_READ_TS => (new \DateTime())->format(Misc::SQL_DATETIME),
+            ])
         ;
     }
 
@@ -166,7 +193,7 @@ class MessengingService implements BackendAwareInterface
      *
      * @param string $id
      *
-     * @return \APubSub\ChannelInterface
+     * @return Thread
      */
     public function getThread($id)
     {
