@@ -171,6 +171,29 @@ class MessengingService implements BackendAwareInterface
     }
 
     /**
+     * Add one or more recipients to this thread
+     *
+     * @param string $threadId
+     *   Thread identifier
+     * @param string|string[] $userId
+     *   User identifier or list of user identifiers
+     */
+    public function addRecipientsTo($threadId, $userIdList)
+    {
+        if (!is_array($userIdList)) {
+            $userIdList = [$userIdList];
+        }
+
+        foreach ($userIdList as $userId) {
+            $this
+                ->getBackend()
+                ->getSubscriber($this->getUserSubscriberId($userId))
+                ->subscribe($threadId)
+            ;
+        }
+    }
+
+    /**
      * Get user messages
      *
      * This should serve you to have quick and easy count methods over the

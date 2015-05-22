@@ -144,6 +144,23 @@ class Thread
     }
 
     /**
+     * Add one or more recipients to this thread
+     *
+     * @param string|string[] $userIdList
+     *   User identifier or list of user identifiers
+     */
+    public function addRecipients($userIdList)
+    {
+        return $this
+            ->service
+            ->addRecipientsTo(
+                $this->getId(),
+                $userIdList
+            )
+        ;
+    }
+
+    /**
      * Can user see this thread
      *
      * Alias to isInRecipients()
@@ -153,6 +170,29 @@ class Thread
     public function hasAccess($userId)
     {
         return $this->isInRecipients($userId);
+    }
+
+    /**
+     * Removes user from this thread
+     *
+     * When no users are left on a thread, it will be deleted.
+     *
+     * @param string|string[] $threadId
+     * @param string $userId
+     */
+    public function deleteFor($userId)
+    {
+        $this->service->deleteThreadFor($this->getId(), $userId);
+    }
+
+    /**
+     * Removes this thread for everyone
+     *
+     * @param string|string[] $threadId
+     */
+    public function deleteThread()
+    {
+        $this->service->deleteThread($this->getId());
     }
 
     /**
