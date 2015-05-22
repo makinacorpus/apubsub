@@ -31,7 +31,7 @@ class ThreadCursor extends CursorDecorator
     }
 
     /**
-     * @see \IteratorAggregate::getIterator()
+     * {@inheritdoc}
      */
     public function getIterator()
     {
