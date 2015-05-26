@@ -18,6 +18,9 @@ abstract class AbstractBackend implements BackendInterface
         return $this;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getChannel($id)
     {
         $cursor = $this->fetchChannels(array(
