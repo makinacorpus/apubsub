@@ -75,7 +75,7 @@ class MessengingService implements BackendAwareInterface
         // own some risks of conflicts, but very low. SHA-1 gives a 40
         // character-long string, we have a database limit of 64 with the
         // Drupal backend, so this is acceptable
-        $id = $senderUserId . ':' . sha1($senderUserId . implode(',', $recipient) . time());
+        $id = $senderUserId . ':' . sha1($senderUserId . implode(',', $recipient) . uniqid('', true));
 
         $chan = $this->backend->createChannel($id, $subject);
 
