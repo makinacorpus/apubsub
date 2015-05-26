@@ -293,7 +293,6 @@ class D7MessageCursor extends AbstractD7Cursor
         // correctly wipe out the queue
         if ($this->distinct) {
             $query->groupBy('q.msg_id');
-            //$query->groupBy('m.id');
         }
 
         return $query;
