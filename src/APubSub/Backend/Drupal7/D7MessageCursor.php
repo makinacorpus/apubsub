@@ -402,6 +402,9 @@ class D7MessageCursor extends AbstractD7Cursor
                     break;
 
                 case Field::MSG_READ_TS:
+                    if ($value instanceof \DateTime) {
+                      $value = $value->format(Misc::SQL_DATETIME);
+                    }
                     $queryValues['read_at'] = (string)$value;
                     break;
 
