@@ -55,7 +55,7 @@ class Thread
      */
     public function send($contents, $sender, $type = null, $level = 0)
     {
-        $this->channel->send($contents, $type, $sender, $level);
+        return $this->channel->send($contents, $type, $sender, $level);
     }
 
     /**
