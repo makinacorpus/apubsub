@@ -13,6 +13,9 @@ use APubSub\Misc;
  */
 abstract class AbstractBackend implements BackendInterface
 {
+    /**
+     * {@inheritdoc}
+     */
     public function getBackend()
     {
         return $this;
@@ -36,6 +39,9 @@ abstract class AbstractBackend implements BackendInterface
         return reset($ret);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function deleteChannel($id, $ignoreErrors = false)
     {
         $cursor = $this->fetchChannels(array(
@@ -49,6 +55,9 @@ abstract class AbstractBackend implements BackendInterface
         $cursor->delete();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getChannels($idList)
     {
         $cursor = $this->fetchChannels(array(
@@ -64,6 +73,9 @@ abstract class AbstractBackend implements BackendInterface
         return $ret;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getSubscription($id)
     {
         $cursor = $this->fetchSubscriptions(array(
@@ -79,6 +91,9 @@ abstract class AbstractBackend implements BackendInterface
         return reset($ret);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getSubscriptions($idList)
     {
         if (empty($idList)) {
@@ -98,6 +113,9 @@ abstract class AbstractBackend implements BackendInterface
         return $ret;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function setUnread($queueId, $toggle = false)
     {
         $this
@@ -110,6 +128,9 @@ abstract class AbstractBackend implements BackendInterface
             ));
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function flush()
     {
         $this
