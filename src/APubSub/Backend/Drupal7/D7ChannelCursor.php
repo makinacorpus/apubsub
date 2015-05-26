@@ -68,15 +68,32 @@ class D7ChannelCursor extends AbstractD7Cursor
 
                 // WARNING: NOT PROUD OF THIS ONE!
                 case Field::MSG_TYPE:
-                    // First fetch the type.
+
+                    // First fetch the type
+                    // FIXME Sorry for this
                     if (null !== $value) {
+                        if (!is_array($value)) {
+                            $value = [$value];
+                        }
+                        $hasOperator = false;
                         $typeRegistry = $this->getBackend()->getTypeRegistry();
-                        if (is_array($value)) {
-                            array_walk($value, function (&$value) use ($typeRegistry) {
-                                $value = $typeRegistry->getTypeId($value);
-                            });
+                        if (!Misc::isIndexed($value)) {
+                            // We have an operator.
+                            $operator = array_keys($value)[0];
+                            $values = $value[$operator][0];
+                            $hasOperator = true;
                         } else {
-                            $value = $typeRegistry->getTypeId($value);
+                            $values = $value;
+                        }
+                        foreach ($values as $key => $type) {
+                            if ($typeId = $typeRegistry->getTypeId($type)) {
+                                $values[$key] = $typeId;
+                            } else {
+                                unset($values[$key]);
+                            }
+                        }
+                        if ($hasOperator) {
+                            $value[$operator] = $values;
                         }
                     }
 
@@ -91,15 +108,11 @@ class D7ChannelCursor extends AbstractD7Cursor
                     $sq->join('apb_msg', 'm', 'mc.msg_id = m.id');
                     $sq->addExpression("1");
                     $sq->where("mc.chan_id = c.id");
-                    if (null === $value) {
-                        $sq->isNull('m.type_id');
-                    } else {
-                        $sq->condition('m.type_id', $value);
-                    }
+                    $this->applyOperator($sq, 'm.type_id', $value);
                     // Stupid unique name that does not correspond to
                     // anything, since it won't be used by the EXISTS
                     // query
-                    $ret['exists.m.type'] = array('exists' => $sq);
+                    $ret['exists.m.type'] = ['exists' => $sq];
                     break;
 
                 case Field::SUB_ID:

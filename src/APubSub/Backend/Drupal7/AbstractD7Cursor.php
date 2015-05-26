@@ -147,6 +147,57 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
     protected abstract function buildQuery();
 
     /**
+     * Apply the operator onto the query
+     *
+     * @param \SelectQueryInterface $query
+     * @param string $statement
+     * @param string $value
+     */
+    final protected function applyOperator(\SelectQueryInterface $query, $statement, $value)
+    {
+        // Check if $value contains an operator (i.e. if is associative array)
+        if (is_array($value) && !Misc::isIndexed($value)) {
+
+            // First key will be the operator
+            $keys     = array_keys($value);
+            $operator = $keys[0];
+            $value    = $value[$operator];
+
+            switch ($operator) {
+
+                case '<>':
+                    // FIXME I am sorry I am going to die because of this code...
+                    if (is_array($value)) {
+                        $query->condition(
+                            db_or()
+                                ->isNull($statement)
+                                ->condition($statement, $value, 'NOT IN')
+                        );
+                    } else {
+                        $query->condition(
+                            db_or()
+                                ->isNull($statement)
+                                ->condition($statement, $value, '<>')
+                        );
+                    }
+                    break;
+
+                case 'exists':
+                    $query->exists($value);
+                    break;
+
+                default:
+                    $query->condition($statement, $value, $operator);
+                    break;
+            }
+        } else if (null === $value) {
+            $query->isNull($statement);
+        } else {
+            $query->condition($statement, $value);
+        }
+    }
+
+    /**
      * Get query
      *
      * @return \SelectQueryInterface $query
@@ -159,22 +210,7 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
 
             // Apply conditions.
             foreach ($this->conditions as $statement => $value) {
-                // Check if $value contains an operator (i.e. if is associative array)
-                if (is_array($value) && !Misc::isIndexed($value)) {
-                    // First key will be the operator
-                    $keys = array_keys($value);
-
-                    switch ($keys[0]) {
-                        case 'exists':
-                            $this->query->exists(reset($value));
-                            break;
-                        default:
-                            $this->query->condition($statement, array_values($value), $keys[0]);
-                            break;
-                    }
-                } else {
-                    $this->query->condition($statement, $value);
-                }
+                $this->applyOperator($this->query, $statement, $value);
             }
 
             $limit = $this->getLimit();
