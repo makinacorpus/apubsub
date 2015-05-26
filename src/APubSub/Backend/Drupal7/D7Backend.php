@@ -559,6 +559,44 @@ class D7Backend extends AbstractBackend
     /**
      * {@inheritdoc}
      */
+    public function copyQueue($chanId, $subIdList, $isUnread = true)
+    {
+        if (!is_array($subIdList)) {
+            $subIdList = [$subIdList];
+        }
+
+        if (!$channel = $this->getChannel($chanId)) {
+            throw new ChannelDoesNotExistException();
+        }
+
+        // FIXME: Could do better than foreach.
+        foreach ($subIdList as $subId) {
+            $this
+                ->getConnection()
+                ->query("
+                    INSERT INTO {apb_queue} (msg_id, sub_id, created, unread)
+                    SELECT m.id, :subId, m.created, :isUnread
+                    FROM apb_msg m
+                    JOIN apb_msg_chan mc ON m.id = mc.msg_id
+                    WHERE
+                        mc.chan_id = :chanId
+                        AND NOT EXISTS (
+                            SELECT 1 FROM apb_queue q
+                            WHERE q.msg_id = m.id AND q.sub_id = :subId2
+                        )
+                ", [
+                    ':subId'    => $subId,
+                    ':isUnread' => (int)$isUnread,
+                    ':chanId'   => $channel->getDatabaseId(),
+                    ':subId2'   => $subId,
+                ])
+            ;
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function flushCaches()
     {
     }

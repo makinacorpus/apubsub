@@ -184,13 +184,19 @@ class MessengingService implements BackendAwareInterface
             $userIdList = [$userIdList];
         }
 
+        $backend = $this->getBackend();
+        $subList = [];
+
         foreach ($userIdList as $userId) {
-            $this
-                ->getBackend()
+
+            $subList[] = $backend
                 ->getSubscriber($this->getUserSubscriberId($userId))
                 ->subscribe($threadId)
+                ->getId()
             ;
         }
+
+        $backend->copyQueue($threadId, $subList);
     }
 
     /**

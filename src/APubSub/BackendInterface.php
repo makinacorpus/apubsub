@@ -199,6 +199,18 @@ interface BackendInterface extends MessageContainerInterface
     );
 
     /**
+     * Copy old messages from one channel to one or more new subscriptions
+     *
+     * @param int $chanId
+     *   Channel identifier (message selection)
+     * @param int|int[] $subIdList
+     *   Target subscription identifier
+     * @param boolean $isUnread
+     *   Default (un)read state for new messages
+     */
+    public function copyQueue($chanId, $subIdList, $isUnread = true);
+
+    /**
      * Set the unread status of a specific message
      *
      * Method is silent if message does not exist in this subscription queue
