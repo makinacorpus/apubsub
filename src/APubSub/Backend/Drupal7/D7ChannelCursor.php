@@ -53,10 +53,16 @@ class D7ChannelCursor extends AbstractD7Cursor
                     break;
 
                 case Field::CHAN_CREATED_TS:
+                    if ($value instanceof \DateTime) {
+                        $value = $value->format(Misc::SQL_DATETIME);
+                    }
                     $ret['c.created'] = $value;
                     break;
 
                 case Field::CHAN_UPDATED_TS:
+                    if ($value instanceof \DateTime) {
+                        $value = $value->format(Misc::SQL_DATETIME);
+                    }
                     $ret['c.updated'] = $value;
                     break;
 
