@@ -117,7 +117,22 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
      */
     final public function count()
     {
-        return count($this->getIterator());
+        if (null !== $this->count) {
+            return $this->count;
+        }
+
+        if (null !== $this->iterator) {
+            $this->count = count($this->iterator);
+        } else {
+            $query = clone $this->getQuery();
+            $this->count = (int)$query
+                ->countQuery()
+                ->execute()
+                ->fetchField()
+            ;
+        }
+
+        return $this->count;
     }
 
     /**
