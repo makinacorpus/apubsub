@@ -27,6 +27,13 @@ class D7ChannelCursor extends AbstractD7Cursor
     protected $queryOnSub = false;
 
     /**
+     * Should JOIN with subscriptions and queue
+     *
+     * @var boolean
+     */
+    protected $queryOnQueue = false;
+
+    /**
      * {@inheritdoc}
      */
     public function getAvailableSorts()
@@ -66,12 +73,18 @@ class D7ChannelCursor extends AbstractD7Cursor
                     $ret['c.updated'] = $value;
                     break;
 
+                case Field::MSG_UNREAD:
+                    $ret['q.unread'] = (int)(bool)$value;
+                    $this->queryOnQueue = true;
+                    break;
+
                 // WARNING: NOT PROUD OF THIS ONE!
                 case Field::MSG_TYPE:
-
                     // First fetch the type
                     // FIXME Sorry for this
-                    if (null !== $value) {
+                    if (null === $value) {
+                        $value = 0;
+                    } else {
                         if (!is_array($value)) {
                             $value = [$value];
                         }
@@ -86,7 +99,9 @@ class D7ChannelCursor extends AbstractD7Cursor
                             $values = $value;
                         }
                         foreach ($values as $key => $type) {
-                            if ($typeId = $typeRegistry->getTypeId($type)) {
+                            if (null === $type) {
+                                $values[$key] = 0;
+                            } else if ($typeId = $typeRegistry->getTypeId($type)) {
                                 $values[$key] = $typeId;
                             } else {
                                 unset($values[$key]);
@@ -94,25 +109,12 @@ class D7ChannelCursor extends AbstractD7Cursor
                         }
                         if ($hasOperator) {
                             $value[$operator] = $values;
+                        } else {
+                            $value = $values;
                         }
                     }
-
-                    // Add a WHERE EXISTS sub-query, a bit hackish but
-                    // should work, we'll later for optimization if we
-                    // encounter slow query problems
-                    $sq = $this
-                        ->getBackend()
-                        ->getConnection()
-                        ->select('apb_msg_chan', 'mc')
-                    ;
-                    $sq->join('apb_msg', 'm', 'mc.msg_id = m.id');
-                    $sq->addExpression("1");
-                    $sq->where("mc.chan_id = c.id");
-                    $this->applyOperator($sq, 'm.type_id', $value);
-                    // Stupid unique name that does not correspond to
-                    // anything, since it won't be used by the EXISTS
-                    // query
-                    $ret['exists.m.type'] = ['exists' => $sq];
+                    $ret['q.type_id'] = $value;
+                    $this->queryOnQueue = true;
                     break;
 
                 case Field::SUB_ID:
@@ -197,15 +199,17 @@ class D7ChannelCursor extends AbstractD7Cursor
             ->getConnection()
         ;
 
+        $query = $cx->select('apb_chan', 'c');
+
         if ($this->queryOnSuber) {
-            $query = $cx->select('apb_sub_map', 'mp');
-            $query->join('apb_sub', 's', "s.id = mp.sub_id");
-            $query->join('apb_chan', 'c', 'c.id = s.chan_id');
-        } else if ($this->queryOnSub) {
-            $query = $cx->select('apb_sub', 's');
-            $query->join('apb_chan', 'c', 'c.id = s.chan_id');
-        } else {
-            $query = $cx->select('apb_chan', 'c');
+            $query->join('apb_sub', 's', "s.chan_id = c.id");
+            $query->join('apb_sub_map', 'mp', "s.id = mp.sub_id");
+        } else if ($this->queryOnSub || $this->queryOnQueue) {
+            $query->join('apb_sub', 's', "s.chan_id = c.id");
+        }
+
+        if ($this->queryOnQueue) {
+            $query->join('apb_queue', 'q', "q.sub_id = s.id");
         }
 
         $query->fields('c');
