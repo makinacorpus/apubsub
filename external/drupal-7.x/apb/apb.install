@@ -94,8 +94,9 @@ function apb_schema() {
       'type_id' => array(
         'description' => "Message type",
         'type'        => 'int',
-        'not null'    => false,
-        'default'     => null,
+        'unsigned'    => true,
+        'not null'    => true,
+        'default'     => 0,
       ),
       'created' => array(
         'description' => "Creation date",
@@ -298,8 +299,15 @@ function apb_schema() {
         'unsigned'    => true,
         'not null'    => true,
       ),
+      'type_id' => array(
+        'description' => "Message internal int32 type identifier (denormalization for performance)",
+        'type'        => 'int',
+        'unsigned'    => true,
+        'not null'    => true,
+        'default'     => 0,
+      ),
       'created' => array(
-        'description' => "Creation date denormalization for performances",
+        'description' => "Creation date denormalization (denormalization for performance)",
         'mysql_type'  => 'datetime',
         'pgsql_type'  => 'timestamp',
         'type'        => 'varchar',
@@ -503,5 +511,31 @@ function apb_update_7008() {
   }
   if (!db_index_exists('apb_msg', 'apb_msg_origin_idx')) {
     db_add_index('apb_msg', 'apb_msg_origin_idx', array('origin'));
+  }
+}
+
+/**
+ * Adds the {apb_queue}.type_id column.
+ */
+function apb_update_7009() {
+
+  db_query("UPDATE {apb_msg} SET type_id = 0 WHERE type_id IS NULL");
+  db_change_field('apb_msg', 'type_id', 'type_id', array(
+    'description' => "Message type",
+    'type'        => 'int',
+    'unsigned'    => true,
+    'not null'    => true,
+    'default'     => 0,
+  ));
+
+  if (!db_field_exists('apb_queue', 'type_id')) {
+    db_add_field('apb_queue', 'type_id', array(
+      'description' => "Message internal int32 type identifier (denormalization for performance)",
+      'type'        => 'int',
+      'unsigned'    => true,
+      'not null'    => true,
+      'default'     => 0,
+    ));
+    db_query("UPDATE apb_queue SET type_id = (SELECT type_id FROM apb_msg WHERE id = msg_id)");
   }
 }

@@ -102,10 +102,9 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
     {
         $this->hasRun = true;
 
-        $result  = array();
-        $query   = $this->getQuery();
+        $query = $this->getQuery();
 
-        $this->applySorts($this->query, $this->getSorts());
+        $this->applySorts($query, $this->getSorts());
 
         foreach ($query->execute() as $record) {
             yield $this->createObjectInstance($record);
@@ -177,19 +176,10 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
             switch ($operator) {
 
                 case '<>':
-                    // FIXME I am sorry I am going to die because of this code...
                     if (is_array($value)) {
-                        $query->condition(
-                            db_or()
-                                ->isNull($statement)
-                                ->condition($statement, $value, 'NOT IN')
-                        );
+                        $query->condition($statement, $value, 'NOT IN');
                     } else {
-                        $query->condition(
-                            db_or()
-                                ->isNull($statement)
-                                ->condition($statement, $value, '<>')
-                        );
+                        $query->condition($statement, $value, '<>');
                     }
                     break;
 
