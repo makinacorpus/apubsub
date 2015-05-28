@@ -36,9 +36,11 @@ class ThreadCursor extends CursorDecorator
     public function getIterator()
     {
         foreach (parent::getIterator() as $key => $value) {
+
             if ($value instanceof ChannelInterface) {
                 $value = new Thread($this->service, $value);
             }
+
             yield $key => $value;
         }
     }
