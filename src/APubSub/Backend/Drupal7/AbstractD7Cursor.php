@@ -15,9 +15,9 @@ use APubSub\Misc;
 abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggregate
 {
     /**
-     * @var \ArrayIterator
+     * @var boolean
      */
-    private $iterator;
+    private $hasRun = false;
 
     /**
      * @var \SelectQuery
@@ -28,6 +28,11 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
      * @var int
      */
     private $count;
+
+    /**
+     * @var int
+     */
+    private $totalCount;
 
     /**
      * Internal conditions
@@ -74,7 +79,7 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
      */
     final public function setConditions(array $conditions)
     {
-        if (null !== $this->iterator) {
+        if ($this->hasRun) {
             throw new \RuntimeException("Cursor query has already run");
         }
 
@@ -95,21 +100,16 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
      */
     public function getIterator()
     {
-        if (null === $this->iterator) {
+        $this->hasRun = true;
 
-            $result  = array();
-            $query   = $this->getQuery();
+        $result  = array();
+        $query   = $this->getQuery();
 
-            $this->applySorts($this->query, $this->getSorts());
+        $this->applySorts($this->query, $this->getSorts());
 
-            foreach ($query->execute() as $record) {
-                $result[] = $this->createObjectInstance($record);
-            }
-
-            $this->iterator = new \ArrayIterator($result);
+        foreach ($query->execute() as $record) {
+            yield $this->createObjectInstance($record);
         }
-
-        return $this->iterator;
     }
 
     /**
@@ -121,18 +121,13 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
             return $this->count;
         }
 
-        if (null !== $this->iterator) {
-            $this->count = count($this->iterator);
-        } else {
-            $query = clone $this->getQuery();
-            $this->count = (int)$query
-                ->countQuery()
-                ->execute()
-                ->fetchField()
-            ;
-        }
+        $query = clone $this->getQuery();
 
-        return $this->count;
+        return $this->count = (int)$query
+            ->countQuery()
+            ->execute()
+            ->fetchField()
+        ;
     }
 
     /**
@@ -140,17 +135,18 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
      */
     final public function getTotalCount()
     {
-        if (null === $this->count) {
-            $query = clone $this->getQuery();
-
-            $this->count = (int)$query
-                ->range()
-                ->countQuery()
-                ->execute()
-                ->fetchField();
+        if (null !== $this->totalCount) {
+            return $this->totalCount;
         }
 
-        return $this->count;
+        $query = clone $this->getQuery();
+
+        return $this->totalCount = (int)$query
+            ->range()
+            ->countQuery()
+            ->execute()
+            ->fetchField()
+        ;
     }
 
     /**
