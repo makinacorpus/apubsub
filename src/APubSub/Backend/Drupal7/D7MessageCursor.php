@@ -69,18 +69,11 @@ class D7MessageCursor extends AbstractD7Cursor
                     break;
 
                 case Field::MSG_TYPE:
-
-                    $typeRegistry = $this->getBackend()->getTypeRegistry();
-
-                    if (is_array($value)) {
-                        array_walk($value, function (&$value) use ($typeRegistry) {
-                            $value = $typeRegistry->getTypeId($value);
-                        });
-                    } else {
-                        $value = $typeRegistry->getTypeId($value);
-                    }
-
-                    $ret['m.type_id'] = $value;
+                    $ret['m.type_id'] = $this
+                        ->getBackend()
+                        ->getTypeRegistry()
+                        ->convertQueryCondition($value)
+                    ;
                     break;
 
                 case Field::SUB_ID:

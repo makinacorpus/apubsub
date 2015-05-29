@@ -80,40 +80,11 @@ class D7ChannelCursor extends AbstractD7Cursor
 
                 // WARNING: NOT PROUD OF THIS ONE!
                 case Field::MSG_TYPE:
-                    // First fetch the type
-                    // FIXME Sorry for this
-                    if (null === $value) {
-                        $value = 0;
-                    } else {
-                        if (!is_array($value)) {
-                            $value = [$value];
-                        }
-                        $hasOperator = false;
-                        $typeRegistry = $this->getBackend()->getTypeRegistry();
-                        if (!Misc::isIndexed($value)) {
-                            // We have an operator.
-                            $operator = array_keys($value)[0];
-                            $values = $value[$operator][0];
-                            $hasOperator = true;
-                        } else {
-                            $values = $value;
-                        }
-                        foreach ($values as $key => $type) {
-                            if (null === $type) {
-                                $values[$key] = 0;
-                            } else if ($typeId = $typeRegistry->getTypeId($type)) {
-                                $values[$key] = $typeId;
-                            } else {
-                                unset($values[$key]);
-                            }
-                        }
-                        if ($hasOperator) {
-                            $value[$operator] = $values;
-                        } else {
-                            $value = $values;
-                        }
-                    }
-                    $ret['q.type_id'] = $value;
+                    $ret['q.type_id'] = $this
+                        ->getBackend()
+                        ->getTypeRegistry()
+                        ->convertQueryCondition($value)
+                    ;
                     $this->queryOnQueue = true;
                     break;
 
