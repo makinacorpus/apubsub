@@ -2,6 +2,7 @@
 
 namespace APubSub\Backend\Drupal7;
 
+use APubSub\Misc;
 /**
  * Handles message type normalisation using an external database table in
  * order to leave the apb_msg table lightweight
@@ -34,23 +35,31 @@ class TypeRegistry
             ->backend
             ->getConnection()
             ->query("SELECT id, type FROM {apb_msg_type}")
-            ->fetchAllKeyed();
+            ->fetchAllKeyed()
+        ;
     }
 
     /**
      * Get type identifier
      *
-     * @param string $type Message type
+     * @param string $type
+     *   Message type
+     * @param boolean $createIfMissing
+     *   Create it if missing
      *
      * @return int         Message type id
      */
-    public function getTypeId($type)
+    public function getTypeId($type, $createIfMissing = true)
     {
         if (null === $this->types) {
             $this->loadCache();
         }
 
         if (false === ($key = array_search($type, $this->types, true))) {
+
+            if (!$createIfMissing) {
+                return null;
+            }
 
             try {
                 $this
@@ -111,6 +120,52 @@ class TypeRegistry
             return null;
         } else {
             return $this->types[$id];
+        }
+    }
+
+    /**
+     * Convert given query condition value which is supposed to contain types
+     * identifiers to integer identifiers
+     *
+     * This function will take care of awaited query format
+     */
+    public function convertQueryCondition($value)
+    {
+        // First fetch the type
+        if (null === $value) {
+            return 0;
+        }
+
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        $hasOperator = false;
+
+        // FIXME Sorry for this
+        if (!Misc::isIndexed($value)) {
+            // We have an operator.
+            $operator = array_keys($value)[0];
+            $values = $value[$operator][0];
+            $hasOperator = true;
+        } else {
+            $values = $value;
+        }
+
+        foreach ($values as $key => $type) {
+            if (null === $type) {
+                $values[$key] = 0;
+            } else if ($typeId = $this->getTypeId($type, false)) {
+                $values[$key] = $typeId;
+            } else {
+                unset($values[$key]);
+            }
+        }
+
+        if ($hasOperator) {
+            return [$operator => $values];
+        } else {
+            return $values;
         }
     }
 }
