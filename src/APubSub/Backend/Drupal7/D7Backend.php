@@ -578,8 +578,8 @@ class D7Backend extends AbstractBackend
             $this
                 ->getConnection()
                 ->query("
-                    INSERT INTO {apb_queue} (msg_id, sub_id, created, unread)
-                    SELECT m.id, :subId, m.created, :isUnread
+                    INSERT INTO {apb_queue} (msg_id, sub_id, type_id, created, unread)
+                    SELECT m.id, :subId, m.type_id, m.created, :isUnread
                     FROM apb_msg m
                     JOIN apb_msg_chan mc ON m.id = mc.msg_id
                     WHERE
