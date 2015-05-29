@@ -162,6 +162,12 @@ class TypeRegistry
             }
         }
 
+        if (empty($values)) {
+            // It should not have been empty, this is an impossible
+            // condition
+            $values = [-1];
+        }
+
         if ($hasOperator) {
             return [$operator => $values];
         } else {
