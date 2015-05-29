@@ -449,7 +449,7 @@ class D7Backend extends AbstractBackend
         $cx       = $this->db;
         $tx       = null;
         $id       = null;
-        $typeId   = null;
+        $typeId   = 0;
         $chanList = $this->getChannels($chanId);
         $dbIdList = array();
 
@@ -494,10 +494,11 @@ class D7Backend extends AbstractBackend
             if (empty($excluded)) {
                 $cx
                     ->query("
-                        INSERT INTO {apb_queue} (msg_id, sub_id, unread, created)
+                        INSERT INTO {apb_queue} (msg_id, sub_id, type_id, unread, created)
                             SELECT
                                 :msgId   AS msg_id,
                                 s.id     AS sub_id,
+                                :typeId  AS type_id,
                                 1        AS unread,
                                 :created AS created
                             FROM {apb_sub} s
@@ -505,6 +506,7 @@ class D7Backend extends AbstractBackend
                             AND s.status = 1
                         ", [
                             ':msgId'   => $id,
+                            ':typeId'  => $typeId,
                             ':chanId'  => $dbIdList,
                             ':created' => $sentAt->format(Misc::SQL_DATETIME),
                         ])
@@ -512,10 +514,11 @@ class D7Backend extends AbstractBackend
             } else {
                 $cx
                     ->query("
-                        INSERT INTO {apb_queue} (msg_id, sub_id, unread, created)
+                        INSERT INTO {apb_queue} (msg_id, sub_id, type_id, unread, created)
                             SELECT
                                 :msgId   AS msg_id,
                                 s.id     AS sub_id,
+                                :typeId  AS type_id,
                                 1        AS unread,
                                 :created AS created
                             FROM {apb_sub} s
@@ -525,6 +528,7 @@ class D7Backend extends AbstractBackend
                                 AND s.id NOT IN (:excluded)
                         ", [
                             ':msgId'    => $id,
+                            ':typeId'  => $typeId,
                             ':chanId'   => $dbIdList,
                             ':created'  => $sentAt->format(Misc::SQL_DATETIME),
                             ':excluded' => $excluded,
