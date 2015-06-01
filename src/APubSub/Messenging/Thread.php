@@ -196,6 +196,20 @@ class Thread
     }
 
     /**
+     * Fetch all thread messages
+     *
+     * @param mixed[] $conditions
+     *
+     * @return \APubSub\CursorInterface|\APubSub\MessageInstanceInterface[]
+     */
+    public function fetchMessages(array $conditions = [])
+    {
+        $conditions[Field::CHAN_ID] = $this->channel->getId();
+
+        return $this->channel->fetch($conditions);
+    }
+
+    /**
      * Fetch thread messages for user
      *
      * @param string $userId
