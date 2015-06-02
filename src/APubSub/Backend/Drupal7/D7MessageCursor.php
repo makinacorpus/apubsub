@@ -183,7 +183,7 @@ class D7MessageCursor extends AbstractD7Cursor
     protected function createObjectInstance(\stdClass $record)
     {
         if ($record->read_at) {
-            \DateTime::createFromFormat(Misc::SQL_DATETIME, (int)$record->read_at);
+            $readTime = \DateTime::createFromFormat(Misc::SQL_DATETIME, (string)$record->read_at);
         } else {
             $readTime = null;
         }
