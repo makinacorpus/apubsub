@@ -563,7 +563,7 @@ class D7Backend extends AbstractBackend
             throw $e;
         }
 
-        return new DefaultMessage($this, $contents, $id, $type, $level);
+        return new DefaultMessage($this, $contents, $id, $type, $level, $origin);
     }
 
     /**
