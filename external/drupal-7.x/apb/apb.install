@@ -393,6 +393,36 @@ function apb_schema() {
 }
 
 /**
+ * Adds missing table constraints.
+ */
+function apb_install_sql_constraints() {
+  // Hopefully, this syntax should work on both PostgreSQL and MySQL although
+  // this is pure coincidence, this is great for us.
+  $constraints = [
+    "ALTER TABLE {apb_sub_map} ADD CONSTRAINT FOREIGN KEY (sub_id) REFERENCES {apb_sub} (id) ON DELETE CASCADE",
+    "ALTER TABLE {apb_sub} ADD CONSTRAINT FOREIGN KEY (chan_id) REFERENCES {apb_chan} (id) ON DELETE CASCADE",
+    "ALTER TABLE {apb_msg_chan} ADD CONSTRAINT FOREIGN KEY (msg_id) REFERENCES {apb_msg} (id) ON DELETE CASCADE",
+    "ALTER TABLE {apb_msg_chan} ADD CONSTRAINT FOREIGN KEY (chan_id) REFERENCES {apb_chan} (id) ON DELETE CASCADE",
+    // Do not set the constraint on type, it can be 0 (non referenced in source
+    // table) in order to speedup some queries and avoid having to use IS [NOT]
+    // NULL clauses in queries.
+    // "ALTER TABLE {apb_msg} ADD CONSTRAINT FOREIGN KEY (type_id) REFERENCES {apb_msg_type} (id)";
+    "ALTER TABLE {apb_queue} ADD CONSTRAINT FOREIGN KEY (msg_id) REFERENCES {apb_msg} (id) ON DELETE CASCADE",
+    "ALTER TABLE {apb_queue} ADD CONSTRAINT FOREIGN KEY (sub_id) REFERENCES {apb_sub} (id) ON DELETE CASCADE",
+  ];
+  foreach ($constraints as $statement) {
+    db_query($statement);
+  }
+}
+
+/**
+ * Implements hook_install().
+ */
+function apb_install() {
+  apb_install_sql_constraints();
+}
+
+/**
  * Adds a few missing fields.
  */
 function apb_update_7001() {
@@ -538,4 +568,11 @@ function apb_update_7009() {
     ));
     db_query("UPDATE apb_queue SET type_id = (SELECT type_id FROM apb_msg WHERE id = msg_id)");
   }
+}
+
+/**
+ * Adds missing SQL constraints.
+ */
+function apb_update_7010() {
+  apb_install_sql_constraints();
 }

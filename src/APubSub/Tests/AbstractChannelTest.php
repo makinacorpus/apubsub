@@ -187,7 +187,8 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
             ->fetch(array(
                 Field::MSG_ID => $messageId,
             ))
-            ->delete();
+            ->delete()
+        ;
 
         $cursor = $sub2->fetch();
         $this->assertCount(2, $cursor, "Sub 2 has 2 messages after delete");

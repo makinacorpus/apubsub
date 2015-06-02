@@ -239,51 +239,6 @@ class D7ChannelCursor extends AbstractD7Cursor
             $tempTableName = $this->createTempTable();
 
             $cx->query("
-                DELETE FROM {apb_msg}
-                WHERE
-                    id IN (
-                        SELECT msg_id
-                        FROM {apb_msg_chan}
-                        WHERE
-                            chan_id IN (
-                                SELECT id
-                                FROM {" . $tempTableName ."}
-                            )
-                    )
-            ");
-
-            $cx->query("
-                DELETE
-                FROM {apb_msg_chan}
-                WHERE
-                    chan_id IN (
-                        SELECT id
-                        FROM {" . $tempTableName ."}
-                    )
-            ");
-
-            // FIXME: Performance problem right here
-            // Explore ON DELETE CASCADE (problem with Drupal here)
-            $cx->query("
-                DELETE
-                FROM {apb_queue}
-                WHERE
-                    msg_id NOT IN (
-                        SELECT id
-                        FROM {apb_msg}
-                    )
-            ");
-
-            $cx->query("
-                DELETE
-                FROM {apb_sub}
-                WHERE
-                    chan_id IN (
-                        SELECT id
-                        FROM {" . $tempTableName . "}
-                    )
-            ");
-            $cx->query("
                 DELETE
                 FROM {apb_chan}
                 WHERE
@@ -291,6 +246,18 @@ class D7ChannelCursor extends AbstractD7Cursor
                         SELECT id
                         FROM {" . $tempTableName ."}
                     )
+            ");
+
+            // There will be leftovers into message table. This will also force
+            // a queue cleanup while removing data in those.
+            $cx->query("
+                DELETE
+                FROM {apb_msg}
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM {apb_msg_chan}
+                    WHERE msg_id = id
+                )
             ");
 
             $cx->query("DROP TABLE {" . $tempTableName . "}");
@@ -343,13 +310,15 @@ class D7ChannelCursor extends AbstractD7Cursor
 
         $select = $cx
             ->select($tempTableName, 't')
-            ->fields('t', array('id'));
+            ->fields('t', array('id'))
+        ;
 
         $cx
             ->update('apb_chan')
             ->fields($queryValues)
             ->condition('id', $select, 'IN')
-            ->execute();
+            ->execute()
+        ;
 
         $cx->query("DROP TABLE {" . $tempTableName . "}");
     }

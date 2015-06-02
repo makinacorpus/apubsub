@@ -18,7 +18,7 @@ class SubscriptionTest extends AbstractSubscriptionTest
         // Test could have been skipped
         if (null !== $this->dbConnection) {
             foreach (array('apb_queue', 'apb_msg', 'apb_msg_chan', 'apb_sub', 'apb_chan', 'apb_sub_map') as $table) {
-                $this->dbConnection->query("TRUNCATE {" . $table . "}");
+                $this->dbConnection->query("DELETE FROM {" . $table . "}");
             }
         }
     }
