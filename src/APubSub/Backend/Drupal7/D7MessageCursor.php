@@ -349,21 +349,20 @@ class D7MessageCursor extends AbstractD7Cursor
         $cx = $this->getBackend()->getConnection();
 
         $cx->query("
-            DELETE FROM {apb_msg_chan}
-            WHERE
-                msg_id IN (
-                    SELECT id
-                    FROM {" . $tempTableName ."}
-                )
-        ");
-
-        $cx->query("
             DELETE FROM {apb_queue}
             WHERE
                 id IN (
                     SELECT id
                     FROM {" . $tempTableName ."}
                 )
+        ");
+
+        $cx->query("
+            DELETE FROM {apb_msg}
+            WHERE NOT EXISTS (
+                SELECT msg_id
+                FROM {apb_queue}
+            )
         ");
 
         $cx->query("DROP TABLE {" . $tempTableName . "}");
@@ -389,7 +388,7 @@ class D7MessageCursor extends AbstractD7Cursor
             switch ($key) {
 
                 case Field::MSG_UNREAD:
-                    $queryValues['unread'] = (int)$value;
+                    $queryValues['unread'] = (int)(bool)$value;
                     $additionalConditions[$key] = (int)!$value;
                     break;
 
@@ -416,13 +415,15 @@ class D7MessageCursor extends AbstractD7Cursor
 
         $select = $cx
             ->select($tempTableName, 't')
-            ->fields('t', array('id'));
+            ->fields('t', ['id'])
+        ;
 
         $cx
             ->update('apb_queue')
             ->fields($queryValues)
             ->condition('id', $select, 'IN')
-            ->execute();
+            ->execute()
+        ;
 
         $cx->query("DROP TABLE {" . $tempTableName . "}");
     }

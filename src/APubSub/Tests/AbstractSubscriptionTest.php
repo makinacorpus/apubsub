@@ -201,24 +201,21 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
         $chan1      = $this->chan;
         $sub1       = $subscriber->subscribe($chan1->getId());
 
-        $chan1->send(1);
-        $chan1->send(2);
-        $chan1->send(3);
-        $chan1->send(4);
-        $chan1->send(5);
-        $chan1->send(6);
+        $msgId1 = $chan1->send(1)->getId();
+        $msgId2 = $chan1->send(2)->getId();
+        $msgId3 = $chan1->send(3)->getId();
+        $msgId4 = $chan1->send(4)->getId();
+        $msgId5 = $chan1->send(5)->getId();
+        $msgId6 = $chan1->send(6)->getId();
 
         $sub1
-            ->fetch(array(
-                Field::MSG_ID => array(
-                    1,
-                    3,
-                    5,
-                ),
-            ))
-            ->update(array(
+            ->fetch([
+                Field::MSG_ID => [$msgId1, $msgId3, $msgId5],
+            ])
+            ->update([
                 Field::MSG_UNREAD => false,
-            ));
+            ])
+        ;
 
         $cursor = $sub1->fetch();
         foreach ($cursor as $message) {

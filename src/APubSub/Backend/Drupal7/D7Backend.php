@@ -303,8 +303,6 @@ class D7Backend extends AbstractBackend
                 ;
             }
 
-            $cx->query("DELETE FROM {apb_sub_map} WHERE name = :id", $args);
-
             unset($tx); // Explicit commit
 
             if (isset($this->subscribersCache[$id])) {
@@ -617,6 +615,7 @@ class D7Backend extends AbstractBackend
     public function garbageCollection()
     {
         // Drop all messages for inactive subscriptions
+        // FIXME: When volatile only
         $this
             ->db
             ->query("
@@ -670,25 +669,12 @@ class D7Backend extends AbstractBackend
         $this
             ->db
             ->query("
-                    DELETE
-                    FROM {apb_msg}
-                    WHERE id NOT IN (
-                        SELECT msg_id
-                        FROM {apb_queue}
-                    )
-                ");
-
-        // Clean up orphaned subsribers
-        $this
-            ->db
-            ->query("
-                    DELETE
-                    FROM {apb_sub_map}
-                    WHERE sub_id NOT IN (
-                        SELECT id
-                        FROM {apb_sub}
-                    )
-                ");
+                DELETE FROM {apb_msg}
+                WHERE id NOT IN (
+                    SELECT msg_id FROM {apb_queue}
+                )
+            ")
+        ;
     }
 
     /**

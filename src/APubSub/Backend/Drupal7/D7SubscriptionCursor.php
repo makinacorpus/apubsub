@@ -229,35 +229,13 @@ class D7SubscriptionCursor extends AbstractD7Cursor
             // cases) we need to proceed using a temporary table
             $tempTableName = $this->createTempTable();
 
-            // FIXME: Performance problem right here
-            // Explore ON DELETE CASCADE (problem with Drupal here)
-            $cx->query("
-                DELETE
-                FROM {apb_queue}
-                WHERE
-                    sub_id IN (
-                        SELECT id
-                        FROM {" . $tempTableName . "}
-                    )
-            ");
-
             $cx->query("
                 DELETE
                 FROM {apb_sub}
                 WHERE
                     id IN (
                         SELECT id
-                        FROM {" . $tempTableName ."}
-                    )
-            ");
-
-            $cx->query("
-                DELETE
-                FROM {apb_sub_map}
-                WHERE
-                    sub_id IN (
-                        SELECT id
-                        FROM {" . $tempTableName ."}
+                        FROM {" . $tempTableName . "}
                     )
             ");
 
@@ -323,7 +301,8 @@ class D7SubscriptionCursor extends AbstractD7Cursor
             ->update('apb_sub')
             ->fields($queryValues)
             ->condition('id', $select, 'IN')
-            ->execute();
+            ->execute()
+        ;
 
         $cx->query("DROP TABLE {" . $tempTableName . "}");
     }
