@@ -424,7 +424,13 @@ class D7Backend extends AbstractBackend
      */
     public function fetchSubscribers(array $conditions = null)
     {
-        throw new \Exception("Not implemented yet");
+        $cursor = new D7SubscriberCursor($this);
+
+        if (!empty($conditions)) {
+            $cursor->setConditions($conditions);
+        }
+
+        return $cursor;
     }
 
     /**
