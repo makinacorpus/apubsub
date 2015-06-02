@@ -107,6 +107,8 @@ class Thread
      */
     public function getRecipients()
     {
+        $ret = [];
+
         $cursor = $this
             ->service
             ->getBackend()
@@ -115,13 +117,12 @@ class Thread
             ])
         ;
 
-        return function () use ($cursor) {
-            /* @var $subscriber \APubSub\SubscriberInterface */
-            foreach ($cursor as $subscriber) {
-                // Yeah, my first PHP generator ever \o/ This worth the comment.
-                yield(explode(':', $subscriber->getId())[1]);
-            }
-        };
+        /* @var $subscriber \APubSub\SubscriberInterface */
+        foreach ($cursor as $subscriber) {
+            $ret[] = explode(':', $subscriber->getId())[1];
+        }
+
+        return $ret;
     }
 
     /**
