@@ -99,7 +99,7 @@ class D7MessageCursor extends AbstractD7Cursor
                     $sq->addExpression("1");
                     $sq->where("mc.msg_id = m.id");
                     $sq->condition('c.name', $value);
-                    $ret['exists.c.id'] = array('exists' => $sq);
+                    $ret['exists.c.id'] = ['exists' => $sq];
                     break;
 
                 default:

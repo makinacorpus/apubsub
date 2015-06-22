@@ -78,6 +78,19 @@ class D7ChannelCursor extends AbstractD7Cursor
                     $this->queryOnQueue = true;
                     break;
 
+                case Field::MSG_ORIGIN:
+                    $sq = $this
+                        ->getBackend()
+                        ->getConnection()
+                        ->select('apb_msg', 'm')
+                        ->condition('m.origin', $value)
+                        ->where('q.msg_id = m.id')
+                    ;
+                    $sq->addExpression('1');
+                    $ret['c.id'] = ['exists' => $sq];
+                    $this->queryOnQueue = true;
+                    break;
+
                 // WARNING: NOT PROUD OF THIS ONE!
                 case Field::MSG_TYPE:
                     $ret['q.type_id'] = $this
