@@ -187,6 +187,10 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
                     $query->exists($value);
                     break;
 
+                case 'in':
+                    $query->condition($statement, $value, 'IN');
+                    break;
+
                 default:
                     $query->condition($statement, $value, $operator);
                     break;
