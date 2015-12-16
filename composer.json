@@ -1,17 +1,23 @@
 {
-    "name": "apubsub/apubsub",
+    "name": "makinacorpus/apubsub",
+    "type" : "drupal-module",
     "description": "Provides an asynchronous PubSub like API with Drupal implementations",
+    "homepage" : "http://github.com/makinacorpus/apubsub",
+    "license" : "GPL-2",
     "authors": [
         {
             "name": "Pierre Rineau",
-            "email": "pierre.rineau-php@processus.org",
-            "homepage": "http://blog.processus.org",
-            "role": "Developer"
+            "email": "pierre.rineau@makina-corpus.com"
+        },
+        {
+            "name": "Makina Corpus",
+            "homepage": "http://makina-corpus.com"
         }
     ],
     "autoload": {
         "psr-0": {
             "APubSub": "src/"
         }
-    }
+    },
+    "minimum-stability" : "dev"
 }
