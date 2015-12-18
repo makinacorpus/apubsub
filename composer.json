@@ -15,9 +15,12 @@
         }
     ],
     "autoload": {
-        "psr-0": {
-            "APubSub": "src/"
-        }
+        "psr-4": {
+            "MakinaCorpus\\APubSub\\": "src/"
+        },
+        "exclude-from-classmap": [
+            "/src/Tests/"
+        ]
     },
     "minimum-stability" : "dev"
 }

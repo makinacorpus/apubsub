@@ -1,5 +1,0 @@
-name = "APubSub"
-description = "Provides an asynchronous PubSub like API with Drupal implementations"
-core = 7.x
-package = APubSub
-php = 5.3

@@ -1,7 +1,0 @@
-name = "Notifications"
-description = "Uses APubSub to provide high performance transient user notifications"
-core = 7.x
-package = APubSub
-php = 5.3
-dependencies[] = apb
-configure = admin/config/people/notification
