@@ -1,6 +1,6 @@
 {
     "name": "makinacorpus/apubsub",
-    "type" : "drupal-module",
+    "type" : "library",
     "description": "Provides an asynchronous PubSub like API with Drupal implementations",
     "homepage" : "http://github.com/makinacorpus/apubsub",
     "license" : "GPL-2",
