@@ -11,7 +11,7 @@ use MakinaCorpus\APubSub\MessageInterface;
  * status must change the modified status of the container so that it can
  * be saved.
  */
-class Notification
+class Notification implements \ArrayAccess
 {
     /**
      * Info
@@ -179,5 +179,38 @@ class Notification
     public function getLevel()
     {
         return $this->message->getLevel();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function offsetExists($offset)
+    {
+        return isset($this->data[$offset]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function offsetGet($offset)
+    {
+        // Avoid some PHP warnings, this is purely for display
+        return isset($this->data[$offset]) ? $this->data[$offset] : null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function offsetSet($offset, $value)
+    {
+        throw new \LogicException("Notification are readonly");
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function offsetUnset($offset)
+    {
+        throw new \LogicException("Notification are readonly");
     }
 }

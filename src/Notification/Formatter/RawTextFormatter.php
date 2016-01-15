@@ -21,22 +21,4 @@ class RawTextFormatter extends AbstractFormatter
             return t("Something happened.");
         }
     }
-
-    public function getImageURI(Notification $notification)
-    {
-        switch ($notification->get('a')) {
-
-            case 'insert':
-                return 'icon://filenew';
-
-            case 'update':
-                return 'icon://document';
-
-            case 'delete':
-                return 'icon://edit-delete';
-
-            default:
-                return null;
-        }
-    }
 }
