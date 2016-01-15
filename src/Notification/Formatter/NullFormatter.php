@@ -13,9 +13,4 @@ class NullFormatter extends AbstractFormatter
     {
         return t("Something happened.");
     }
-
-    public function getImageURI(Notification $notification)
-    {
-        return null;
-    }
 }

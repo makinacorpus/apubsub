@@ -5,8 +5,15 @@ namespace MakinaCorpus\APubSub\Notification;
 /**
  * Notification formatter
  */
-interface FormatterInterface extends RegistryItemInterface
+interface FormatterInterface
 {
+    /**
+     * Get internal type
+     *
+     * @return string
+     */
+    public function getType();
+
     /**
      * Format notification as HTML code, if any link has to be set, set it
      * into this text

@@ -7,8 +7,7 @@ use MakinaCorpus\APubSub\Backend\DefaultMessage;
 use MakinaCorpus\APubSub\Error\ChannelDoesNotExistException;
 use MakinaCorpus\APubSub\Field;
 use MakinaCorpus\APubSub\MessageInterface;
-use MakinaCorpus\APubSub\Notification\Registry\ChanTypeRegistry;
-use MakinaCorpus\APubSub\Notification\Registry\FormatterRegistry;
+use MakinaCorpus\APubSub\Notification\FormatterRegistry;
 use MakinaCorpus\APubSub\SubscriberInterface;
 
 /**
@@ -25,11 +24,6 @@ class NotificationService
      * @var RegistryInterface
      */
     private $formatterRegistry;
-
-    /**
-     * @var RegistryInterface
-     */
-    private $chanTypeRegistry;
 
     /**
      * Disabled types. Keys are type names and values are any non null value
@@ -73,7 +67,6 @@ class NotificationService
         $this->storeFormatted    = $storeFormatted;
         $this->silentMode        = $silentMode;
         $this->formatterRegistry = new FormatterRegistry();
-        $this->chanTypeRegistry  = new ChanTypeRegistry();
 
         if (null !== $disabledTypes) {
             $this->disabledTypes = array_flip($disabledTypes);
@@ -81,8 +74,17 @@ class NotificationService
 
         if (!$this->silentMode) {
             $this->formatterRegistry->setDebugMode();
-            $this->chanTypeRegistry->setDebugMode();
         }
+    }
+
+    /**
+     * Set formatter registry
+     *
+     * @param FormatterRegistry $formatterRegistry
+     */
+    public function setFormatterRegistry(FormatterRegistry $formatterRegistry)
+    {
+        $this->formatterRegistry = $formatterRegistry;
     }
 
     /**
@@ -184,7 +186,7 @@ class NotificationService
             $idList = array($idList);
         }
 
-        array_walk($idList, function (&$id) {
+        array_walk($idList, function (&$id) use ($type) {
             $id = $type . ':' . $id;
         });
 
@@ -268,21 +270,11 @@ class NotificationService
     /**
      * Get type registry
      *
-     * @return \MakinaCorpus\APubSub\Notification\Registry\FormatterRegistry Type registry
+     * @return \MakinaCorpus\APubSub\Notification\FormatterRegistry Type registry
      */
     public function getFormatterRegistry()
     {
         return $this->formatterRegistry;
-    }
-
-    /**
-     * Get channel type registry
-     *
-     * @return \MakinaCorpus\APubSub\Notification\Registry\ChanTypeRegistry Type registry
-     */
-    public function getChanTypeRegistry()
-    {
-        return $this->chanTypeRegistry;
     }
 
     /**
