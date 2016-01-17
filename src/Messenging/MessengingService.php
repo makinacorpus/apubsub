@@ -2,25 +2,22 @@
 
 namespace MakinaCorpus\APubSub\Messenging;
 
-use MakinaCorpus\APubSub\BackendAwareInterface;
 use MakinaCorpus\APubSub\BackendInterface;
 use MakinaCorpus\APubSub\Field;
 use MakinaCorpus\APubSub\Misc;
+use MakinaCorpus\APubSub\Backend\BackendAwareTrait;
 
 /**
  * Messenging service, single point of entry for the business layer
  */
-class MessengingService implements BackendAwareInterface
+class MessengingService
 {
     /**
      * Subscriber prefix for messenging system
      */
     const SUBER_PREFIX = '_msg';
 
-    /**
-     * @var \MakinaCorpus\APubSub\BackendInterface
-     */
-    private $backend;
+    use BackendAwareTrait;
 
     /**
      * Default constructor
@@ -29,7 +26,7 @@ class MessengingService implements BackendAwareInterface
      */
     public function __construct(BackendInterface $backend)
     {
-        $this->backend = $backend;
+        $this->setBackend($backend);
     }
 
     /**
@@ -184,19 +181,19 @@ class MessengingService implements BackendAwareInterface
             $userIdList = [$userIdList];
         }
 
-        $backend = $this->getBackend();
         $subList = [];
 
         foreach ($userIdList as $userId) {
 
-            $subList[] = $backend
+            $subList[] = $this
+                ->backend
                 ->getSubscriber($this->getUserSubscriberId($userId))
                 ->subscribe($threadId)
                 ->getId()
             ;
         }
 
-        $backend->copyQueue($threadId, $subList);
+        $this->backend->copyQueue($threadId, $subList);
     }
 
     /**

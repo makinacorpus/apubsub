@@ -3,7 +3,6 @@
 namespace MakinaCorpus\APubSub\Backend;
 
 use MakinaCorpus\APubSub\MessageContainerInterface;
-use MakinaCorpus\APubSub\CursorInterface;
 use MakinaCorpus\APubSub\BackendInterface;
 
 /**
@@ -12,6 +11,8 @@ use MakinaCorpus\APubSub\BackendInterface;
  */
 abstract class AbstractMessageContainer implements MessageContainerInterface
 {
+    use BackendAwareTrait;
+
     /**
      * Default conditions to force for each operation on this object
      *
@@ -23,11 +24,6 @@ abstract class AbstractMessageContainer implements MessageContainerInterface
     protected $invariant = array();
 
     /**
-     * @var BackendInterface
-     */
-    private $backend;
-
-    /**
      * Default constructor
      *
      * @param BackendInterface $backend
@@ -37,7 +33,7 @@ abstract class AbstractMessageContainer implements MessageContainerInterface
      */
     public function __construct(BackendInterface $backend, array $invariant = null)
     {
-        $this->backend = $backend;
+        $this->setBackend($backend);
 
         if (!empty($invariant)) {
             $this->invariant = $invariant;
@@ -73,20 +69,9 @@ abstract class AbstractMessageContainer implements MessageContainerInterface
     /**
      * {@inheritdoc}
      */
-    public function getBackend()
-    {
-        return $this->backend;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function fetch(array $conditions = null)
     {
-        return $this
-            ->getBackend()
-            ->fetch($this->ensureConditions($conditions))
-        ;
+        return $this->backend->fetch($this->ensureConditions($conditions));
     }
 
     /**
@@ -94,10 +79,6 @@ abstract class AbstractMessageContainer implements MessageContainerInterface
      */
     public function flush()
     {
-        return $this
-            ->getBackend()
-            ->fetch($this->ensureConditions())
-            ->delete()
-        ;
+        return $this->backend->fetch($this->ensureConditions())->delete();
     }
 }

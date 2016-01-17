@@ -58,12 +58,7 @@ class DefaultSubscriber extends AbstractMessageContainer implements
      */
     public function getSubscriptions()
     {
-        return $this
-            ->getBackend()
-            ->getSubscriptions(
-                array_values($this->idList)
-            )
-        ;
+        return $this->backend->getSubscriptions(array_values($this->idList));
     }
 
     /**
@@ -100,10 +95,7 @@ class DefaultSubscriber extends AbstractMessageContainer implements
         // exception as upper. Don't think this cannot happen, this *will*
         // happen, nothing prevent you from deleting a subscription using the
         // backend after you loaded this subscriber instance
-        return $this
-            ->getBackend()
-            ->getSubscription($this->idList[$chanId])
-        ;
+        return $this->backend->getSubscription($this->idList[$chanId]);
     }
 
     /**
@@ -111,10 +103,7 @@ class DefaultSubscriber extends AbstractMessageContainer implements
      */
     public function subscribe($chanId)
     {
-        $subscription = $this
-            ->getBackend()
-            ->subscribe($chanId, $this->id)
-        ;
+        $subscription = $this->backend->subscribe($chanId, $this->id);
 
         $this->idList[$chanId] = $subscription->getId();
 
@@ -130,7 +119,7 @@ class DefaultSubscriber extends AbstractMessageContainer implements
             if (isset($this->idList[$chanId])) {
                 // See the getSubscriptionFor() implementation
                 $this
-                    ->getBackend()
+                    ->backend
                     ->fetchSubscriptions([Field::SUB_ID => $this->idList[$chanId]])
                     ->delete()
                 ;

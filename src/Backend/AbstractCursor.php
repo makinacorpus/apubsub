@@ -10,6 +10,8 @@ use MakinaCorpus\APubSub\CursorInterface;
  */
 abstract class AbstractCursor implements \IteratorAggregate, CursorInterface
 {
+    use BackendAwareTrait;
+
     /**
      * @var array
      */
@@ -36,11 +38,6 @@ abstract class AbstractCursor implements \IteratorAggregate, CursorInterface
     private $count = null;
 
     /**
-     * @var BackendInterface
-     */
-    private $backend;
-
-    /**
      * Default constructor
      *
      * @param BackendInterface $backend
@@ -48,15 +45,7 @@ abstract class AbstractCursor implements \IteratorAggregate, CursorInterface
      */
     public function __construct(BackendInterface $backend)
     {
-        $this->backend = $backend;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getBackend()
-    {
-        return $this->backend;
+        $this->setBackend($backend);
     }
 
     /**

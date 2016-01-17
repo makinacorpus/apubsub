@@ -210,7 +210,7 @@ class NotificationService
         try {
             $subscriber->subscribe($chanId);
         } catch (ChannelDoesNotExistException $e) {
-            $this->getBackend()->createChannel($chanId);
+            $this->backend->createChannel($chanId);
             $subscriber->subscribe($chanId);
         }
     }
@@ -251,10 +251,7 @@ class NotificationService
      */
     public function deleteSubscriber($name)
     {
-        $this
-            ->getBackend()
-            ->deleteSubscriber($name)
-        ;
+        $this->backend->deleteSubscriber($name);
     }
 
     /**
@@ -324,21 +321,18 @@ class NotificationService
                 // Quite a hack, but efficient, we need a false message to
                 // exist in order to create a false notification, so we can
                 // force it to be rendered before the message exists
-                $message = new DefaultMessage(
-                    $this->getBackend(),
-                    $contents,
-                    $type);
+                $message = new DefaultMessage($contents, $type);
 
                 $contents['f'] = $this
                     ->getFormatterRegistry()
                     ->getInstance($type)
-                    ->format(new Notification($this, $message));
+                    ->format(new Notification($this, $message))
+                ;
             }
 
             if (!$doExcludeCurrent || empty($this->currentSubscribers)) {
 
-                $message = $this
-                    ->getBackend()
+                $message = $this->backend
                     ->send($chanId, $contents, $type, null, $level)
                 ;
 
@@ -357,8 +351,7 @@ class NotificationService
                     );
                 }
 
-                $message = $this
-                    ->getBackend()
+                $message = $this->backend
                     ->send($chanId, $contents, $type, null, $level, $exclude)
                 ;
             }

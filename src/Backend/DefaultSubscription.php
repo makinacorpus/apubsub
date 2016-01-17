@@ -110,10 +110,7 @@ class DefaultSubscription extends AbstractMessageContainer implements
      */
     public function getChannel()
     {
-        return $this
-            ->getBackend()
-            ->getChannel($this->chanId)
-        ;
+        return $this->backend->getChannel($this->chanId);
     }
 
     /**
@@ -164,7 +161,7 @@ class DefaultSubscription extends AbstractMessageContainer implements
         $deactivated = new \DateTime();
 
         $this
-            ->getBackend()
+            ->backend
             ->fetchSubscriptions([
                 Field::SUB_ID => $this->id,
             ])
@@ -186,7 +183,7 @@ class DefaultSubscription extends AbstractMessageContainer implements
         $activated = new \DateTime();
 
         $this
-            ->getBackend()
+            ->backend
             ->fetchSubscriptions([
                 Field::SUB_ID => $this->id,
             ])

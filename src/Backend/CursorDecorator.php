@@ -109,14 +109,6 @@ class CursorDecorator implements \IteratorAggregate, CursorInterface
     /**
      * {@inheritdoc}
      */
-    public function getBackend()
-    {
-        return $this->innerCursor->getBackend();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getIterator()
     {
         return $this->innerCursor;

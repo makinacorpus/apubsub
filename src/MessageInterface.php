@@ -5,7 +5,7 @@ namespace MakinaCorpus\APubSub;
 /**
  * A message is the raw arbitrary information sent.
  */
-interface MessageInterface extends BackendAwareInterface
+interface MessageInterface
 {
     /**
      * Get internal message identifier

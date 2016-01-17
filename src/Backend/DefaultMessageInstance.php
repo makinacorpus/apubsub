@@ -8,6 +8,8 @@ use MakinaCorpus\APubSub\MessageInstanceInterface;
 class DefaultMessageInstance extends DefaultMessage implements
     MessageInstanceInterface
 {
+    use BackendAwareTrait;
+
     /**
      * Message identifier
      *
@@ -82,7 +84,9 @@ class DefaultMessageInstance extends DefaultMessage implements
         $level              = 0,
         $origin             = null)
     {
-        parent::__construct($backend, $contents, $id, $type, $level, $origin);
+        parent::__construct($contents, $id, $type, $level, $origin);
+
+        $this->setBackend($backend);
 
         $this->queueId          = $queueId;
         $this->subscriptionId   = $subscriptionId;
@@ -120,10 +124,7 @@ class DefaultMessageInstance extends DefaultMessage implements
                 $readAt = new \DateTime();
             }
 
-            $this
-                ->getBackend()
-                ->setUnread($this->queueId, $toggle)
-            ;
+            $this->backend->setUnread($this->queueId, $toggle);
 
             $this->readAt = $readAt;
             $this->unread = $toggle;
@@ -169,9 +170,6 @@ class DefaultMessageInstance extends DefaultMessage implements
      */
     public function getSubscription()
     {
-        return $this
-            ->getBackend()
-            ->getSubscription($this->subscriptionId)
-        ;
+        return $this->backend->getSubscription($this->subscriptionId);
     }
 }

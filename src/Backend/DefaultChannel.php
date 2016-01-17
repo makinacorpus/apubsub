@@ -89,7 +89,7 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
         if ($this->title !== $title) {
 
             $this
-                ->getBackend()
+                ->backend
                 ->fetchChannels([Field::CHAN_ID => $this->getId()])
                 ->update([Field::CHAN_TITLE => $title])
             ;
@@ -126,7 +126,7 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
         \DateTime $sentAt = null)
     {
         return $this
-            ->getBackend()
+            ->backend
             ->send(
                 $this->id,
                 $contents,
@@ -144,9 +144,6 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
      */
     final public function subscribe()
     {
-        return $this
-            ->getBackend()
-            ->subscribe($this->id)
-        ;
+        return $this->backend->subscribe($this->id);
     }
 }

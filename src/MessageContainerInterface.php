@@ -5,7 +5,7 @@ namespace MakinaCorpus\APubSub;
 /**
  * Describes a component that handles messages
  */
-interface MessageContainerInterface extends BackendAwareInterface
+interface MessageContainerInterface
 {
     /**
      * Fetch messages in message queue

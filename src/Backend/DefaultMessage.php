@@ -49,8 +49,6 @@ class DefaultMessage implements MessageInterface
     /**
      * Default constructor
      *
-     * @param BackendInterface $backend
-     *   Backend
      * @param mixed $contents
      *   Message contents
      * @param scalar $id
@@ -63,14 +61,12 @@ class DefaultMessage implements MessageInterface
      *   Arbitrary origin identifier
      */
     public function __construct(
-        BackendInterface $backend,
         $contents,
         $id,
         $type           = null,
         $level          = 0,
-        $origin         = null)
-    {
-        $this->backend  = $backend;
+        $origin         = null
+    ) {
         $this->id       = $id;
         $this->contents = $contents;
         $this->type     = $type;
@@ -116,13 +112,5 @@ class DefaultMessage implements MessageInterface
     public function getOrigin()
     {
         return $this->origin;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getBackend()
-    {
-        return $this->backend;
     }
 }

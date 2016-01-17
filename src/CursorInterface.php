@@ -11,7 +11,6 @@ namespace MakinaCorpus\APubSub;
  * Objects can or cannot set a default limit, although they always should
  */
 interface CursorInterface extends
-    BackendAwareInterface,
     \Traversable,
     \Countable
 {
