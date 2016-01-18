@@ -59,11 +59,13 @@ interface BackendInterface extends MessageContainerInterface
     /**
      * Create multiple channel instances
      *
-     * @param string $idList       List of channel names
-     * @param string $ignoreErrors Allow silent errors when channel already
-     *                             exists
+     * @param string[] $idList
+     *   List of channel names
+     * @param string $ignoreErrors
+     *   Allow silent errors when channel already exists
      *
-     * @return array|Traversable   List of created channel instances
+     * @return ChannelInterface[]
+     *   List of created channel instances
      *
      * @throws \MakinaCorpus\APubSub\Error\ChannelAlreadyExistsException
      *                             If a channel already exists and errors are
@@ -240,7 +242,7 @@ interface BackendInterface extends MessageContainerInterface
     public function garbageCollection();
 
     /**
-     * Get a set of random information about the backend state
+     * Get a set of arbitrary information about the backend state
      *
      * Backends can return null here if no analysis information can fetched or
      * if this method is not implemented/not important

@@ -48,6 +48,41 @@ interface SubscriptionInterface extends MessageContainerInterface
     public function getStopDate();
 
     /**
+     * Get the date when this subscription has been marked
+     *
+     * This date is never updated by this API but might be by external business
+     * code for business purposes
+     *
+     * @return \DateTime
+     *   May be null
+     */
+    public function getAccessDate();
+
+    /**
+     * Does this subscription belongs to a subscriber
+     *
+     * @return boolean
+     */
+    public function hasSubscriber();
+
+    /**
+     * Get subscriber identifier
+     *
+     * @return string
+     */
+    public function getSubscriberId();
+
+    /**
+     * Get loaded subscriber
+     *
+     * @return SubscriberInterface
+     *
+     * @throws \RuntimeException
+     *   If there is no subscriber for this subscription
+     */
+    public function getSubscriber();
+
+    /**
      * Deactivate this subscription, if it is already deactivated it will
      * remain silent
      */

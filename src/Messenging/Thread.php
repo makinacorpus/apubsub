@@ -3,7 +3,9 @@
 namespace MakinaCorpus\APubSub\Messenging;
 
 use MakinaCorpus\APubSub\ChannelInterface;
+use MakinaCorpus\APubSub\CursorInterface;
 use MakinaCorpus\APubSub\Field;
+use MakinaCorpus\APubSub\MessageInstanceInterface;
 
 class Thread
 {
@@ -32,7 +34,7 @@ class Thread
     /**
      * Get messenging service this thread is attached to
      *
-     * @return \MakinaCorpus\APubSub\Messenging\MessengingService
+     * @return MessengingService
      */
     public function getService()
     {
@@ -117,7 +119,6 @@ class Thread
             ])
         ;
 
-        /* @var $subscriber \MakinaCorpus\APubSub\SubscriberInterface */
         foreach ($cursor as $subscriber) {
             $ret[] = explode(':', $subscriber->getId())[1];
         }
@@ -201,7 +202,7 @@ class Thread
      *
      * @param mixed[] $conditions
      *
-     * @return \MakinaCorpus\APubSub\CursorInterface|\MakinaCorpus\APubSub\MessageInstanceInterface[]
+     * @return CursorInterface|MessageInstanceInterface[]
      */
     public function fetchMessages(array $conditions = [])
     {
@@ -216,7 +217,7 @@ class Thread
      * @param string $userId
      * @param mixed[] $conditions
      *
-     * @return \MakinaCorpus\APubSub\CursorInterface|\MakinaCorpus\APubSub\MessageInstanceInterface[]
+     * @return CursorInterface|MessageInstanceInterface[]
      */
     public function fetchMessagesFor($userId, array $conditions = [])
     {

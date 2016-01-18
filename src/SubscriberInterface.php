@@ -2,6 +2,9 @@
 
 namespace MakinaCorpus\APubSub;
 
+use MakinaCorpus\APubSub\Error\ChannelDoesNotExistException;
+use MakinaCorpus\APubSub\Error\SubscriptionDoesNotExistException;
+
 /**
  * A subscriber is an optional component of the API that may reference
  * one or more subscriptions
@@ -32,7 +35,7 @@ interface SubscriberInterface extends MessageContainerInterface
     /**
      * Get subscriptions identifiers
      *
-     * @return scalar[] 
+     * @return scalar[]
      */
     public function getSubscriptionsIds();
 
@@ -50,10 +53,10 @@ interface SubscriberInterface extends MessageContainerInterface
      * @param string $chanId
      *   Channel identifier
      *
-     * @return \MakinaCorpus\APubSub\SubscriptionInterface
+     * @return SubscriptionInterface
      *   Subscription instance
      *
-     * @throws \MakinaCorpus\APubSub\Error\SubscriptionDoesNotExistException
+     * @throws SubscriptionDoesNotExistException
      *   If the subscriber did not subscribe to the given channel
      */
     public function getSubscriptionFor($chanId);
@@ -69,10 +72,10 @@ interface SubscriberInterface extends MessageContainerInterface
      * @param string $chanId
      *   Channel identifier
      *
-     * @return \MakinaCorpus\APubSub\SubscriptionInterface
+     * @return SubscriptionInterface
      *   New subscription instance
      *
-     * @throws \MakinaCorpus\APubSub\Error\ChannelDoesNotExistException
+     * @throws ChannelDoesNotExistException
      *   If channel does not exist
      */
     public function subscribe($chanId);

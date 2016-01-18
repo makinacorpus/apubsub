@@ -3,9 +3,11 @@
 namespace MakinaCorpus\APubSub\Messenging;
 
 use MakinaCorpus\APubSub\BackendInterface;
-use MakinaCorpus\APubSub\Field;
-use MakinaCorpus\APubSub\Misc;
 use MakinaCorpus\APubSub\Backend\BackendAwareTrait;
+use MakinaCorpus\APubSub\CursorInterface;
+use MakinaCorpus\APubSub\Field;
+use MakinaCorpus\APubSub\MessageInstanceInterface;
+use MakinaCorpus\APubSub\Misc;
 
 /**
  * Messenging service, single point of entry for the business layer
@@ -155,7 +157,7 @@ class MessengingService
      * Using the getUserMessages() method, you can provide a message-based
      * UI, while using this method you can provide a thread-based UI.
      *
-     * @return \MakinaCorpus\APubSub\CursorInterface|\MakinaCorpus\APubSub\ThreadInterface[]
+     * @return CursorInterface|ThreadInterface[]
      */
     public function getUserThreads($userId, array $conditions = [])
     {
@@ -205,7 +207,7 @@ class MessengingService
      * Using the getUserThreads() method, you can provide a thread-based
      * UI, while using this method you can provide a message-based UI.
      *
-     * @return \MakinaCorpus\APubSub\CursorInterface|\MakinaCorpus\APubSub\MessageInstanceInterface[]
+     * @return CursorInterface|MessageInstanceInterface[]
      */
     public function getUserMessages($userId, array $conditions = [])
     {

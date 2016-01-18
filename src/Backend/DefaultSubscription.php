@@ -11,46 +11,44 @@ class DefaultSubscription extends AbstractMessageContainer implements
     SubscriptionInterface
 {
     /**
-     * Message identifier
-     *
      * @var scalar
      */
     private $id;
 
     /**
-     * Channel database identifier
-     *
      * @var string
      */
     private $chanId;
 
     /**
-     * Creation date
-     *
      * @var \DateTime
      */
     private $createdAt;
 
     /**
-     * Is this subscription active
-     *
      * @var bool
      */
     private $active = false;
 
     /**
-     * Date when this subscription has been activated for the last time
-     *
      * @var \DateTime
      */
     private $activatedAt;
 
     /**
-     * Date when this subscription has been deactivated for the last time
-     *
      * @var \DateTime
      */
     private $deactivatedAt;
+
+    /**
+     * @var \DateTime
+     */
+    private $accessedAt;
+
+    /**
+     * @var string
+     */
+    private $subscriberId;
 
     /**
      * Default constructor
@@ -65,8 +63,12 @@ class DefaultSubscription extends AbstractMessageContainer implements
      *   Latest activation date
      * @param \DateTime $deactivatedAt
      *   Latest deactivation date
+     * @param \DateTime $accessedAt
+     *   Latest access time
      * @param bool $isActive
      *   Is this subscription active
+     * @param string $subscriberId
+     *   Subscriber identifier
      * @param BackendInterface $backend
      *   Backend
      */
@@ -76,9 +78,11 @@ class DefaultSubscription extends AbstractMessageContainer implements
         \DateTime $createdAt,
         \DateTime $activatedAt,
         \DateTime $deactivatedAt,
-        $isActive,
-        BackendInterface $backend)
-    {
+        \DateTime $accessedAt = null,
+        $isActive = false,
+        $subscriberId = null,
+        BackendInterface $backend
+    ) {
         parent::__construct($backend, [Field::SUB_ID => $id]);
 
         $this->id = $id;
@@ -86,7 +90,9 @@ class DefaultSubscription extends AbstractMessageContainer implements
         $this->createdAt = $createdAt;
         $this->activatedAt = $activatedAt;
         $this->deactivatedAt = $deactivatedAt;
+        $this->accessedAt = $accessedAt;
         $this->active = $isActive;
+        $this->subscriberId = $subscriberId;
     }
 
     /**
@@ -151,6 +157,42 @@ class DefaultSubscription extends AbstractMessageContainer implements
         }
 
         return $this->deactivatedAt;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getAccessDate()
+    {
+        return $this->accessedAt;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasSubscriber()
+    {
+        return null !== $this->subscriberId;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getSubscriberId()
+    {
+        return $this->subscriberId;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getSubscriber()
+    {
+        if (null === $this->subscriberId) {
+            throw new \LogicException("This subscription does not belong to a subscriber");
+        }
+
+        return $this->backend->getSubscriber($this->subscriberId);
     }
 
     /**
