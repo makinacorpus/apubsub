@@ -34,7 +34,7 @@ class FormatterRegistry
     /**
      * Null object implementation
      *
-     * @var \MakinaCorpus\APubSub\Notification\FormatterInterface
+     * @var FormatterInterface
      */
     private $nullInstance;
 

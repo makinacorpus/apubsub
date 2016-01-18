@@ -8,7 +8,7 @@ use MakinaCorpus\APubSub\Tests\AbstractBackendBasedTest;
 abstract class AbstractNotificationBasedTest extends AbstractBackendBasedTest
 {
     /**
-     * @var \MakinaCorpus\APubSub\Notification\NotificationService
+     * @var NotificationService
      */
     private $service;
 
@@ -26,9 +26,9 @@ abstract class AbstractNotificationBasedTest extends AbstractBackendBasedTest
 
         // Register some notification types
         $formatterRegistry = $this->service->getFormatterRegistry();
-        $formatterRegistry->registerType('friend', array(
-            'class'       => '\MakinaCorpus\APubSub\Notification\Formatter\RawTextFormatter',
-        ));
+        $formatterRegistry->registerType('friend', [
+            'class' => '\MakinaCorpus\APubSub\Notification\Formatter\RawTextFormatter',
+        ]);
         // Leaving this one with no class will get us null instanceing
         $formatterRegistry->registerType('content');
         // This one is disabled

@@ -10,9 +10,9 @@ interface MessageContainerInterface
     /**
      * Fetch messages in message queue
      *
-     * @param array $conditions  Array of key value pairs conditions, only the
-     *                           "equal" operation is supported. If value is an
-     *                           array, treat it as a "IN" operator
+     * @param array $conditions
+     *   Array of key value pairs conditions, only the "equal" operation is
+     *   supported. If value is an array, treat it as a "IN" operator
      *
      * @return CursorInterface|MessageInstanceInterface[]
      *   Iterable object of messages
