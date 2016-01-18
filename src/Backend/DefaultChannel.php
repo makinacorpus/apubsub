@@ -12,6 +12,14 @@ use MakinaCorpus\APubSub\Field;
 class DefaultChannel extends AbstractMessageContainer implements ChannelInterface
 {
     /**
+     * Internal database identifier, this is not part of the interface but I
+     * guess that most backends will need this
+     *
+     * @var int
+     */
+    private $databaseId;
+
+    /**
      * @var string
      */
     private $id;
@@ -44,8 +52,11 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
      *   Update date
      * @param string $title
      *   Human readable title
+     * @param int $databaseId
+     *   Arbitrary database identifier if the backend needs it for performance
+     *   or consistency reasons
      */
-    public function __construct($id, BackendInterface $backend, \DateTime $createdAt = null, \DateTime $updatedAt = null, $title = null)
+    public function __construct($id, BackendInterface $backend, \DateTime $createdAt = null, \DateTime $updatedAt = null, $title = null, $databaseId = null)
     {
         parent::__construct($backend, [Field::CHAN_ID => $id]);
 
@@ -63,6 +74,8 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
         } else {
             $this->updatedAt = $updatedAt;
         }
+
+        $this->databaseId = $databaseId;
     }
 
     /**
@@ -145,5 +158,15 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
     final public function subscribe()
     {
         return $this->backend->subscribe($this->id);
+    }
+
+    /**
+     * Get internal database identifier
+     *
+     * @return int Database identifier
+     */
+    final public function getDatabaseId()
+    {
+        return $this->databaseId;
     }
 }
