@@ -2,6 +2,10 @@
 
 namespace MakinaCorpus\APubSub;
 
+use MakinaCorpus\APubSub\Error\ChannelAlreadyExistsException;
+use MakinaCorpus\APubSub\Error\ChannelDoesNotExistException;
+use MakinaCorpus\APubSub\Error\SubscriptionDoesNotExistException;
+
 /**
  * Backend entry point: allows you to retrieve and create channels and
  * subscriptions.
@@ -11,31 +15,31 @@ interface BackendInterface extends MessageContainerInterface
     /**
      * Helper method for loading one single channel
      *
-     * @param string $id                    Channel identifier
+     * @param string $id
      *
-     * @return ChannelInterface             Loaded channel
+     * @return ChannelInterface
      *
-     * @throws ChannelDoesNotExistException If channel does not exist
+     * @throws ChannelDoesNotExistException
      */
     public function getChannel($id);
 
     /**
      * Helper method for loading mulitple channels
      *
-     * @param string $idList                Channel identifier list
+     * @param string[] $idList
      *
-     * @return ChannelInterface[]           Loaded channel
+     * @return ChannelInterface[]
      *
-     * @throws ChannelDoesNotExistException If channel does not exist
+     * @throws ChannelDoesNotExistException
      */
     public function getChannels($idList);
 
     /**
      * Fetch channels
      *
-     * @param array $conditions         Conditions
+     * @param array $conditions
      *
-     * @return \MakinaCorpus\APubSub\CursorInterface|\MakinaCorpus\APubSub\ChannelInterface[]
+     * @return CursorInterface|ChannelInterface[]
      *   Channel cursor
      */
     public function fetchChannels(array $conditions = null);
@@ -43,16 +47,16 @@ interface BackendInterface extends MessageContainerInterface
     /**
      * Create a channel instance
      *
-     * @param string $id           Channel name
-     * @param string $title        Human readable title
-     * @param string $ignoreErrors Allow silent errors when channel already
-     *                             exists
+     * @param string $id
+     *   Channel name
+     * @param string $title
+     *   Human readable title
+     * @param string $ignoreErrors
+     *   Allow silent errors when channel already exists
      *
-     * @return ChannelInterface    A ready to use channel instance
+     * @return ChannelInterface
      *
-     * @throws \MakinaCorpus\APubSub\Error\ChannelAlreadyExistsException
-     *                             If the channel with the given identifier
-     *                             already exists
+     * @throws ChannelAlreadyExistsException
      */
     public function createChannel($id, $title = null, $ignoreErrors = false);
 
@@ -67,9 +71,7 @@ interface BackendInterface extends MessageContainerInterface
      * @return ChannelInterface[]
      *   List of created channel instances
      *
-     * @throws \MakinaCorpus\APubSub\Error\ChannelAlreadyExistsException
-     *                             If a channel already exists and errors are
-     *                             not ignored
+     * @throws ChannelAlreadyExistsException
      */
     public function createChannels($idList, $ignoreErrors = false);
 
@@ -78,53 +80,48 @@ interface BackendInterface extends MessageContainerInterface
      *
      * If channel does not exists be silent about it
      *
-     * @param string $id           Channel name
-     * @param string $ignoreErrors Allow silent errors when channel already
-     *                             exists
+     * @param string $id
+     * @param string $ignoreErrors
      */
     public function deleteChannel($id, $ignoreErrors = false);
 
     /**
      * Load an existing subscription
      *
-     * @param scalar $id                      The subscription identifier
+     * @param int $id
      *
-     * @return \MakinaCorpus\APubSub\SubscriptionInterface The subscription instance
+     * @return SubscriptionInterface
      *
-     * @throws \MakinaCorpus\APubSub\Error\SubscriptionDoesNotExistException
-     *                                        If the subscription does not exist
+     * @throws SubscriptionDoesNotExistException
      */
     public function getSubscription($id);
 
     /**
      * Load existing subscriptions
      *
-     * @param array $idList      List of subscription ids to load
+     * @param array $idList
      *
-     * @return array|Traversalbe List of subscription instances
+     * @return int[]
      *
-     * @throws \MakinaCorpus\APubSub\Error\SubscriptionDoesNotExistException
-     *                           If one of the subscriptions does not exist
+     * @throws SubscriptionDoesNotExistException
      */
     public function getSubscriptions($idList);
 
     /**
      * Fetch subscriptions
      *
-     * @param array $conditions         Conditions
+     * @param array $conditions
      *
-     * @return \MakinaCorpus\APubSub\CursorInterface|\MakinaCorpus\APubSub\SubscriptionInterface[]
-     *   Subscription cursor
+     * @return CursorInterface|SubscriptionInterface[]
      */
     public function fetchSubscriptions(array $conditions = null);
 
     /**
      * Get or create a new subscriber instance
      *
-     * @param scalar $id                    Scalar value (will stored as a
-     *                                      string) which must be unique
+     * @param scalar $id
      *
-     * @return \MakinaCorpus\APubSub\SubscriberInterface The subscriber instance
+     * @return SubscriberInterface
      */
     public function getSubscriber($id);
 
@@ -132,45 +129,36 @@ interface BackendInterface extends MessageContainerInterface
      * Delete a subscriber along all its susbscriptions
      *
      * @param string $id Subscriber identifier
-     *
-     * @throws \MakinaCorpus\APubSub\Error\SubscriberDoesNotExistException
-     *                   If subscription does not exist
      */
     public function deleteSubscriber($id);
 
     /**
      * Delete a list of subscribers
      *
-     * @param array|Traversable $idList Subscriber identifiers
-     *
-     * @throws \MakinaCorpus\APubSub\Error\SubscriberDoesNotExistException
-     *                                  If one subscription does not exist, case
-     *                                  in which the operation ended up
-     *                                  imcomplete
+     * @param string[] $idList Subscriber identifiers
      */
     public function deleteSubscribers($idList);
 
     /**
      * Create a new subscription to the given channel
      *
-     * @param string $chanId       Channel identifier
-     * @param string $subscriberId Subscriber identifier
+     * @param string $chanId
+     * @param string $subscriberId
      *
-     * @return SubscriptionInterface The new subscription object, which is not
-     *                               active per default and whose identifier
-     *                               has been generated
+     * @return SubscriptionInterface
+     *   The new subscription object, which is not active per default and whose
+     *   identifier has been generated
      */
     public function subscribe($chanId, $subscriberId = null);
 
     /**
      * Get subscriber list helper if this backend implements it
      *
-     * @param array $conditions  Array of key value pairs conditions, only the
-     *                           "equal" operation is supported. If value is an
-     *                           array, treat it as a "IN" operator
+     * @param array $conditions
+     *   Array of key value pairs conditions, only the "equal" operation is
+     *   supported. If value is an array, treat it as a "IN" operator
      *
      * @return CursorInterface|SubscriberInterface[]
-     *   Cursor
      */
     public function fetchSubscribers(array $conditions = null);
 
