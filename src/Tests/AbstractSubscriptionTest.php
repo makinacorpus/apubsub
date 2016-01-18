@@ -20,7 +20,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
 
     public function testSubscribe()
     {
-        $subscription = $this->chan->subscribe();
+        $subscription = $this->backend->subscribe($this->chan->getId());
         $this->assertInstanceOf('\MakinaCorpus\APubSub\SubscriptionInterface', $subscription);
 
         $id = $subscription->getId();
@@ -62,7 +62,7 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
 
     public function testFetch()
     {
-        $subscription = $this->chan->subscribe();
+        $subscription = $this->backend->subscribe($this->chan->getId());
         $chan         = $subscription->getChannel();
 
         $chan->send(42);
@@ -100,13 +100,13 @@ abstract class AbstractSubscriptionTest extends AbstractBackendBasedTest
 
     function testMultipleFetch()
     {
-        $sub1 = $this->chan->subscribe();
+        $sub1 = $this->backend->subscribe($this->chan->getId());
         $sub1->activate();
-        $sub2 = $this->chan->subscribe();
+        $sub2 = $this->backend->subscribe($this->chan->getId());
         $msg1 = $this->chan->send(1);
         $sub2->activate();
         $msg2 = $this->chan->send(2);
-        $sub3 = $this->chan->subscribe();
+        $sub3 = $this->backend->subscribe($this->chan->getId());
         $sub3->activate();
         $msg3 = $this->chan->send(3);
 

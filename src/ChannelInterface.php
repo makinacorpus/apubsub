@@ -76,15 +76,4 @@ interface ChannelInterface extends MessageContainerInterface
         array $excluded     = null,
         \DateTime $sentAt   = null
     );
-
-    /**
-     * Create a new subscription to this channel.
-     *
-     * Alias of BackendInterface::subscribe()
-     *
-     * @return SubscriptionInterface
-     *   The new subscription object, which is not active per default and
-     *   whose identifier has been generated
-     */
-    public function subscribe();
 }

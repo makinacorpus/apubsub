@@ -96,16 +96,16 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         $chan  = $this->backend->createChannel('baz');
         $contents = array('test' => 12);
 
-        $subscriber = $chan->subscribe();
-        $this->assertNotNull($subscriber->getId());
+        $subscription = $this->backend->subscribe($chan->getId());
+        $this->assertNotNull($subscription->getId());
 
-        $subscriber->activate();
+        $subscription->activate();
 
         $message = $chan->send($contents);
 
         $id = $message->getId();
 
-        $messages = $subscriber->fetch();
+        $messages = $subscription->fetch();
         $this->assertNotEmpty($messages);
         $this->assertTrue(is_array($messages) || $messages instanceof \Traversable);
 
@@ -120,11 +120,11 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
     {
         // Create a channel and populate with some junk
         $chan = $this->backend->createChannel("delete_me");
-        $sub1 = $chan->subscribe();
+        $sub1 = $this->backend->subscribe($chan->getId());
         $sub1->activate();
         $sub1Id = $sub1->getId();
         $msg1 = $chan->send(1);
-        $sub2 = $chan->subscribe();
+        $sub2 = $this->backend->subscribe($chan->getId());
         $sub2->activate();
         $msg2 = $chan->send(2);
 
@@ -156,8 +156,8 @@ abstract class AbstractChannelTest extends AbstractBackendBasedTest
         $chan = $this->backend->createChannel('some_channel');
 
         // One left untouched, the other will delete a message
-        $sub1    = $chan->subscribe();
-        $sub2    = $chan->subscribe();
+        $sub1    = $this->backend->subscribe($chan->getId());
+        $sub2    = $this->backend->subscribe($chan->getId());
 
         // And also test with subscriber for coverage purpose
         $suber   = $this->backend->getSubscriber('foo');

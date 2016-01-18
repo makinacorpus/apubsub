@@ -153,14 +153,6 @@ class DefaultChannel extends AbstractMessageContainer implements ChannelInterfac
     }
 
     /**
-     * {@inheritdoc}
-     */
-    final public function subscribe()
-    {
-        return $this->backend->subscribe($this->id);
-    }
-
-    /**
      * Get internal database identifier
      *
      * @return int Database identifier
