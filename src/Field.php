@@ -75,11 +75,6 @@ final class Field
     const SUBER_NAME      = 30;
 
     /**
-     * Subscriber last access date
-     */
-    const SUBER_ACCESS    = 31;
-
-    /**
      * Subscription identifier
      */
     const SUB_ID          = 40;
@@ -105,4 +100,9 @@ final class Field
      * Subscription deactivation date
      */
     const SUB_DEACTIVATED = 44;
+
+    /**
+     * Subscription last access date
+     */
+    const SUB_ACCESS      = 45;
 }

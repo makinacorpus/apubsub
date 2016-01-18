@@ -11,9 +11,9 @@ interface MessageInstanceInterface extends MessageInterface
     /**
      * Get internal queue message identifier
      *
-     * @return scalar Identifier whose type depends on the backend
-     *                implementation, and which makes the message
-     *                unique into the global message queue
+     * @return scalar
+     *   Identifier whose type depends on the backend implementation, and which
+     *   makes the message unique into the global message queue
      */
     public function getQueueId();
 
@@ -27,7 +27,8 @@ interface MessageInstanceInterface extends MessageInterface
     /**
      * Set unread status for the current subscription
      *
-     * @param bool $toggle New read status false for read, true for unread
+     * @param bool $toggle
+     *   New read status false for read, true for unread
      */
     public function setUnread($toggle = true);
 
@@ -59,7 +60,7 @@ interface MessageInstanceInterface extends MessageInterface
     /**
      * Get channel
      *
-     * @return \MakinaCorpus\APubSub\SubscriptionInterface
+     * @return SubscriptionInterface
      */
     public function getSubscription();
 }

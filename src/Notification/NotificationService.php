@@ -267,7 +267,7 @@ class NotificationService
     /**
      * Get type registry
      *
-     * @return \MakinaCorpus\APubSub\Notification\FormatterRegistry Type registry
+     * @return FormatterRegistry
      */
     public function getFormatterRegistry()
     {
@@ -277,9 +277,9 @@ class NotificationService
     /**
      * Tell if given type is enabled
      *
-     * @param string $type Type
+     * @param string $type
      *
-     * @return boolean     True if type is enabled otherwise false
+     * @return boolean
      */
     public function isTypeEnabled($type)
     {
@@ -369,9 +369,9 @@ class NotificationService
     /**
      * Get notification instance from message
      *
-     * @param MessageInterface $message Message
+     * @param MessageInterface $message
      *
-     * @return Notification             Notification
+     * @return Notification
      */
     public function getNotification(MessageInterface $message)
     {
