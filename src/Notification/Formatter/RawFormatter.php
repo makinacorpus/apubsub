@@ -6,13 +6,13 @@ use MakinaCorpus\APubSub\Notification\FormatterInterface;
 use MakinaCorpus\APubSub\Notification\NotificationInterface;
 
 /**
- * Null object implementation, used for fallback when debug is disabled
+ * Restitutes text given in the 'raw' key
  */
-class NullFormatter implements FormatterInterface
+class RawFormatter implements FormatterInterface
 {
     public function format(NotificationInterface $notification)
     {
-        return '';
+        return $notification['raw'];
     }
 
     public function getImageURI(NotificationInterface $notification)

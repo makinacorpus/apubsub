@@ -16,22 +16,13 @@ abstract class AbstractNotificationBasedTest extends AbstractBackendBasedTest
     {
         parent::setUp();
 
-        $this->service = new NotificationService(
-            $this->backend,
-            false,
-            false,
-            array(
-                'disabled', // See lower
-            ));
+        $this->service = new NotificationService($this->backend,false);
 
         // Register some notification types
         $formatterRegistry = $this->service->getFormatterRegistry();
-        $formatterRegistry->registerType('friend', [
-            'class' => '\MakinaCorpus\APubSub\Notification\Formatter\RawTextFormatter',
-        ]);
-        // Leaving this one with no class will get us null instanceing
+        $formatterRegistry->registerType('friend:something', '\MakinaCorpus\APubSub\Notification\Formatter\RawFormatter');
+        $formatterRegistry->registerType('friend:friended', '\MakinaCorpus\APubSub\Notification\Formatter\RawFormatter');
         $formatterRegistry->registerType('content');
-        // This one is disabled
         $formatterRegistry->registerType('disabled');
     }
 

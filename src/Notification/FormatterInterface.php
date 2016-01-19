@@ -8,31 +8,25 @@ namespace MakinaCorpus\APubSub\Notification;
 interface FormatterInterface
 {
     /**
-     * Get internal type
-     *
-     * @return string
-     */
-    public function getType();
-
-    /**
      * Format notification as HTML code, if any link has to be set, set it
      * into this text
      *
-     * @param Notification $notification Notification to format
+     * @param NotificationInterface $notification
+     *   Notification to format
      *
-     * @return string                    Formatted text
+     * @return string
+     *   Formatted text
      */
-    public function format(Notification $notification);
+    public function format(NotificationInterface $notification);
 
     /**
      * Get icon file URI
      *
-     * @param Notification $notification Notification
+     * @param NotificationInterface $notification
+     *   Notification
      *
-     * @return string                    Image URI, can also be an icon name
-     *                                   from a stock icon set: difference to
-     *                                   be determined with the lack of scheme
-     *                                   in the returned URI
+     * @return string
+     *   Image URI
      */
-    public function getImageURI(Notification $notification);
+    public function getImageURI(NotificationInterface $notification);
 }

@@ -66,9 +66,7 @@ class MessengingService
      */
     public function createThread($senderUserId, $recipient, $subject = null)
     {
-        if (!is_array($recipient)) {
-            $recipient = [$recipient];
-        }
+        $recipient = Misc::toArray($recipient);
 
         // Generate a unique time based identifier, note that this might
         // own some risks of conflicts, but very low. SHA-1 gives a 40
@@ -179,13 +177,9 @@ class MessengingService
      */
     public function addRecipientsTo($threadId, $userIdList)
     {
-        if (!is_array($userIdList)) {
-            $userIdList = [$userIdList];
-        }
-
         $subList = [];
 
-        foreach ($userIdList as $userId) {
+        foreach (Misc::toIterable($userIdList) as $userId) {
 
             $subList[] = $this
                 ->backend

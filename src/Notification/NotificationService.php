@@ -3,11 +3,10 @@
 namespace MakinaCorpus\APubSub\Notification;
 
 use MakinaCorpus\APubSub\BackendInterface;
-use MakinaCorpus\APubSub\Backend\DefaultMessage;
+use MakinaCorpus\APubSub\CursorInterface;
 use MakinaCorpus\APubSub\Error\ChannelDoesNotExistException;
 use MakinaCorpus\APubSub\Field;
-use MakinaCorpus\APubSub\MessageInterface;
-use MakinaCorpus\APubSub\Notification\FormatterRegistry;
+use MakinaCorpus\APubSub\Misc;
 use MakinaCorpus\APubSub\SubscriberInterface;
 
 /**
@@ -16,21 +15,19 @@ use MakinaCorpus\APubSub\SubscriberInterface;
 class NotificationService
 {
     /**
-     * @var \MakinaCorpus\APubSub\BackendInterface
+     * Default suber type
+     */
+    const SUBER_TYPE_DEFAULT = '_u';
+
+    /**
+     * @var BackendInterface
      */
     private $backend;
 
     /**
-     * @var RegistryInterface
+     * @var FormatterRegistryInterface
      */
     private $formatterRegistry;
-
-    /**
-     * Disabled types. Keys are type names and values are any non null value
-     *
-     * @var array
-     */
-    private $disabledTypes = array();
 
     /**
      * @var boolean
@@ -45,32 +42,20 @@ class NotificationService
     /**
      * @var string[]
      */
-    private $currentSubscribers = array();
+    private $currentSubscribers = [];
 
     /**
      * Default constructor
      *
-     * @param BackendInterface $backend Backend
-     * @param boolean $storeFormatted   If set to true formatted messages content
-     *                                  will be stored into messages
-     * @param boolean $silentMode       If set to true this object will never
-     *                                  predictible exceptions
-     * @param array $disabledTypes      List of disabled types
+     * @param BackendInterface $backend
+     * @param boolean $silentMode
+     *   If set to true this object will never predictible exceptions
      */
-    public function __construct(
-        BackendInterface $backend,
-        $storeFormatted = false,
-        $silentMode     = false,
-        $disabledTypes  = null)
+    public function __construct(BackendInterface $backend, $silentMode = false)
     {
         $this->backend           = $backend;
-        $this->storeFormatted    = $storeFormatted;
         $this->silentMode        = $silentMode;
-        $this->formatterRegistry = new FormatterRegistry();
-
-        if (null !== $disabledTypes) {
-            $this->disabledTypes = array_flip($disabledTypes);
-        }
+        $this->formatterRegistry = new DefaultFormatterRegistry();
 
         if (!$this->silentMode) {
             $this->formatterRegistry->setDebugMode();
@@ -80,9 +65,9 @@ class NotificationService
     /**
      * Set formatter registry
      *
-     * @param FormatterRegistry $formatterRegistry
+     * @param FormatterRegistryInterface $formatterRegistry
      */
-    public function setFormatterRegistry(FormatterRegistry $formatterRegistry)
+    public function setFormatterRegistry(FormatterRegistryInterface $formatterRegistry)
     {
         $this->formatterRegistry = $formatterRegistry;
     }
@@ -97,8 +82,10 @@ class NotificationService
      * @param string $name
      *   Subscriber name
      */
-    public function addCurrentSubscriber($name)
+    public function addCurrentSubscriber($id, $type = null)
     {
+        $name = $this->getSubscriberName($id, $type);
+
         if (!in_array($name, $this->currentSubscribers)) {
             $this->currentSubscribers[] = $name;
         }
@@ -107,90 +94,104 @@ class NotificationService
     /**
      * Reset current subscriber list
      */
-    public function resetSubscribers()
+    public function resetCurrentSubscribers()
     {
-        $this->currentSubscribers = array();
+        $this->currentSubscribers = [];
     }
 
     /**
      * Get channel identifier from input parameters
      *
-     * @param string $type Source object type
-     * @param scalar $id   Source object identifier
+     * @param string $type
+     *   Source object type
+     * @param scalar $id
+     *   Source object identifier
      *
-     * @return string      Channel identifier
+     * @return string
+     *   Channel identifier
      */
-    public function getChanId($type, $id)
+    protected function getChanId($type, $id)
     {
         return $type . ':' . $id;
     }
 
     /**
-     * Get subscriber
+     * Get channel identifier from input parameters
      *
-     * @param string $name
+     * @param string $type
+     *   Source object type
+     * @param string[] $idList
+     *   Source object identifier
+     *
+     * @return string
+     *   Channel identifier
+     */
+    protected function getChanIdList($type, $idList)
+    {
+        $ret = [];
+
+        foreach (Misc::toIterable($idList) as $index => $id) {
+            $ret[$index] = $this->getChanId($type, $id);
+        }
+
+        return $ret;
+    }
+
+    /**
+     * Get subscriber name
+     *
+     * @param scalar $id
+     *   Susbcriber identifier
+     * @param string $type
+     *   Susbcriber type identifier
+     *
+     * @return string
      *   Subscriber name
-     *
-     * @return SubscriberInterface
-     *   Subscriber
      */
-    public function getSubscriber($name)
+    protected function getSubscriberName($id, $type = null)
     {
-        return $this->backend->getSubscriber($name);
-    }
+        if (!$type) {
+            $type  = self::SUBER_TYPE_DEFAULT;
+        }
 
-    /**
-     * Get subscriber
-     *
-     * @param string $type
-     *   Susbcriber type identifier
-     * @param scalar $id
-     *   Susbcriber identifier
-     *
-     * @return SubscriberInterface
-     *   Subscriber
-     */
-    public function getSubscriberFor($type, $id)
-    {
-        return $this->backend->getSubscriber($this->getSubscriberName($type, $id));
-    }
-
-    /**
-     * Get subscriber
-     *
-     * @param string $type
-     *   Susbcriber type identifier
-     * @param scalar $id
-     *   Susbcriber identifier
-     *
-     * @return SubscriberInterface Subscriber
-     */
-    public function getSubscriberName($type, $id)
-    {
         return $type . ':' . $id;
     }
 
     /**
      * Get subscriber names list
      *
+     * @param string[] $idList
+     *   Susbcriber identifiers list
      * @param string $type
      *   Susbcriber type identifier
-     * @param scalar $idList
-     *   Susbcriber identifiers list
      *
      * @return SubscriberInterface Subscriber
      */
-    public function getSubscriberNameList($type, $idList)
+    protected function getSubscriberNameList($idList, $type)
     {
-        if (!is_array($idList)) {
-            $idList = array($idList);
+        $ret = [];
+
+        foreach (Misc::toIterable($idList) as $index => $id) {
+            $ret[$index] = $this->getSubscriberName($id, $type);
         }
 
-        array_walk($idList, function (&$id) use ($type) {
-            $id = $type . ':' . $id;
-        });
+        return $ret;
+    }
 
-        return $idList;
+    /**
+     * Get subscriber
+     *
+     * @param string $id
+     *   Subscriber identifier
+     * @param string $type
+     *   Subscriber type
+     *
+     * @return SubscriberInterface
+     *   Subscriber
+     */
+    public function getSubscriber($id, $type = null)
+    {
+        return $this->backend->getSubscriber($this->getSubscriberName($type, $id));
     }
 
     /**
@@ -198,60 +199,55 @@ class NotificationService
      *
      * This method will implicetely create the channel if non existant
      *
-     * @param string $chanId
-     *   Channel identifier list or single value
-     * @param string $name
-     *   Subscriber name
+     * @param string $objectType
+     * @param int|string|int[]|string[] $objectId
+     * @param int|string|int[]|string[] $suberId
+     * @param string $suberType
      */
-    public function subscribe($chanId, $name)
+    public function subscribe($objectType, $objectId, $suberId, $suberType = null)
     {
-        $subscriber = $this->getSubscriber($name);
+        $chanIdList = $this->getChanIdList($objectType, $objectId);
 
-        try {
-            $subscriber->subscribe($chanId);
-        } catch (ChannelDoesNotExistException $e) {
-            $this->backend->createChannel($chanId);
-            $subscriber->subscribe($chanId);
+        // Create the channels if they don't exists, no errors
+        $this->backend->createChannels($chanIdList, true);
+
+        // FIXME: Optimize this whenever this becomes possible
+        foreach ($this->getSubscriberNameList($suberId, $suberType) as $name) {
+            foreach ($chanIdList as $chanId) {
+                $this->backend->subscribe($chanId, $name);
+            }
         }
     }
 
     /**
      * Unsubscribe to a chan
      *
-     * @param string|array $chanId
-     *   Channel identifier list or single value
-     * @param string|array|\Traversable $name
-     *   Subscriber name
+     * @param string $objectType
+     * @param int|string|int[]|string[] $objectId
+     * @param int|string|int[]|string[] $suberId
+     * @param string $suberType
      */
-    public function unsubscribe($chanId, $name)
+    public function unsubscribe($objectType, $objectId, $suberId, $suberType = null)
     {
-        if (is_array($name) || $name instanceof \Traversable) {
-            $this
-                ->backend
-                ->fetchSubscriptions(array(
-                    Field::CHAN_ID => $chanId,
-                    Field::SUBER_NAME => $name,
-                ))
-                ->delete()
-            ;
-        } else {
-            $this
-                ->backend
-                ->getSubscriber($name)
-                ->unsubscribe($chanId)
-            ;
-        }
+        $this
+            ->backend
+            ->fetchSubscriptions([
+                Field::CHAN_ID    => $this->getChanIdList($objectType, $objectId),
+                Field::SUBER_NAME => $this->getSubscriberNameList($suberId, $suberType),
+            ])
+            ->delete()
+        ;
     }
 
     /**
      * Delete all subscriber information
      *
-     * @param string $name
-     *   Subscriber name
+     * @param int|string|int[]|string[] $id
+     * @param string $type
      */
-    public function deleteSubscriber($name)
+    public function deleteSubscriber($id, $type = null)
     {
-        $this->backend->deleteSubscriber($name);
+        $this->backend->deleteSubscriber($this->getSubscriberName($id, $type));
     }
 
     /**
@@ -267,7 +263,7 @@ class NotificationService
     /**
      * Get type registry
      *
-     * @return FormatterRegistry
+     * @return FormatterRegistryInterface
      */
     public function getFormatterRegistry()
     {
@@ -275,26 +271,16 @@ class NotificationService
     }
 
     /**
-     * Tell if given type is enabled
-     *
-     * @param string $type
-     *
-     * @return boolean
-     */
-    public function isTypeEnabled($type)
-    {
-        return !isset($this->disabledTypes[$type]) && $this->formatterRegistry->typeExists($type);
-    }
-
-    /**
      * Send notification
      *
      * If notification type is disabled the message will be dropped
      *
-     * @param int|array $chanId
-     *   Channel identifier list or single value
      * @param string $type
-     *   Notification type
+     *   Resource type
+     * @param string|string[] $id
+     *   List of resource identifiers impacted on which the action has been done
+     * @param string $action
+     *   Resource action
      * @param array $data
      *   Arbitrary data to send along
      * @param int $level
@@ -305,56 +291,34 @@ class NotificationService
      *   If set to false the current subscribers won't be excluded from the
      *   current notification recipient list
      */
-    public function notify($chanId, $type, array $data = null, $level = null, $doExcludeCurrent = true)
+    public function notify($type, $id, $action, $data = [], $level = null, $doExcludeCurrent = true)
     {
-        if (!$this->isTypeEnabled($type)) {
-            return;
-        }
         if (null === $level) {
-            $level = Notification::LEVEL_INFO;
+            $level = NotificationInterface::LEVEL_INFO;
         }
+
+        $chanIdList = $this->getChanIdList($type, $id);
+
+        $data = ['data' => $data];
+        $data['id'] = Misc::toArray($id);
+        $type .= ':' . $action;
 
         try {
-            $contents = array('d' => $data);
+            $exclude = [];
 
-            if ($this->storeFormatted) {
-                // Quite a hack, but efficient, we need a false message to
-                // exist in order to create a false notification, so we can
-                // force it to be rendered before the message exists
-                $message = new DefaultMessage($contents, $type);
-
-                $contents['f'] = $this
-                    ->getFormatterRegistry()
-                    ->getInstance($type)
-                    ->format(new Notification($this, $message))
-                ;
-            }
-
-            if (!$doExcludeCurrent || empty($this->currentSubscribers)) {
-
-                $message = $this->backend
-                    ->send($chanId, $contents, $type, null, $level)
-                ;
-
-            } else {
-
-                $exclude = array();
+            if ($doExcludeCurrent && $this->currentSubscribers) {
                 foreach ($this->currentSubscribers as $name) {
                     // Using getSubscriptionIds() will avoid an odd number of
                     // backend queries (at least for SQL backend). I do hope
                     // that our current subscriber does not have thousands...
                     $exclude = array_merge(
                         $exclude,
-                        $this
-                            ->getSubscriber($name)
-                            ->getSubscriptionsIds()
+                        $this->backend->getSubscriber($name)->getSubscriptionsIds()
                     );
                 }
-
-                $message = $this->backend
-                    ->send($chanId, $contents, $type, null, $level, $exclude)
-                ;
             }
+
+            $this->backend->send($chanIdList, $data, $type, null, $level, $exclude);
 
         } catch (ChannelDoesNotExistException $e) {
             // Nothing to do, no channel means no subscription
@@ -367,14 +331,52 @@ class NotificationService
     }
 
     /**
-     * Get notification instance from message
+     * Get subscriber notifications
      *
-     * @param MessageInterface $message
+     * @param string $id
+     *   Subscriber identifier
+     * @param string|string[] $type
+     *   Subscriber type
      *
-     * @return Notification
+     * @return CursorInterface|NotificationInterface[]
      */
-    public function getNotification(MessageInterface $message)
+    public function fetchForSubscriber($id, $type = null, array $conditions = [])
     {
-        return new Notification($this, $message);
+        $conditions[Field::SUBER_NAME] = $this->getSubscriberNameList($id, $type);
+
+        return new NotificationCursor(
+            $this,
+            $this
+                ->backend
+                ->fetch($conditions)
+                ->addSort(Field::MSG_SENT, CursorInterface::SORT_DESC)
+                ->addSort(Field::MSG_ID, CursorInterface::SORT_DESC)
+            )
+        ;
+    }
+
+    /**
+     * Get subscriber notifications
+     *
+     * @param string $type
+     *   Subscriber type
+     * @param string|string[] $id
+     *   Subscriber identifier
+     *
+     * @return CursorInterface|ThreadInterface[]
+     */
+    public function fetchForResource($id, $type = null, array $conditions = [])
+    {
+        $conditions[Field::CHAN_ID] = $this->getChanIdList($type, $id);
+
+        return new NotificationCursor(
+            $this,
+            $this
+                ->backend
+                ->fetch($conditions)
+                ->addSort(Field::MSG_SENT, CursorInterface::SORT_DESC)
+                ->addSort(Field::MSG_ID, CursorInterface::SORT_DESC)
+            )
+        ;
     }
 }
