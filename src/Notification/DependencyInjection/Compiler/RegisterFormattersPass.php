@@ -74,7 +74,7 @@ class RegisterFormattersPass implements CompilerPassInterface
                 throw new \InvalidArgumentException(sprintf('Service "%s" must implement interface "%s".', $id, $interface));
             }
 
-            $definition->addMethodCall('registerType', [$attributes['event'], $id]);
+            $definition->addMethodCall('registerType', [$attributes[0]['event'], $id]);
         }
     }
 }
