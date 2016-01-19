@@ -8,6 +8,7 @@ use MakinaCorpus\APubSub\Error\ChannelDoesNotExistException;
 use MakinaCorpus\APubSub\Field;
 use MakinaCorpus\APubSub\Misc;
 use MakinaCorpus\APubSub\SubscriberInterface;
+use MakinaCorpus\APubSub\MessageInstanceInterface;
 
 /**
  * Notification service, single point of entry for the business layer
@@ -191,7 +192,7 @@ class NotificationService
      */
     public function getSubscriber($id, $type = null)
     {
-        return $this->backend->getSubscriber($this->getSubscriberName($type, $id));
+        return $this->backend->getSubscriber($this->getSubscriberName($id, $type));
     }
 
     /**
@@ -378,5 +379,17 @@ class NotificationService
                 ->addSort(Field::MSG_ID, CursorInterface::SORT_DESC)
             )
         ;
+    }
+
+    /**
+     * Build notification from message instance
+     *
+     * @param MessageInstanceInterface $message
+     *
+     * @return NotificationInterface
+     */
+    public function getNotification(MessageInstanceInterface $message)
+    {
+        return new DefaultNotification($message, $this->formatterRegistry->get($message->getType()));
     }
 }

@@ -35,12 +35,10 @@ class NotificationCursor extends CursorDecorator
      */
     public function getIterator()
     {
-        $registry = $this->service->getFormatterRegistry();
-
         foreach (parent::getIterator() as $key => $message) {
 
             if ($message instanceof MessageInterface) {
-                $message = new DefaultNotification($message, $registry->get($message->getType()));
+                $message = $this->service->getNotification($message);
             }
 
             yield $key => $message;
