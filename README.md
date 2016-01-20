@@ -8,9 +8,9 @@ read or unread, fetch them by filtering using basic properties.
 
 It aims to be fast and capable of handling very high message volumetry.
 
-It is fully written using interfaces and allows to write any storage backend.
-It is shipped with a fully working Drupal 7 backend and an in-memory reference
-implementation. A MongoDB backend is being developped and is not ready yet.
+**WARNING: this documentation is outdated, even thought the concepts explained**
+**did not changed, a few details about the implementation did, it will be**
+**as soon as possible, before a stable release**
 
 Getting started
 ===============
