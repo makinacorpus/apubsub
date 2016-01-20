@@ -74,9 +74,18 @@ interface NotificationInterface extends \ArrayAccess
     public function format();
 
     /**
+     * Get an URI where to point the link over the notification
+     *
+     * @return string
+     *   URI or null if no revelant
+     */
+    public function getURI();
+
+    /**
      * Get image URI if any
      *
-     * @return string Image URI or null if none
+     * @return string
+     *   Image URI or null if none
      */
     public function getImageURI();
 

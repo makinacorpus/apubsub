@@ -2,13 +2,13 @@
 
 namespace MakinaCorpus\APubSub\Notification\Formatter;
 
-use MakinaCorpus\APubSub\Notification\FormatterInterface;
+use MakinaCorpus\APubSub\Notification\AbstractFormatter;
 use MakinaCorpus\APubSub\Notification\NotificationInterface;
 
 /**
  * Restitutes various debug information from the notification
  */
-class DebugFormatter implements FormatterInterface
+class DebugFormatter extends AbstractFormatter
 {
     public function format(NotificationInterface $notification)
     {
@@ -25,9 +25,5 @@ class DebugFormatter implements FormatterInterface
         }
 
         return implode('<br/>', $text);
-    }
-
-    public function getImageURI(NotificationInterface $notification)
-    {
     }
 }

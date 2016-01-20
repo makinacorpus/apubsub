@@ -119,6 +119,14 @@ final class DefaultNotification implements NotificationInterface
     /**
      * {inheritdoc}
      */
+    public function getURI()
+    {
+      return $this->formatter->getURI($this);
+    }
+
+    /**
+     * {inheritdoc}
+     */
     public function getImageURI()
     {
         return $this->formatter->getImageURI($this);

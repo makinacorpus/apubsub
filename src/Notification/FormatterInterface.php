@@ -20,13 +20,24 @@ interface FormatterInterface
     public function format(NotificationInterface $notification);
 
     /**
+     * Get action URI
+     *
+     * @param NotificationInterface $notification
+     *   Notification
+     *
+     * @return string
+     *   URI or null if no revelant
+     */
+    public function getURI(NotificationInterface $notification);
+
+    /**
      * Get icon file URI
      *
      * @param NotificationInterface $notification
      *   Notification
      *
      * @return string
-     *   Image URI
+     *   Image URI or null if none
      */
     public function getImageURI(NotificationInterface $notification);
 }

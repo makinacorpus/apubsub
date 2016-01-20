@@ -6,7 +6,7 @@ use MakinaCorpus\APubSub\Notification\FormatterInterface;
 use MakinaCorpus\APubSub\Notification\NotificationInterface;
 
 /**
- * Restitutes text given in the 'raw' key
+ * Restitutes text, image and URI arbitrary set values in the data array
  */
 class RawFormatter implements FormatterInterface
 {
@@ -15,7 +15,13 @@ class RawFormatter implements FormatterInterface
         return $notification['raw'];
     }
 
+    public function getURI(NotificationInterface $notification)
+    {
+        return $notification['uri'];
+    }
+
     public function getImageURI(NotificationInterface $notification)
     {
+        return $notification['img'];
     }
 }
