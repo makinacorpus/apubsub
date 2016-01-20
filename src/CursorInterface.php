@@ -10,9 +10,7 @@ namespace MakinaCorpus\APubSub;
  *
  * Objects can or cannot set a default limit, although they always should
  */
-interface CursorInterface extends
-    \Traversable,
-    \Countable
+interface CursorInterface extends \Traversable, \Countable
 {
     /**
      * No limit
@@ -42,7 +40,7 @@ interface CursorInterface extends
      * @param int $sort                 Sort field
      * @param int $order                Sort order for this field
      *
-     * @return \MakinaCorpus\APubSub\CursorInterface Self reference for chaining
+     * @return CursorInterface Self reference for chaining
      */
     public function addSort($sort, $order = CursorInterface::SORT_ASC);
 
@@ -51,7 +49,7 @@ interface CursorInterface extends
      *
      * @param int $limit                Limit
      *
-     * @return \MakinaCorpus\APubSub\CursorInterface Self reference for chaining
+     * @return CursorInterface Self reference for chaining
      */
     public function setLimit($limit);
 
@@ -60,7 +58,7 @@ interface CursorInterface extends
      *
      * @param int $offset               Offset
      *
-     * @return \MakinaCorpus\APubSub\CursorInterface Self reference for chaining
+     * @return CursorInterface Self reference for chaining
      */
     public function setOffset($offset);
 
@@ -70,7 +68,7 @@ interface CursorInterface extends
      * @param int $limit                Limit
      * @param int $offset               Offset
      *
-     * @return \MakinaCorpus\APubSub\CursorInterface Self reference for chaining
+     * @return CursorInterface Self reference for chaining
      */
     public function setRange($limit, $offset);
 
