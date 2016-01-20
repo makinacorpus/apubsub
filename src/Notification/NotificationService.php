@@ -80,12 +80,12 @@ class NotificationService
      * to automatically exclude him from the notifications recipients and avoid
      * a user to see his own messages
      *
-     * @param string $name
-     *   Subscriber name
+     * @param string $subscriberId
+     * @param string $subscriberType
      */
-    public function addCurrentSubscriber($id, $type = null)
+    public function addCurrentSubscriber($subscriberId, $subscriberType = null)
     {
-        $name = $this->getSubscriberName($id, $type);
+        $name = $this->getSubscriberName($subscriberId, $subscriberType);
 
         if (!in_array($name, $this->currentSubscribers)) {
             $this->currentSubscribers[] = $name;
@@ -103,36 +103,30 @@ class NotificationService
     /**
      * Get channel identifier from input parameters
      *
-     * @param string $type
-     *   Source object type
-     * @param scalar $id
-     *   Source object identifier
+     * @param string $resourceType
+     * @param string $resourceId
      *
      * @return string
-     *   Channel identifier
      */
-    protected function getChanId($type, $id)
+    protected function getChanId($resourceType, $resourceId)
     {
-        return $type . ':' . $id;
+        return $resourceType . ':' . $resourceId;
     }
 
     /**
      * Get channel identifier from input parameters
      *
-     * @param string $type
-     *   Source object type
-     * @param string[] $idList
-     *   Source object identifier
+     * @param string $resourceType
+     * @param string[] $resourceIdList
      *
-     * @return string
-     *   Channel identifier
+     * @return string[]
      */
-    protected function getChanIdList($type, $idList)
+    protected function getChanIdList($resourceType, $resourceIdList)
     {
         $ret = [];
 
-        foreach (Misc::toIterable($idList) as $index => $id) {
-            $ret[$index] = $this->getChanId($type, $id);
+        foreach (Misc::toIterable($resourceIdList) as $index => $resourceId) {
+            $ret[$index] = $this->getChanId($resourceType, $resourceId);
         }
 
         return $ret;
@@ -141,39 +135,34 @@ class NotificationService
     /**
      * Get subscriber name
      *
-     * @param scalar $id
-     *   Susbcriber identifier
-     * @param string $type
-     *   Susbcriber type identifier
+     * @param string $subscriberId
+     * @param string $subscriberType
      *
      * @return string
-     *   Subscriber name
      */
-    protected function getSubscriberName($id, $type = null)
+    protected function getSubscriberName($subscriberId, $subscriberType = null)
     {
-        if (!$type) {
-            $type  = self::SUBER_TYPE_DEFAULT;
+        if (!$subscriberType) {
+            $subscriberType  = self::SUBER_TYPE_DEFAULT;
         }
 
-        return $type . ':' . $id;
+        return $subscriberType . ':' . $subscriberId;
     }
 
     /**
      * Get subscriber names list
      *
-     * @param string[] $idList
-     *   Susbcriber identifiers list
-     * @param string $type
-     *   Susbcriber type identifier
+     * @param string[] $subscriberIdList
+     * @param string $subscriberType
      *
-     * @return SubscriberInterface Subscriber
+     * @return string[]
      */
-    protected function getSubscriberNameList($idList, $type)
+    protected function getSubscriberNameList($subscriberIdList, $type)
     {
         $ret = [];
 
-        foreach (Misc::toIterable($idList) as $index => $id) {
-            $ret[$index] = $this->getSubscriberName($id, $type);
+        foreach (Misc::toIterable($subscriberIdList) as $index => $subscriberId) {
+            $ret[$index] = $this->getSubscriberName($subscriberId, $type);
         }
 
         return $ret;
@@ -182,17 +171,25 @@ class NotificationService
     /**
      * Get subscriber
      *
-     * @param string $id
-     *   Subscriber identifier
-     * @param string $type
-     *   Subscriber type
+     * @param string $subscriberId
+     * @param string $subscriberType
      *
      * @return SubscriberInterface
-     *   Subscriber
      */
-    public function getSubscriber($id, $type = null)
+    public function getSubscriber($subscriberId, $subscriberType = null)
     {
-        return $this->backend->getSubscriber($this->getSubscriberName($id, $type));
+        return $this->backend->getSubscriber($this->getSubscriberName($subscriberId, $subscriberType));
+    }
+
+    /**
+     * Remove all data from the given resource
+     *
+     * @param string $resourceType
+     * @param string|string[] $resourceId
+     */
+    public function deleteResource($resourceType, $resourceId)
+    {
+        $this->backend->deleteChannels($this->getChanIdList($resourceType, $resourceId));
     }
 
     /**
@@ -200,20 +197,24 @@ class NotificationService
      *
      * This method will implicetely create the channel if non existant
      *
-     * @param string $objectType
-     * @param int|string|int[]|string[] $objectId
-     * @param int|string|int[]|string[] $suberId
-     * @param string $suberType
+     * @param string $resourceType
+     * @param string|string[] $resourceId
+     * @param string|string[] $subscriberId
+     * @param string $subscriberType
      */
-    public function subscribe($objectType, $objectId, $suberId, $suberType = null)
-    {
-        $chanIdList = $this->getChanIdList($objectType, $objectId);
+    public function subscribe(
+        $resourceType,
+        $resourceId,
+        $subscriberId,
+        $subscriberType = null
+    ) {
+        $chanIdList = $this->getChanIdList($resourceType, $resourceId);
 
         // Create the channels if they don't exists, no errors
         $this->backend->createChannels($chanIdList, true);
 
         // FIXME: Optimize this whenever this becomes possible
-        foreach ($this->getSubscriberNameList($suberId, $suberType) as $name) {
+        foreach ($this->getSubscriberNameList($subscriberId, $subscriberType) as $name) {
             foreach ($chanIdList as $chanId) {
                 $this->backend->subscribe($chanId, $name);
             }
@@ -223,18 +224,22 @@ class NotificationService
     /**
      * Unsubscribe to a chan
      *
-     * @param string $objectType
-     * @param int|string|int[]|string[] $objectId
-     * @param int|string|int[]|string[] $suberId
-     * @param string $suberType
+     * @param string $resourceType
+     * @param string|string[] $resourceId
+     * @param string|string[] $subscriberId
+     * @param string $subscriberType
      */
-    public function unsubscribe($objectType, $objectId, $suberId, $suberType = null)
-    {
+    public function unsubscribe(
+        $resourceType,
+        $resourceId,
+        $subscriberId,
+        $subscriberType = null
+    ) {
         $this
             ->backend
             ->fetchSubscriptions([
-                Field::CHAN_ID    => $this->getChanIdList($objectType, $objectId),
-                Field::SUBER_NAME => $this->getSubscriberNameList($suberId, $suberType),
+                Field::CHAN_ID    => $this->getChanIdList($resourceType, $resourceId),
+                Field::SUBER_NAME => $this->getSubscriberNameList($subscriberId, $subscriberType),
             ])
             ->delete()
         ;
@@ -243,12 +248,23 @@ class NotificationService
     /**
      * Delete all subscriber information
      *
-     * @param int|string|int[]|string[] $id
-     * @param string $type
+     * @param string[] $subscriberId
+     * @param string $subscriberType
      */
-    public function deleteSubscriber($id, $type = null)
+    public function deleteSubscriber($subscriberId, $subscriberType = null)
     {
-        $this->backend->deleteSubscriber($this->getSubscriberName($id, $type));
+        $this->backend->deleteSubscriber($this->getSubscriberName($subscriberId, $subscriberType));
+    }
+
+    /**
+     * Delete all subscriber information
+     *
+     * @param string[] $subscriberIdList
+     * @param string $subscriberType
+     */
+    public function deleteSubscriberList($subscriberIdList, $subscriberType = null)
+    {
+        $this->backend->deleteSubscribers($this->getSubscriberNameList($subscriberIdList, $subscriberType));
     }
 
     /**
@@ -272,16 +288,11 @@ class NotificationService
     }
 
     /**
-     * Send notification
+     * Notify an action happened on a resource
      *
-     * If notification type is disabled the message will be dropped
-     *
-     * @param string $type
-     *   Resource type
-     * @param string|string[] $id
-     *   List of resource identifiers impacted on which the action has been done
+     * @param string $resourceType
+     * @param string|string[] $resourceId
      * @param string $action
-     *   Resource action
      * @param array $data
      *   Arbitrary data to send along
      * @param int $level
@@ -292,17 +303,62 @@ class NotificationService
      *   If set to false the current subscribers won't be excluded from the
      *   current notification recipient list
      */
-    public function notify($type, $id, $action, $data = [], $level = null, $doExcludeCurrent = true)
-    {
+    public function notify(
+        $resourceType,
+        $resourceId,
+        $action,
+        $data             = [],
+        $level            = null,
+        $doExcludeCurrent = true
+    ) {
+        return $this
+            ->notifyChannel(
+                $this->getChanIdList($resourceType, $resourceId),
+                $resourceType,
+                $resourceId,
+                $action,
+                $data,
+                $level,
+                $doExcludeCurrent
+            )
+        ;
+    }
+
+    /**
+     * Notify an action happened on a resource in an arbitrary channel
+     *
+     * @param string|string[] $chanId
+     * @param string $resourceType
+     * @param string|string[] $resourceId
+     * @param string $action
+     * @param array $data
+     *   Arbitrary data to send along
+     * @param int $level
+     *   Arbitrary level, see Notification::LEVEL_* constants. This value is
+     *   purely arbitrary, it is up to the business layer to do something with
+     *   it. It does not alters the notification system behavior.
+     * @param boolean $doExcludeCurrent
+     *   If set to false the current subscribers won't be excluded from the
+     *   current notification recipient list
+     */
+    public function notifyChannel(
+        $chanId,
+        $resourceType,
+        $resourceId,
+        $action,
+        $data             = [],
+        $level            = null,
+        $doExcludeCurrent = true
+    ) {
         if (null === $level) {
             $level = NotificationInterface::LEVEL_INFO;
         }
 
-        $chanIdList = $this->getChanIdList($type, $id);
+        $chanIdList = Misc::toIterable($chanId);
 
         $data = ['data' => $data];
-        $data['id'] = Misc::toArray($id);
-        $type .= ':' . $action;
+        $data['id'] = Misc::toArray($resourceId);
+        $type = $resourceType . ':' . $action;
 
         try {
             $exclude = [];
@@ -334,16 +390,15 @@ class NotificationService
     /**
      * Get subscriber notifications
      *
-     * @param string $id
-     *   Subscriber identifier
-     * @param string|string[] $type
-     *   Subscriber type
+     * @param string|string[] $subscriberId
+     * @param string $subscriberType
+     * @param string[] $conditions
      *
      * @return CursorInterface|NotificationInterface[]
      */
-    public function fetchForSubscriber($id, $type = null, array $conditions = [])
+    public function fetchForSubscriber($subscriberId, $subscriberType = null, array $conditions = [])
     {
-        $conditions[Field::SUBER_NAME] = $this->getSubscriberNameList($id, $type);
+        $conditions[Field::SUBER_NAME] = $this->getSubscriberNameList($subscriberId, $subscriberType);
 
         return new NotificationCursor(
             $this,
@@ -359,16 +414,15 @@ class NotificationService
     /**
      * Get subscriber notifications
      *
-     * @param string $type
-     *   Subscriber type
-     * @param string|string[] $id
-     *   Subscriber identifier
+     * @param string $resourceType
+     * @param string|string[] $resourceId
+     * @param string[] $conditions
      *
      * @return CursorInterface|ThreadInterface[]
      */
-    public function fetchForResource($id, $type = null, array $conditions = [])
+    public function fetchForResource($resourceType, $resourceId, array $conditions = [])
     {
-        $conditions[Field::CHAN_ID] = $this->getChanIdList($type, $id);
+        $conditions[Field::CHAN_ID] = $this->getChanIdList($resourceType, $resourceId);
 
         return new NotificationCursor(
             $this,
@@ -393,3 +447,4 @@ class NotificationService
         return new DefaultNotification($message, $this->formatterRegistry->get($message->getType()));
     }
 }
+

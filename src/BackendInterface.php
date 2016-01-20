@@ -86,6 +86,16 @@ interface BackendInterface extends MessageContainerInterface
     public function deleteChannel($id, $ignoreErrors = false);
 
     /**
+     * Delete a list of channels channel
+     *
+     * If channel does not exists be silent about it
+     *
+     * @param string $idList
+     * @param string $ignoreErrors
+     */
+    public function deleteChannels($idList, $ignoreErrors = false);
+
+    /**
      * Load an existing subscription
      *
      * @param int $id

@@ -50,6 +50,22 @@ abstract class AbstractBackend implements BackendInterface
     /**
      * {@inheritdoc}
      */
+    public function deleteChannels($idList, $ignoreErrors = false)
+    {
+        $cursor = $this->fetchChannels(array(
+            Field::CHAN_ID => $idList,
+        ));
+
+        if (!$ignoreErrors && !count($cursor) !== count($idList)) {
+            throw new ChannelDoesNotExistException();
+        }
+
+        $cursor->delete();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getChannels($idList)
     {
         $cursor = $this->fetchChannels(array(
