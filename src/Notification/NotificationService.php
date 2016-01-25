@@ -108,7 +108,7 @@ class NotificationService
      *
      * @return string
      */
-    protected function getChanId($resourceType, $resourceId)
+    public function getChanId($resourceType, $resourceId)
     {
         return $resourceType . ':' . $resourceId;
     }
@@ -121,7 +121,7 @@ class NotificationService
      *
      * @return string[]
      */
-    protected function getChanIdList($resourceType, $resourceIdList)
+    public function getChanIdList($resourceType, $resourceIdList)
     {
         $ret = [];
 
@@ -140,7 +140,7 @@ class NotificationService
      *
      * @return string
      */
-    protected function getSubscriberName($subscriberId, $subscriberType = null)
+    public function getSubscriberName($subscriberId, $subscriberType = null)
     {
         if (!$subscriberType) {
             $subscriberType  = self::SUBER_TYPE_DEFAULT;

@@ -1,0 +1,66 @@
+# Example of services.yml file you may use if you intend to use this PHP
+# component with a Symfony bundle or as a standalone application using the
+# Symfony's dependency injection container
+
+parameters:
+
+    # Silent mode will force the backend to fail silently and fallback on null
+    # formatter implementation when trying to display a notification with a non
+    # existing formatter, this is recommended for production
+    apb.notification.silent: false
+
+services:
+
+    # Database backend configuration: this example uses the Drupal one (provided
+    # by the makina-corpus/drupal-apubsub package)
+    apb.backend:
+        class: MakinaCorpus\Drupal\APubSub\Backend\DrupalBackend
+        arguments: ["@database"]
+        tags: [{ name: apb.backend }]
+
+    # Default formatter registry necessary for the notification component
+    # to work as expected
+    apb.notification.formatter_registry:
+        public: false
+        class: MakinaCorpus\APubSub\Notification\ContainerAwareFormatterRegistry
+        arguments: ["@service_container"]
+
+    # Notification backend itself, the one doing the whole magic
+    apb.notification:
+        class: MakinaCorpus\APubSub\Notification\NotificationService
+        arguments: ["@apb.backend", "%apb.notification.silent%"]
+        calls:
+            - [setFormatterRegistry, ["@apb.notification.formatter_registry"]]
+
+    # The "automatic event listener" which triggers notifications upon event
+    # dispatcher events, it needs prior formatter registration using the
+    # MakinaCorpus\APubSub\Notification\DependencyInjection\Compiler\RegisterFormattersPass
+    # class. Note that this class may compile using different services names, so
+    # nothing is hardcoded there, but default configuration matches this sample
+    # so you may just copy-paste it and add the compiler pass without worrying.
+    apb.notification.auto_event_listener:
+        class: MakinaCorpus\APubSub\Notification\EventDispatcher\AutoEventListener
+        arguments: ["@apb.notification"]
+
+    # Here is an example of registered notification formatter
+    my_module.notification.node_updated:
+      class: MakinaCorpus\Drupal\APubSub\Notification\NodeUpdated
+      arguments: ["@entity.manager"]
+      tags:
+        -
+          # This is necessary for the formatter to be registered
+          name: apb.notification.formatter
+          # This is the RESOURCE_TYPE:ACTION string that this formatter
+          # is about
+          event: "node:update"
+          # This tells to register it into the automatic listener, and
+          # per default is false
+          auto: true
+          # This is a single argument or list of channels on which this
+          # notification should be sent instead of the RESOURCETYPE:ACTION
+          # default channel
+          # @todo
+          # I am sorry because tag attributes cannot be arrays, whereas I'd
+          # need this, but a solution in order to define one or more channels
+          # will be found at some point
+          channels: some_channel_id
