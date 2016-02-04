@@ -47,7 +47,7 @@ class ResourceEvent extends GenericEvent
         parent::__construct(null, $data + ['uid' => $userId]);
 
         $this->resourceType = $resourceType;
-        $this->resourceIdList = Misc::toArray($userId);
+        $this->resourceIdList = Misc::toArray($resourceIdList);
     }
 
     /**
