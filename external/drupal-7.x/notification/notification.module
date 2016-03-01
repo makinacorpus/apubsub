@@ -10,24 +10,9 @@
  */
 
 use APubSub\CursorInterface;
-use APubSub\Error\ChannelDoesNotExistException;
 use APubSub\Error\SubscriptionDoesNotExistException;
 use APubSub\Field;
 use APubSub\Notification\NotificationService;
-
-/**
- * Register custom autoloader for the Apb\Notification namespace.
- */
-spl_autoload_register(function ($className) {
-  if (false !== strpos($className, '\\')) {
-    $parts = explode('\\', $className);
-    if ('Apb' === $parts[0] && 'Notification' === $parts[1]) {
-      $filename = __DIR__ . '/lib/' . implode('/', $parts) . '.php';
-      return (bool)include_once $filename;
-    }
-  }
-  return false;
-});
 
 /**
  * Type instance info
