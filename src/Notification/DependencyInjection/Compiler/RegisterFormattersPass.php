@@ -140,7 +140,7 @@ class RegisterFormattersPass implements CompilerPassInterface
                     // Register default channels for this notification formatter
                     $channelOverride = $attributes[0]['channels'];
                     if (!is_array($channelOverride)) {
-                        $channelOverride = [$channelOverride];
+                        $channelOverride = explode(',', $channelOverride);
                     }
                     // Consistency check, could be better...
                     foreach ($channelOverride as $chanId) {
