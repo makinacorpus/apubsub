@@ -88,16 +88,16 @@ class AutoEventListener
      */
     protected function onEvent($resourceType, $action, Event $event)
     {
-        $id   = null;
-        $data = null;
-        $key  = $resourceType . ':' . $action;
+        $idList = null;
+        $data   = null;
+        $key    = $resourceType . ':' . $action;
 
         $sendOnDefaultChan = true;
         $additionalChanId = [];
 
         if ($event instanceof ResourceEvent) {
             $data = $event->getArguments();
-            $id = $event->getResourceIdList();
+            $idList = $event->getResourceIdList();
 
             $additionalChanId = $event->getChanIdList();
             $sendOnDefaultChan = $event->shouldKeepDefaultChan();
@@ -107,20 +107,20 @@ class AutoEventListener
 
             // Attempt to do a best guess at the resource identifier
             if (isset($event['id'])) {
-                $id = $event['id'];
+                $idList = [$event['id']];
             } else {
                 $subject = $event->getSubject();
                 if (is_scalar($subject)) {
-                    $id = $subject;
+                    $idList = [$subject];
                 } else if (method_exists($subject, 'getId')) {
-                    $id = $subject->getId();
+                    $idList = [$subject->getId()];
                 } else if (property_exists($subject, 'id')) {
-                    $id = $subject->id;
+                    $idList = [$subject->id];
                 }
             }
         }
 
-        if (isset($id)) {
+        if (isset($idList)) {
 
             // Proceed with pre-configured overrides
             if ($sendOnDefaultChan && isset($this->chanBlockingOverrides[$key])) {
@@ -129,15 +129,18 @@ class AutoEventListener
             }
 
             if ($additionalChanId) {
+                foreach ($idList as $id) {
+                    if ($sendOnDefaultChan) {
+                        $additionalChanId[] = $this->service->getChanId($resourceType, $id);
+                    }
 
-                if ($sendOnDefaultChan) {
-                    $additionalChanId[] = $this->service->getChanId($resourceType, $id);
+                    $this->service->notifyChannel($additionalChanId, $resourceType, $id, $action, $data);
                 }
-
-                $this->service->notifyChannel($additionalChanId, $resourceType, $id, $action, $data);
-
-            } else if ($sendOnDefaultChan) {
-                $this->service->notify($resourceType, $id, $action, $data);
+            }
+            else if ($sendOnDefaultChan) {
+                foreach ($idList as $id) {
+                    $this->service->notify($resourceType, $id, $action, $data);
+                }
             }
             // We might end up sending nothing, as soon as any of the listeners
             // explicitly forbid to send on the default chan, and we have no

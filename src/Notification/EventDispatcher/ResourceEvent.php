@@ -59,7 +59,7 @@ class ResourceEvent extends GenericEvent
     public function addResourceChanId($resourceType, $resourceId)
     {
         foreach (Misc::toIterable($resourceId) as $id) {
-            $this->chanIdList[] = $resourceId . ':' . $id;
+            $this->chanIdList[] = $resourceType . ':' . $id;
         }
     }
 

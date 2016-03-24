@@ -153,7 +153,7 @@ class NotificationService
      * Get subscriber names list
      *
      * @param string[] $subscriberIdList
-     * @param string $subscriberType
+     * @param string $type
      *
      * @return string[]
      */
