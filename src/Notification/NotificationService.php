@@ -375,6 +375,10 @@ class NotificationService
                 }
             }
 
+            // Channels are not automatically created
+            // TODO Find a better a way, to filter out non-existing channels
+            $this->backend->createChannels($chanIdList, true);
+
             $this->backend->send($chanIdList, $data, $type, null, $level, $exclude);
 
         } catch (ChannelDoesNotExistException $e) {
