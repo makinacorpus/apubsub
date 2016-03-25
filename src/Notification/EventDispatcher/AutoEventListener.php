@@ -125,7 +125,9 @@ class AutoEventListener
             // Proceed with pre-configured overrides
             if ($sendOnDefaultChan && isset($this->chanBlockingOverrides[$key])) {
                 $additionalChanId = array_merge($additionalChanId, $this->chanBlockingOverrides[$key]);
-                $sendOnDefaultChan = false;
+                // FIXME override should not be blocking default chans
+                // @TODO add a blocking boolean tag attribute (false by default)
+                // $sendOnDefaultChan = false;
             }
 
             if ($additionalChanId) {
