@@ -3,12 +3,14 @@
 namespace MakinaCorpus\APubSub\Notification;
 
 use MakinaCorpus\APubSub\BackendInterface;
+use MakinaCorpus\APubSub\Backend\DefaultMessage;
 use MakinaCorpus\APubSub\CursorInterface;
 use MakinaCorpus\APubSub\Error\ChannelDoesNotExistException;
 use MakinaCorpus\APubSub\Field;
+use MakinaCorpus\APubSub\MessageInstanceInterface;
 use MakinaCorpus\APubSub\Misc;
 use MakinaCorpus\APubSub\SubscriberInterface;
-use MakinaCorpus\APubSub\MessageInstanceInterface;
+use MakinaCorpus\APubSub\Backend\DefaultMessageInstance;
 
 /**
  * Notification service, single point of entry for the business layer
@@ -375,6 +377,8 @@ class NotificationService
                 }
             }
 
+            $this->prepareNotification($type, $data, $level);
+
             // Channels are not automatically created
             // TODO Find a better a way, to filter out non-existing channels
             $this->backend->createChannels($chanIdList, true);
@@ -387,6 +391,24 @@ class NotificationService
             // Any other exception must be shutdown when in production mode
             if (!$this->silentMode) {
                 throw $e;
+            }
+        }
+    }
+
+    private function prepareNotification($type, &$data = [], $level = null)
+    {
+        $formatter = $this->formatterRegistry->get($type);
+
+        if ($formatter instanceof CacheableFormatterInterface) {
+
+            // Build a fake message, in order to be able to get a notification
+            // object from it which allows us to pre-render the cached version
+            // if appliable and store it along the message contents
+            $notification = $this->getNotification(new DefaultMessageInstance($this->backend, null, $data, null, null, new \DateTime(), $type));
+
+            $additions = $formatter->prepareCache($notification);
+            if ($additions) {
+                $data['data'] = array_merge($data, $additions);
             }
         }
     }
