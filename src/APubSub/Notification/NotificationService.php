@@ -184,7 +184,7 @@ class NotificationService
             $idList = array($idList);
         }
 
-        array_walk($idList, function (&$id) {
+        array_walk($idList, function (&$id) use ($type) {
             $id = $type . ':' . $id;
         });
 
