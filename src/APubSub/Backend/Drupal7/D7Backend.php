@@ -231,37 +231,36 @@ class D7Backend extends AbstractBackend
 
     public function deleteSubscriber($id)
     {
-        $cx         = $this->context->dbConnection;
-        $tx         = null;
-        $subscriber = $this->getSubscriber($id);
+        $this->deleteSubscribers(['id']);
+    }
+
+    public function deleteSubscribers($idList)
+    {
+        $cx = $this->context->dbConnection;
+        $tx = null;
 
         try {
-            $tx   = $cx->startTransaction();
-
-            $args = array(':id' => $id);
+            $tx = $cx->startTransaction();
 
             // FIXME: SELECT FOR UPDATE here in all tables
 
-            // Start by deleting all subscriptions.
-            $subIdList = array();
-            foreach ($subscriber->getSubscriptions() as $subscription) {
-                $subIdList[] = $subscription->getId();
-            }
-
-            if (!empty($subIdList)) {
-                $cursor = $this
+            if (!empty($idList)) {
+                $this
                     ->fetchSubscriptions(array(
-                        Field::SUB_ID => $subIdList,
+                        Field::SUBER_NAME => $idList,
                     ))
-                    ->delete();
+                    ->delete()
+                ;
             }
 
-            $cx->query("DELETE FROM {apb_sub_map} WHERE name = :id", $args);
+            $cx->query("DELETE FROM {apb_sub_map} WHERE name IN (:id)", array(':id' => $idList));
 
             unset($tx); // Explicit commit
 
-            if (isset($this->subscribersCache[$id])) {
-                unset($this->subscribersCache[$id]);
+            foreach ($idList as $id) {
+                if (isset($this->subscribersCache[$id])) {
+                    unset($this->subscribersCache[$id]);
+                }
             }
 
         } catch (\Exception $e) {
@@ -272,14 +271,6 @@ class D7Backend extends AbstractBackend
             }
 
             throw $e;
-        }
-    }
-
-    public function deleteSubscribers($idList)
-    {
-        // FIXME: Find a more elegant way of doing this
-        foreach ($idList as $id) {
-            $this->deleteSubscriber($id);
         }
     }
 
