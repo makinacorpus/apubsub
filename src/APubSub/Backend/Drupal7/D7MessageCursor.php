@@ -337,23 +337,43 @@ class D7MessageCursor extends AbstractD7Cursor
 
         $cx = $this->context->dbConnection;
 
-        $cx->query("
-            DELETE FROM {apb_msg_chan}
-            WHERE
-                msg_id IN (
-                    SELECT id
-                    FROM {" . $tempTableName ."}
-                )
-        ");
+        switch ($cx->driver()) {
 
-        $cx->query("
-            DELETE FROM {apb_queue}
-            WHERE
-                id IN (
-                    SELECT id
-                    FROM {" . $tempTableName ."}
-                )
-        ");
+            /*
+             * Actually, this cause unit tests fails, for an unknown reason...
+            case 'mysql':
+                $cx->query("
+                    DELETE c.* FROM {apb_msg_chan} c
+                    JOIN {" . $tempTableName . "} t ON t.id = c.msg_id
+                ");
+
+                $cx->query("
+                    DELETE q.* FROM {apb_queue} q
+                    JOIN {" . $tempTableName . "} t ON t.id = q.msg_id
+                ");
+                break;
+              */
+
+            default:
+                $cx->query("
+                    DELETE c.* FROM {apb_msg_chan} c
+                    WHERE
+                        msg_id IN (
+                            SELECT id
+                            FROM {" . $tempTableName ."}
+                        )
+                ");
+
+                $cx->query("
+                    DELETE q.* FROM {apb_queue} q
+                    WHERE
+                        id IN (
+                            SELECT id
+                            FROM {" . $tempTableName ."}
+                        )
+                ");
+                break;
+        }
 
         $cx->query("DROP TABLE {" . $tempTableName . "}");
     }
@@ -395,17 +415,41 @@ class D7MessageCursor extends AbstractD7Cursor
         // cases) we need to proceed using a temporary table
         $tempTableName = $this->createTempTable($additionalConditions);
 
+        /** @var \DatabaseConnection $cx */
         $cx = $this->context->dbConnection;
 
-        $select = $cx
-            ->select($tempTableName, 't')
-            ->fields('t', array('id'));
+        switch ($cx->driver()) {
 
-        $cx
-            ->update('apb_queue')
-            ->fields($queryValues)
-            ->condition('id', $select, 'IN')
-            ->execute();
+            case 'mysql':
+                // Manually build updates
+                $setList = [];
+                $arguments = [];
+                $id = 0;
+                foreach ($queryValues as $field => $value) {
+                    ++$id;
+                    $argId = ':auto_' . $id;
+                    $setList[] = 'q.' . $cx->escapeField($field) . ' = ' . $argId;
+                    $arguments[$argId] = $value;
+                }
+
+                $cx->query(
+                    "UPDATE {apb_queue} q JOIN {" . $tempTableName . "} t ON t.id = q.msg_id SET " . implode(', ', $setList),
+                    $arguments
+                );
+                break;
+
+            default:
+                $select = $cx
+                    ->select($tempTableName, 't')
+                    ->fields('t', array('id'));
+
+                $cx
+                    ->update('apb_queue')
+                    ->fields($queryValues)
+                    ->condition('id', $select, 'IN')
+                    ->execute();
+                break;
+        }
 
         $cx->query("DROP TABLE {" . $tempTableName . "}");
     }
