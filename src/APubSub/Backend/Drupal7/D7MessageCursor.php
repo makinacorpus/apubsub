@@ -433,7 +433,7 @@ class D7MessageCursor extends AbstractD7Cursor
                 }
 
                 $cx->query(
-                    "UPDATE {apb_queue} q JOIN {" . $tempTableName . "} t ON t.id = q.msg_id SET " . implode(', ', $setList),
+                    "UPDATE {apb_queue} q JOIN {" . $tempTableName . "} t ON t.id = q.id SET " . implode(', ', $setList),
                     $arguments
                 );
                 break;
