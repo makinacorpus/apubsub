@@ -37,15 +37,11 @@ function notification_page_user_list($form, &$form_state, $account) {
   $total = $cursor->getTotalCount();
   pager_default_initialize($total, $limit);
 
-  $form['#tree']  = TRUE;
+  $form['#tree']  = true;
   $form['#theme'] = 'notification_page';
   $form['list'] = array(
     '#type'    => 'checkboxes',
     '#options' => array(),
-  );
-  $form['uid'] = array(
-    '#type'  => 'value',
-    '#value' => $account->uid,
   );
 
   foreach ($cursor as $message) {
@@ -105,6 +101,22 @@ function notification_page_user_list($form, &$form_state, $account) {
     ),
   );
 
+  // If the user is submitting the form, new notifications could happen in
+  // between, which would make the #options on form POST rebuild to change
+  // compared to the previous form load on the initial GET, Drupal would
+  // then detect this change as a form selection illegal choice and deliver
+  // an error page to the user.
+  // Since that the submit handler may only load notifications from the current
+  // user subscriber, not matter how hard someone will try to hack the site he
+  // will only be able to mark as read or unread its own notifications, so there
+  // is no security issue in disabling the form validation from there.
+  // For this to work, current user identifier cannot be set as a field value
+  // but as a raw data in the $form structure, to avoid it transiting via the
+  // form POST data.
+  $form['#account'] = $account;
+  $form['actions']['unread']['#limit_validation_errors'] = [];
+  $form['actions']['delete']['#limit_validation_errors'] = [];
+
   return $form;
 }
 
@@ -114,22 +126,25 @@ function notification_page_user_list($form, &$form_state, $account) {
 function notification_page_user_list_submit_unread($form, &$form_state) {
 
   $service    = notification_service_get();
-  $subscriber = $service->getSubscriberFor(ACCOUNT_SUB, $form_state['values']['uid']);
+  $account    = $form['#account'];
+  $subscriber = $service->getSubscriberFor(ACCOUNT_SUB, $account->uid);
   $count      = 0;
 
-  foreach ($form_state['values']['list'] as $msgid => $enabled) {
-    if ($msgid == $enabled) {
-      ++$count;
+  // Because we disabled form validation, we need to be able to fetch the
+  // identifiers from the POST array instead of the form values, hopefully
+  // form API carries it in the form state.
+  $msgIdList = array_map('intval', array_keys(array_filter($form_state['input']['list'])));
+  $count = count($msgIdList);
 
-      $cursor = $subscriber
-        ->fetch(array(
-            Field::MSG_ID => $msgid,
-        ));
-
-      foreach ($cursor as $message) {
-        $message->setUnread(false);
-      }
-    }
+  if ($msgIdList) {
+    $subscriber
+      ->fetch(array(
+          Field::MSG_ID => $msgIdList,
+      ))
+      ->update([
+          Field::MSG_UNREAD => 1,
+      ])
+    ;
   }
 
   drupal_set_message(format_plural($count,
@@ -147,19 +162,19 @@ function notification_page_user_list_submit_delete($form, &$form_state) {
   $count      = 0;
   $list       = array();
 
-  foreach ($form_state['values']['list'] as $msgid => $enabled) {
-    if ($msgid == $enabled) {
-      ++$count;
-      $list[] = $msgid;
-    }
-  }
+  // Because we disabled form validation, we need to be able to fetch the
+  // identifiers from the POST array instead of the form values, hopefully
+  // form API carries it in the form state.
+  $msgIdList = array_map('intval', array_keys(array_filter($form_state['input']['list'])));
+  $count = count($msgIdList);
 
-  if ($list) {
+  if ($msgIdList) {
     $subscriber
       ->fetch(array(
-        Field::MSG_ID => $list,
+        Field::MSG_ID => $msgIdList,
       ))
-      ->delete();
+      ->delete()
+    ;
   }
 
   drupal_set_message(format_plural($count,
