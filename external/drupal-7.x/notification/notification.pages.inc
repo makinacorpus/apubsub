@@ -158,9 +158,9 @@ function notification_page_user_list_submit_unread($form, &$form_state) {
 function notification_page_user_list_submit_delete($form, &$form_state) {
 
   $service    = notification_service_get();
-  $subscriber = $service->getSubscriberFor(ACCOUNT_SUB, $form_state['values']['uid']);
+  $account    = $form['#account'];
+  $subscriber = $service->getSubscriberFor(ACCOUNT_SUB, $account->uid);
   $count      = 0;
-  $list       = array();
 
   // Because we disabled form validation, we need to be able to fetch the
   // identifiers from the POST array instead of the form values, hopefully
