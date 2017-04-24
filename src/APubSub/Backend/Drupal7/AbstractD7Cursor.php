@@ -5,7 +5,6 @@ namespace APubSub\Backend\Drupal7;
 use APubSub\Backend\AbstractCursor;
 use APubSub\ContextInterface;
 use APubSub\CursorInterface;
-use APubSub\Field;
 use APubSub\Misc;
 
 /**
@@ -80,7 +79,7 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
     /**
      * Create target object from record
      *
-     * @param \stdClass $record Result row from database query 
+     * @param \stdClass $record Result row from database query
      *
      * @return mixed            New object instance
      */
@@ -113,11 +112,8 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
     final public function getTotalCount()
     {
         if (null === $this->count) {
-            $query = clone $this->getQuery();
-
-            $this->count = (int)$query
-                ->range()
-                ->countQuery()
+            $this->count = (int)$this
+                ->buildCountQuery()
                 ->execute()
                 ->fetchField();
         }
@@ -129,31 +125,56 @@ abstract class AbstractD7Cursor extends AbstractCursor implements \IteratorAggre
      * Build inititial query instance using the correct FROM and JOIN statements
      * ommiting the WHERE, ORDER, LIMIT and GROUP BY statements
      *
-     * @return \SelectQueryInterface
+     * @return \SelectQuery
      */
     protected abstract function buildQuery();
 
     /**
+     * Build inititial COUNT query instance using the correct FROM and JOIN statements
+     * ommiting the WHERE, ORDER, LIMIT and GROUP BY statements
+     *
+     * @return \SelectQuery
+     */
+    protected function buildCountQuery()
+    {
+        $query = clone $this->getQuery();
+
+        return $query->range()->countQuery();
+    }
+
+    /**
+     * Apply conditions on the given query
+     *
+     * If you override buildCountQuery() for example, please do not forget to
+     * call this method on the generated count query.
+     *
+     * @param \SelectQueryInterface $query
+     */
+    final protected function applyConditionsOnQuery(\SelectQueryInterface $query)
+    {
+        // Apply conditions.
+        foreach ($this->conditions as $statement => $value) {
+            // Check if $value contains an operator (i.e. if is associative array)
+            if (is_array($value) && !Misc::isIndexed($value)) {
+                $keys = array_keys($value);
+                $query->condition($statement, array_values($value), $keys[0]);
+            } else {
+                $query->condition($statement, $value);
+            }
+        }
+    }
+
+    /**
      * Get query
      *
-     * @return \SelectQueryInterface $query
+     * @return \SelectQueryInterface
      */
     final public function getQuery()
     {
         if (null === $this->query) {
 
             $this->query = $this->buildQuery();
-
-            // Apply conditions.
-            foreach ($this->conditions as $statement => $value) {
-                // Check if $value contains an operator (i.e. if is associative array)
-                if (is_array($value) && !Misc::isIndexed($value)) {
-                    $keys = array_keys($value);
-                    $this->query->condition($statement, array_values($value), $keys[0]);
-                } else {
-                    $this->query->condition($statement, $value);
-                }
-            }
+            $this->applyConditionsOnQuery($this->query);
 
             $limit = $this->getLimit();
 

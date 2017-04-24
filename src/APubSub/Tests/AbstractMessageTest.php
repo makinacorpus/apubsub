@@ -16,6 +16,8 @@ abstract class AbstractMessageTest extends AbstractBackendBasedTest
 
         // Test we can fetch the message
         $messages = $subscriber->fetch();
+        $this->assertSame(1, $messages->getTotalCount());
+
         foreach ($messages as $message) {
 
             $id = $message->getId();
@@ -60,6 +62,7 @@ abstract class AbstractMessageTest extends AbstractBackendBasedTest
 
         // Test original messages state for suber 1
         $cursor = $sub1->fetch();
+        $this->assertSame(5, $cursor->getTotalCount());
         $count = 0;
         /** @var \APubSub\MessageInstanceInterface $msg */
         foreach ($cursor as $msg) {
@@ -68,6 +71,11 @@ abstract class AbstractMessageTest extends AbstractBackendBasedTest
             ++$count;
         }
         $this->assertSame(5, $count);
+
+        // Also count with message table conditions, to ensures that
+        // JOINs are done properly when using the Drupal backend
+        $cursor = $sub1->fetch([Field::MSG_LEVEL => 0]);
+        $this->assertSame(5, $cursor->getTotalCount());
 
         // And for suber 2
         $cursor = $sub2->fetch();
@@ -79,6 +87,9 @@ abstract class AbstractMessageTest extends AbstractBackendBasedTest
             ++$count;
         }
         $this->assertSame(5, $count);
+        // Count after iteration should not change
+
+        $this->assertSame(5, $cursor->getTotalCount());
 
         // Update suber 1 messages
         $cursor = $sub1->fetch();

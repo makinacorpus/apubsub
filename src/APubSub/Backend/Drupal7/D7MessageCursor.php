@@ -3,7 +3,6 @@
 namespace APubSub\Backend\Drupal7;
 
 use APubSub\Backend\DefaultMessageInstance;
-use APubSub\ContextInterface;
 use APubSub\CursorInterface;
 use APubSub\Field;
 
@@ -18,6 +17,15 @@ class D7MessageCursor extends AbstractD7Cursor
      * @var boolean
      */
     private $queryOnChan = false;
+
+    /**
+     * Used only for count queries, if no filters are set on the apb_msg table
+     * this will remain to false, and the generated COUNT query will not JOIN
+     * with the other tables
+     *
+     * @var boolean
+     */
+    private $queryWithMsg = false;
 
     /**
      * @var boolean
@@ -70,6 +78,7 @@ class D7MessageCursor extends AbstractD7Cursor
                     }
 
                     $ret['m.type_id'] = $value;
+                    $this->queryWithMsg = true;
                     break;
 
                 case Field::SUB_ID:
@@ -83,6 +92,7 @@ class D7MessageCursor extends AbstractD7Cursor
 
                 case Field::MSG_LEVEL:
                     $ret['m.level'] = $value;
+                    $this->queryWithMsg = true;
                     break;
 
                 case Field::CHAN_ID:
@@ -102,6 +112,7 @@ class D7MessageCursor extends AbstractD7Cursor
 
                         $ret['mc.chan_id'] = $value;
                         $this->queryOnChan = true;
+                        $this->queryWithMsg = true;
 
                     } catch (ChannelDoesNotExistException $e) {
                         // No result no chan (tududu dudu).
@@ -284,6 +295,60 @@ class D7MessageCursor extends AbstractD7Cursor
     }
 
     /**
+     *
+     * {@inheritdoc}
+     */
+    private function buildQueryWithoutMessage()
+    {
+        /*
+         * This will attempt to do the same as buildQuery() but ommiting a few
+         * tables whenever possible. Count queries don't need fields, Drupal API
+         * will replace them with SELECT 1 instead.
+         */
+
+        if ($this->queryOnSuber) {
+            $query = $this->context->dbConnection->select('apb_sub_map', 'mp');
+            // @todo Smart conditions for subscriber and subscription
+            $query->join('apb_queue', 'q', 'q.sub_id = mp.sub_id');
+        } else {
+            $query = $this->context->dbConnection->select('apb_queue', 'q');
+        }
+
+        if ($this->queryWithMsg) {
+            $query->join('apb_msg', 'm', 'm.id = q.msg_id');
+        }
+        if ($this->queryOnChan) {
+            $query->join('apb_msg_chan', 'mc', 'q.msg_id = mc.msg_id');
+        }
+
+        // Disallow message duplicates, remember that trying to read the
+        // unread or read timestamp status when requesting from a channel
+        // makes no sense
+        // You'd also have to consider that when we're dealing with UPDATE
+        // or DELETE operations we want the full result list in order to
+        // correctly wipe out the queue
+        if ($this->distinct) {
+            $query->groupBy('q.msg_id');
+        }
+
+        $this->applyConditionsOnQuery($query);
+
+        return $query;
+    }
+
+    /**
+     *
+     * {@inheritdoc}
+     */
+    protected function buildCountQuery()
+    {
+        // We cannot just addExpression('COUNT(*)', 'count'); because if they
+        // GROUP BY clauses, then it will COUNT(*) per row instead of counting
+        // everyting
+        return $this->buildQueryWithoutMessage()->countQuery();
+    }
+
+    /**
      * Create temporary table from current query
      *
      * @return string New temporary table name, filled in with query primary
@@ -291,14 +356,12 @@ class D7MessageCursor extends AbstractD7Cursor
      */
     private function createTempTable(array $additionalConditions = null)
     {
-        $query = clone $this->getQuery();
+        // Use the cound query, because we don't always need the msg id.
+        // Count query do not carry any field so we don't need to attempt
+        // to drop them
+        $query = $this->buildQueryWithoutMessage();
         $query->distinct(false);
 
-        // I am sorry but I have to be punished for I am writing this
-        $selectFields = &$query->getFields();
-        foreach ($selectFields as $key => $value) {
-            unset($selectFields[$key]);
-        }
         // Again.
         $tables = &$query->getTables();
         foreach ($tables as $key => $table) {
