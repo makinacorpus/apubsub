@@ -222,35 +222,60 @@ class D7SubscriptionCursor extends AbstractD7Cursor
 
             // FIXME: Performance problem right here
             // Explore ON DELETE CASCADE (problem with Drupal here)
-            $cx->query("
-                DELETE
-                FROM {apb_queue}
-                WHERE
-                    sub_id IN (
-                        SELECT id
-                        FROM {" . $tempTableName . "}
-                    )
-            ");
+            switch ($cx->driver()) {
 
-            $cx->query("
-                DELETE
-                FROM {apb_sub}
-                WHERE
-                    id IN (
-                        SELECT id
-                        FROM {" . $tempTableName ."}
-                    )
-            ");
+                case 'mysql':
+                    $cx->query("
+                        DELETE q.*
+                        FROM {apb_queue} q
+                        JOIN {" . $tempTableName . "} t ON t.id = q.sub_id
+                    ");
 
-            $cx->query("
-                DELETE
-                FROM {apb_sub_map}
-                WHERE
-                    sub_id IN (
-                        SELECT id
-                        FROM {" . $tempTableName ."}
-                    )
-            ");
+                    $cx->query("
+                        DELETE s.*
+                        FROM {apb_sub} s
+                        JOIN {" . $tempTableName . "} t ON t.id = s.id
+                    ");
+
+                    $cx->query("
+                        DELETE m.*
+                        FROM {apb_sub_map} m
+                        JOIN {" . $tempTableName . "} t ON t.id = m.sub_id
+                    ");
+                    break;
+
+                default:
+                    $cx->query("
+                        DELETE
+                        FROM {apb_queue}
+                        WHERE
+                            sub_id IN (
+                                SELECT id
+                                FROM {" . $tempTableName . "}
+                            )
+                    ");
+
+                    $cx->query("
+                        DELETE
+                        FROM {apb_sub}
+                        WHERE
+                            id IN (
+                                SELECT id
+                                FROM {" . $tempTableName ."}
+                            )
+                    ");
+
+                    $cx->query("
+                        DELETE
+                        FROM {apb_sub_map}
+                        WHERE
+                            sub_id IN (
+                                SELECT id
+                                FROM {" . $tempTableName ."}
+                            )
+                    ");
+                    break;
+            }
 
             $cx->query("DROP TABLE {" . $tempTableName . "}");
 

@@ -339,8 +339,6 @@ class D7MessageCursor extends AbstractD7Cursor
 
         switch ($cx->driver()) {
 
-            /*
-             * Actually, this cause unit tests fails, for an unknown reason...
             case 'mysql':
                 $cx->query("
                     DELETE c.* FROM {apb_msg_chan} c
@@ -349,10 +347,9 @@ class D7MessageCursor extends AbstractD7Cursor
 
                 $cx->query("
                     DELETE q.* FROM {apb_queue} q
-                    JOIN {" . $tempTableName . "} t ON t.id = q.msg_id
+                    JOIN {" . $tempTableName . "} t ON t.id = q.id
                 ");
                 break;
-              */
 
             default:
                 $cx->query("

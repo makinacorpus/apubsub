@@ -140,60 +140,102 @@ class D7ChannelCursor extends AbstractD7Cursor
             // cases) we need to proceed using a temporary table
             $tempTableName = $this->createTempTable();
 
-            $cx->query("
-                DELETE FROM {apb_msg}
-                WHERE
-                    id IN (
-                        SELECT msg_id
+            switch ($cx->driver()) {
+
+                case 'mysql':
+                    $cx->query("
+                        DELETE m.* FROM {apb_msg} m
+                        JOIN {apb_msg_chan} c ON c.msg_id = m.id
+                        JOIN {" . $tempTableName . "} t ON t.id = c.chan_id
+                    ");
+
+                    $cx->query("
+                        DELETE c.* FROM {apb_msg_chan} c
+                        JOIN {" . $tempTableName . "} t ON t.id = c.chan_id
+                    ");
+
+                    // FIXME: Performance problem right here
+                    // Explore ON DELETE CASCADE (problem with Drupal here)
+                    $cx->query("
+                        DELETE
+                        FROM {apb_queue}
+                        WHERE
+                            msg_id NOT IN (
+                                SELECT id
+                                FROM {apb_msg}
+                            )
+                    ");
+
+                    $cx->query("
+                        DELETE s.*
+                        FROM {apb_sub} s
+                        JOIN {" . $tempTableName . "} t ON t.id = s.chan_id
+                    ");
+
+                    $cx->query("
+                        DELETE c.*
+                        FROM {apb_chan} c
+                        JOIN {" . $tempTableName . "} t ON t.id = c.id
+                    ");
+                    break;
+
+                default:
+                    $cx->query("
+                        DELETE FROM {apb_msg}
+                        WHERE
+                            id IN (
+                                SELECT msg_id
+                                FROM {apb_msg_chan}
+                                WHERE
+                                    chan_id IN (
+                                        SELECT id
+                                        FROM {" . $tempTableName ."}
+                                    )
+                            )
+                    ");
+
+                    $cx->query("
+                        DELETE
                         FROM {apb_msg_chan}
                         WHERE
                             chan_id IN (
                                 SELECT id
                                 FROM {" . $tempTableName ."}
                             )
-                    )
-            ");
+                    ");
 
-            $cx->query("
-                DELETE
-                FROM {apb_msg_chan}
-                WHERE
-                    chan_id IN (
-                        SELECT id
-                        FROM {" . $tempTableName ."}
-                    )
-            ");
+                    // FIXME: Performance problem right here
+                    // Explore ON DELETE CASCADE (problem with Drupal here)
+                    $cx->query("
+                        DELETE
+                        FROM {apb_queue}
+                        WHERE
+                            msg_id NOT IN (
+                                SELECT id
+                                FROM {apb_msg}
+                            )
+                    ");
 
-            // FIXME: Performance problem right here
-            // Explore ON DELETE CASCADE (problem with Drupal here)
-            $cx->query("
-                DELETE
-                FROM {apb_queue}
-                WHERE
-                    msg_id NOT IN (
-                        SELECT id
-                        FROM {apb_msg}
-                    )
-            ");
-
-            $cx->query("
-                DELETE
-                FROM {apb_sub}
-                WHERE
-                    chan_id IN (
-                        SELECT id
-                        FROM {" . $tempTableName . "}
-                    )
-            ");
-            $cx->query("
-                DELETE
-                FROM {apb_chan}
-                WHERE
-                    id IN (
-                        SELECT id
-                        FROM {" . $tempTableName ."}
-                    )
-            ");
+                    $cx->query("
+                        DELETE
+                        FROM {apb_sub}
+                        WHERE
+                            chan_id IN (
+                                SELECT id
+                                FROM {" . $tempTableName . "}
+                            )
+                    ");
+                    $cx->query("
+                        DELETE
+                        FROM {apb_chan}
+                        WHERE
+                            id IN (
+                                SELECT id
+                                FROM {" . $tempTableName ."}
+                            )
+                    ");
+                    break;
+            }
 
             $cx->query("DROP TABLE {" . $tempTableName . "}");
 
