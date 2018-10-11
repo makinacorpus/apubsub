@@ -134,7 +134,7 @@ class RegisterFormattersPass implements CompilerPassInterface
                 // run last so that other events might abitrary add channels
                 // to the event where to send the notification, doing so allows
                 // use to use the very same events for changing channels
-                $dispatcherDefinition->addMethodCall('addListenerService', [$event, [$this->listenerService, $methodName], -10000]);
+                $dispatcherDefinition->addMethodCall('addListener', [$event, [$this->listenerService, $methodName], -10000]);
 
                 if (!empty($attributes[0]['channels'])) {
                     // Register default channels for this notification formatter
