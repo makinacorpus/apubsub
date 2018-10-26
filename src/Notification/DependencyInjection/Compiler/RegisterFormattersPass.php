@@ -3,6 +3,8 @@
 namespace MakinaCorpus\APubSub\Notification\DependencyInjection\Compiler;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 
 /**
@@ -134,7 +136,13 @@ class RegisterFormattersPass implements CompilerPassInterface
                 // run last so that other events might abitrary add channels
                 // to the event where to send the notification, doing so allows
                 // use to use the very same events for changing channels
-                $dispatcherDefinition->addMethodCall('addListener', [$event, [$this->listenerService, $methodName], -10000]);
+                if (\class_exists(ServiceClosureArgument::class)) {
+                    // Symfony >= 3.4
+                    $dispatcherDefinition->addMethodCall('addListener', [$event, [new ServiceClosureArgument(new Reference($this->listenerService)), $methodName], -10000]);
+                } else {
+                    // Symfony <= 3.3
+                    $dispatcherDefinition->addMethodCall('addListener', [$event, [$this->listenerService, $methodName], -10000]);
+                }
 
                 if (!empty($attributes[0]['channels'])) {
                     // Register default channels for this notification formatter
